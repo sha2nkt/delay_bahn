@@ -754,6 +754,15 @@ body.past-mode .trip-steps { display: none; }
 .bell-btn.on svg, .trip-btn.on svg { fill: currentColor; }
 .bell-btn:focus-visible, .trip-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 .trip-btn:disabled { opacity: .6; cursor: wait; }
+/* the dwell nudge: after 2s on a journey its unfiled bookmark pulses twice */
+.trip-btn.pulse { animation: trip-pulse 1s ease-in-out 2; }
+@keyframes trip-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(253, 28, 23, .45); }
+  50% { transform: scale(1.12); }
+  70% { box-shadow: 0 0 0 9px rgba(253, 28, 23, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(253, 28, 23, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .trip-btn.pulse { animation: none; } }
 /* under the round-trip summary the bookmark stands beside the big button */
 .trip-summary .book-row { margin-top: 12px; }
 .trip-summary .book-row .book-btn-lg { margin-top: 0; }
