@@ -1625,6 +1625,20 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Verified in a 3× headless-Chrome render at 1000 px — icon head level with the caps, body base on the baseline, Abmelden unchanged — and a 500 px render confirming the circle did not move.
 - Busters: `style.css` v118 → **v119** (six pages + the sw.js PRECACHE), `SHELL_VERSION` v81 → **v82**. Live pins read first (118/v81 from today's own deploy, the highest anywhere); no skips. No asset URL was requested with a candidate number before the deploy.
 
+## 2026-09-11 — The unfiled bookmark pulses after a 2s dwell on the results
+
+- Goal: more presses on the bookmark beside the booking button. When the results are on screen and the visitor holds still for 2 s — counted from the results landing or from the last scroll — the unfiled `.trip-btn` nearest the middle of the viewport pulses twice (scale to 1.12 plus an expanding brand-red ring). The timer re-arms on every scroll stop, but each bookmark pulses at most once per render (`data-pulsed`), and lit or disabled bookmarks never pulse, so a reader pausing on every journey isn't strobed at. Fires for one-way cards and the round-trip summary bookmark alike (`armTripPulse()` at the end of `render()` and `renderSummary()`, plus a passive window scroll listener).
+- `prefers-reduced-motion: reduce` disables the animation. Each pulse logs a `trip-pulse` Umami event, so the nudge's effect on `trip-save` is measurable.
+- Verified with `node --check` on app.js; the picker is a no-op when no unfiled bookmark is in the viewport or the results were cleared under a pending timer. Not exercised in a live browser this session.
+- Busters: `app.js` v132 → **v133**, `style.css` v119 → **v120** (six pages + the sw.js PRECACHE), `SHELL_VERSION` v82 → **v83**. Live pins read first (132/119/v82, the highest anywhere across branches and worktrees); no skips. No asset URL was requested with a candidate number before the deploy.
+
+## 2026-09-11 — The Meine Fahrten tally stays on the page before the first trip
+
+- The tally board hid itself until an account had a past trip, so a signed-out visitor or a fresh account never saw what the page keeps count of. `renderStats()` now always shows the section and runs the real sum over whatever is there — an empty window paints `0 min` / `0 min` / `0 min` / `0` in the board's own styling (the delay and cancellation tiles green, as a delay-free window already was), the week/month/year switch working as usual; `showLogin()` renders it too, above the login card. A window with trips but no known delay still reads `–` with its footnote, so a gap is never shown as a zero. The user rejected a first cut with dimmed example numbers and a "Beispiel" tag — the actual board, unfilled, is the preview.
+- Verified by headless-Chrome renders of the signed-out DE and EN pages against a local server (board of zeros above the login card, Jahr active), `node --check`.
+- Busters: `trips.js` v5 → **v6** in trips.html (not in the sw.js PRECACHE; trips.html itself is served no-cache). Live pin read first (5, the highest anywhere across branches and worktrees); no CSS change, so `style.css` stays v120. No asset URL was requested with a candidate number before the deploy.
+- Not done: the onboarding card's lead still says the tally will appear, which now sits right above it; left as is.
+
 ## 2026-09-11 — Past trips keep their delay past the data's rolling window
 
 - The past-trip delay pill, the in-place check and the year tally on Meine Fahrten all read the day's delay from the delays table, which the pipeline keeps as a rolling ~30 days. A trip's finished check was already frozen into the `verdict` column, but only when the account opened the page while the day was still inside that window: a bookmarked trip nobody opened in time lost its delay for good and dropped out of the tally. Backend only, two files.

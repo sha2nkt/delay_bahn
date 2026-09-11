@@ -3399,6 +3399,38 @@ function tripButton(journeys, url) {
   return btn;
 }
 
+/* The dwell nudge: once the visitor settles on a spot in the results — no
+   scroll for 2s, counted from the results landing or the last scroll — the
+   unfiled bookmark nearest the middle of the viewport pulses to say it is
+   there to be pressed. Each bookmark pulses at most once per render, so a
+   reader pausing on every journey isn't strobed at. */
+const TRIP_PULSE_DWELL_MS = 2000;
+let tripPulseTimer = null;
+
+function armTripPulse() {
+  clearTimeout(tripPulseTimer);
+  tripPulseTimer = setTimeout(pulseTripBtn, TRIP_PULSE_DWELL_MS);
+}
+
+function pulseTripBtn() {
+  const mid = window.innerHeight / 2;
+  let best = null, bestDist = Infinity;
+  document.querySelectorAll(".trip-btn[data-trip-keys]").forEach((btn) => {
+    if (btn.classList.contains("on") || btn.disabled || btn.dataset.pulsed) return;
+    const r = btn.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > window.innerHeight || r.width === 0) return;
+    const dist = Math.abs((r.top + r.bottom) / 2 - mid);
+    if (dist < bestDist) { best = btn; bestDist = dist; }
+  });
+  if (!best) return;
+  best.dataset.pulsed = "1";
+  best.classList.add("pulse");
+  best.addEventListener("animationend", () => best.classList.remove("pulse"), { once: true });
+  track("trip-pulse");
+}
+
+window.addEventListener("scroll", armTripPulse, { passive: true });
+
 // the search the press came from: the ids let the trips page rebuild the
 // past-mode search for the trip once its day has passed
 function tripSearchMeta() {
@@ -3914,6 +3946,7 @@ function render() {
 
     resultsEl.appendChild(card);
   }
+  armTripPulse();
 }
 
 // --- step 3: the picked outbound and return on one screen, then one booking link ---
@@ -4040,6 +4073,7 @@ function renderSummary() {
   bookRow.append(book, tripButton(legs, book.href));
   panel.append(total, bookRow);
   resultsEl.appendChild(panel);
+  armTripPulse();
 }
 
 // --- delay stories banner ---
