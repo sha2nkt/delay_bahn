@@ -283,14 +283,12 @@ function spanStart(now) {
    trips, an early arrival counting as nothing lost - split by what caused
    it: a trip the check had to route around a cancelled train counts under
    cancellations, every other under delays. Trips without a known arrival
-   are left out and the footnote says so. */
+   are left out and the footnote says so. With no trips to add up yet the
+   board shows zeros, so a visitor sees what it will keep count of. */
 function renderStats() {
-  const section = $("trips-stats");
+  $("trips-stats").classList.remove("hidden");
   const past = current ? current.trips.filter((tr) => tr.arrival <= current.now) : [];
-  section.classList.toggle("hidden", past.length === 0);
-  if (!past.length) return;
-  const start = spanStart(current.now);
-  const inSpan = past.filter((tr) => tr.departure.slice(0, 10) >= start);
+  const inSpan = current ? past.filter((tr) => tr.departure.slice(0, 10) >= spanStart(current.now)) : [];
   let lostDelay = 0, lostCancel = 0, known = 0, cancelTrips = 0, minutes = 0;
   for (const tr of inSpan) {
     minutes += Math.max(0, tripMinutes(tr));
@@ -305,8 +303,10 @@ function renderStats() {
     el.classList.toggle("lost", anyKnown && value > 0);
     el.classList.toggle("none", anyKnown && value === 0);
   };
-  paint($("stat-delay"), lostDelay, known > 0);
-  paint($("stat-cancel"), lostCancel, known > 0);
+  // an empty window has nothing unknown: it reads as zero, not as a gap
+  const settled = known > 0 || inSpan.length === 0;
+  paint($("stat-delay"), lostDelay, settled);
+  paint($("stat-cancel"), lostCancel, settled);
   $("stat-cancel-note").textContent = cancelTrips ? t("statCancelNote", cancelTrips) : "";
   $("stat-note").textContent = known < inSpan.length ? t("statNote", known, inSpan.length) : "";
   $("stat-time").textContent = fmtMinutes(minutes);
@@ -870,6 +870,7 @@ async function load() {
 
 function showLogin() {
   setStatus("");
+  renderStats();
   $("trips-login").classList.remove("hidden");
 }
 
