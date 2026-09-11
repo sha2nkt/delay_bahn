@@ -452,6 +452,22 @@ def stored_verdict(uid: str, trip_id: int) -> dict | None:
         return None
 
 
+def unresolved(before_day: str) -> list[tuple[str, int]]:
+    """(uid, id) of every trip with no stored check that arrived before
+    `before_day` (YYYY-MM-DD), earliest arrival first - the ones whose day
+    the nightly data will drop first. The delays table is a rolling window,
+    so a trip only keeps its delay past that window once a check is stored:
+    the page stores one when the account opens it in time, the sweep in
+    main.py stores the rest."""
+    with closing(_open()) as conn:
+        rows = conn.execute(
+            "SELECT uid, id FROM trips WHERE verdict IS NULL AND substr(arrival, 1, 10) < ?"
+            " ORDER BY arrival, id",
+            (before_day,),
+        ).fetchall()
+    return [(r["uid"], r["id"]) for r in rows]
+
+
 def store_verdict(uid: str, trip_id: int, verdict: dict) -> None:
     """Keep a finished check with its trip: the day is in the nightly data,
     so the answer will not change, and the tally and the page read it back

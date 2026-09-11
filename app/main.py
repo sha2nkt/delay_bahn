@@ -117,8 +117,10 @@ async def lifespan(app: FastAPI):
     # visitor never waits for it, and startup stays sub-second
     asyncio.create_task(_warm_leaderboard())
     credits_watch = asyncio.create_task(mailer.watch_credits())
+    trip_sweep = asyncio.create_task(_sweep_trip_verdicts())
     yield
     credits_watch.cancel()
+    trip_sweep.cancel()
     await bahn_api.close()
     await live_delays.close()
     await feedback.close()
@@ -2318,9 +2320,10 @@ async def _trip_verdict(uid: str, trip_id: int) -> dict | None:
     on the day, missed connections and the onward journey the simulation
     rides instead, and what that adds up to - the same lookups and the same
     simulation as a past-mode search, on the itinerary on file. `final` says
-    the day is in the nightly data, so the answer cannot change: only then is
-    it stored with the trip; a live day, or one nobody has data for yet, is
-    answered fresh each time. None when the trip is not this account's, not
+    the nightly data has settled the day, so the answer cannot change: only
+    then is it stored with the trip - for good, past the data's rolling
+    window; a live day, or one whose data is still filling in, is answered
+    fresh each time. None when the trip is not this account's, not
     over yet, or has no train leg. Raises bahn_api.UpstreamError."""
     stored = await anyio.to_thread.run_sync(trips.stored_verdict, uid, trip_id)
     if stored is not None:
@@ -2331,17 +2334,61 @@ async def _trip_verdict(uid: str, trip_id: int) -> dict | None:
     legs = filed["legs"]
     if not any(not leg["walking"] for leg in legs):
         return None
-    # days the nightly parquet hasn't reached yet are answered live from IRIS
+    # days the nightly parquet hasn't reached yet are answered live from IRIS;
+    # the arrival day decides, so a journey over midnight is not looked up in
+    # a parquet that stops before its last leg
     parquet_max = delays.coverage()[1]
-    covered = parquet_max is not None and filed["departure"][:10] <= parquet_max.isoformat()
+    day = filed["arrival"][:10]
+    covered = parquet_max is not None and day <= parquet_max.isoformat()
+    # the newest day lands partial at 05:30 and fills in with the next build:
+    # only once the data reaches past the day is the answer final and kept
+    final = parquet_max is not None and day < parquet_max.isoformat()
     live = not covered and live_max_day() is not None
     if live:
         await live_delays.warm(_leg_stops(legs))
     await anyio.to_thread.run_sync(_attach_day_delays, legs, live)
-    verdict = {"legs": legs, "liveDay": live, "final": covered, **await _past_verdict(legs, 7, live)}
-    if covered:
+    verdict = {"legs": legs, "liveDay": live, "final": final, **await _past_verdict(legs, 7, live)}
+    if final:
         await anyio.to_thread.run_sync(trips.store_verdict, uid, trip_id, verdict)
     return verdict
+
+
+# the sweep stays behind visitors: a missed connection sends the simulation
+# to bahn.de, so each check waits its turn
+TRIP_SWEEP_DELAY = env_int("TRIP_SWEEP_DELAY", 120)
+TRIP_SWEEP_INTERVAL = env_int("TRIP_SWEEP_INTERVAL", 6 * 3600)
+TRIP_SWEEP_PAUSE = 2
+
+
+async def _sweep_trip_verdicts() -> None:
+    """Background task for the lifespan: store the check of every past trip
+    whose day the nightly data has settled, whether or not the account ever
+    opens the page. The delays table is a rolling window; without this a
+    trip filed and left alone would lose its delay - and its share of the
+    year's tally - once the window rolled past its day. The app restarts
+    after each nightly build, so the first pass sees fresh data; the later
+    passes catch trips filed for a day already gone."""
+    await asyncio.sleep(TRIP_SWEEP_DELAY)
+    while True:
+        parquet_max = delays.coverage()[1]
+        todo = [] if parquet_max is None else await anyio.to_thread.run_sync(
+            trips.unresolved, parquet_max.isoformat()
+        )
+        stored = 0
+        for uid, trip_id in todo:
+            try:
+                verdict = await _trip_verdict(uid, trip_id)
+            except bahn_api.UpstreamError as exc:
+                log.warning("trip sweep stopped at %d of %d: %s", stored, len(todo), exc)
+                break
+            except Exception:
+                log.exception("trip sweep: check of trip %d failed", trip_id)
+                continue
+            stored += verdict is not None
+            await asyncio.sleep(TRIP_SWEEP_PAUSE)
+        if todo:
+            log.info("trip sweep: %d of %d checks stored", stored, len(todo))
+        await asyncio.sleep(TRIP_SWEEP_INTERVAL)
 
 
 @app.get("/api/trips/{trip_id}/check")
