@@ -1,10 +1,12 @@
 """Country punctuality leaderboard: every country in the delay table ranked over
-the last day, 7 days and 30 days of the data window.
+the last day, 7 days and 30 days of the data window, once over every train and
+once over long-distance trains only.
 
-One aggregate over the whole table (grouped by country and day) feeds all three
-periods and the per-day trend series, and is computed once per data version:
-the nightly pipeline swaps the table and restarts the app, so the result only
-changes across restarts. Served by /api/leaderboard, drawn by static/leaderboard.js.
+One aggregate over the whole table (grouped by country, day and whether the
+train is a long-distance product) feeds all three periods and the per-day trend
+series of both rankings, and is computed once per data version: the nightly
+pipeline swaps the table and restarts the app, so the result only changes across
+restarts. Served by /api/leaderboard, drawn by static/leaderboard.js.
 """
 
 import threading
@@ -18,6 +20,19 @@ from . import delays
 COUNTRIES = {"80": "DE", "81": "AT", "83": "IT", "84": "NL", "85": "CH", "87": "FR"}
 
 PERIODS = {"day": 1, "week": 7, "month": 30}
+
+# the long-distance products per country, as each source spells train_type: the
+# trains that run well over 100 km end to end (ICE/IC/EC and their night, Railjet,
+# TGV/Ouigo, Intercity equivalents). Regional, suburban and InterRegio products
+# stay out, so the long-distance table compares the same tier of train everywhere.
+LONG_DISTANCE = {
+    "80": ("ICE", "IC", "EC", "ECE", "NJ", "EN", "RJ", "RJX", "TGV", "FLX", "D"),
+    "81": ("RJ", "RJX", "IC", "ICE", "EC", "NJ", "EN", "D"),
+    "83": ("IC", "ICN", "EC", "EN"),
+    "84": ("IC", "ICD", "ICE", "ECD", "ECC", "EST", "NJ"),
+    "85": ("IC", "EC", "ICE", "TGV", "RJX", "RJ", "NJ"),
+    "87": ("OUI", "OGO", "IC", "ICN", "LYR", "ICE"),
+}
 
 # DB's own punctuality definition: an arrival less than 6 minutes late is on time.
 # One threshold for every country, so the ranking compares like with like.
@@ -33,9 +48,15 @@ _lock = threading.Lock()
 _cached: dict | None = None
 _cached_key: tuple | None = None
 
+_LONG_DISTANCE_SQL = "CASE substr(eva, 2, 2) " + " ".join(
+    f"WHEN '{cc}' THEN train_type IN ({', '.join(repr(t) for t in types)})"
+    for cc, types in LONG_DISTANCE.items()
+) + " ELSE false END"
+
 _DAILY_SQL = f"""
     SELECT substr(eva, 2, 2) AS cc,
            CAST(arrival_planned_time AS DATE) AS day,
+           long_distance,
            count(*) AS total,
            count(*) FILTER (WHERE coalesce(is_canceled, false)) AS cancelled,
            count(*) FILTER (WHERE observed) AS observed,
@@ -44,13 +65,14 @@ _DAILY_SQL = f"""
     FROM (
         SELECT eva, arrival_planned_time, is_canceled,
                NOT coalesce(is_canceled, false) AND arrival_change_time IS NOT NULL AS observed,
-               date_diff('minute', arrival_planned_time, arrival_change_time) AS arr_delay
+               date_diff('minute', arrival_planned_time, arrival_change_time) AS arr_delay,
+               coalesce({_LONG_DISTANCE_SQL}, false) AS long_distance
         FROM delays
         WHERE arrival_planned_time IS NOT NULL
     )
     WHERE cc IN ({", ".join(f"'{p}'" for p in COUNTRIES)})
-    GROUP BY 1, 2
-    ORDER BY 1, 2
+    GROUP BY 1, 2, 3
+    ORDER BY 1, 2, 3
 """
 
 
@@ -62,6 +84,21 @@ def _daily_rows() -> list[tuple]:
         return cur.execute(_DAILY_SQL).fetchall()
     finally:
         cur.close()
+
+
+def split_rows(rows: list[tuple]) -> tuple[list[tuple], list[tuple]]:
+    """(all trains, long-distance trains) daily rows from the (cc, day, long_distance,
+    total, cancelled, observed, on_time, delay_sum) aggregate: the first sums both
+    flags back into one row per country and day, the second keeps the flagged ones."""
+    every: dict[tuple, list] = {}
+    long_distance = []
+    for cc, day, is_long, *counts in rows:
+        acc = every.setdefault((cc, day), [0] * len(counts))
+        for i, v in enumerate(counts):
+            acc[i] += v
+        if is_long:
+            long_distance.append((cc, day, *counts))
+    return [(cc, day, *counts) for (cc, day), counts in every.items()], long_distance
 
 
 def _aggregate(rows: list[dict]) -> dict:
@@ -99,9 +136,9 @@ def rank(entries: list[dict], min_stops: int) -> list[dict]:
     return ranked + unranked
 
 
-def build(daily: list[tuple], as_of: date, generated_at: datetime | None = None) -> dict:
-    """The leaderboard document from (cc, day, total, cancelled, observed, on_time,
-    delay_sum) rows; split out from the query so it can be tested on fixtures."""
+def _tables(daily: list[tuple], as_of: date) -> tuple[dict, dict]:
+    """(periods, series) for one set of (cc, day, total, cancelled, observed, on_time,
+    delay_sum) rows."""
     by_country: dict[str, list[dict]] = {}
     for cc, day, total, cancelled, observed, on_time, delay_sum in daily:
         code = COUNTRIES.get(cc)
@@ -140,26 +177,38 @@ def build(daily: list[tuple], as_of: date, generated_at: datetime | None = None)
             }
             for r in rows
         ]
+    return periods, series
 
+
+def build(daily: list[tuple], as_of: date, generated_at: datetime | None = None,
+          long_distance: list[tuple] | None = None) -> dict:
+    """The leaderboard document from (cc, day, total, cancelled, observed, on_time,
+    delay_sum) rows, plus the same ranking over the `long_distance` rows under
+    "longDistance"; split out from the query so it can be tested on fixtures."""
+    periods, series = _tables(daily, as_of)
+    ld_periods, ld_series = _tables(long_distance or [], as_of)
     return {
         "asOf": as_of.isoformat(),
         "generatedAt": (generated_at or datetime.now(BERLIN)).isoformat(timespec="seconds"),
         "onTimeMaxMin": ON_TIME_MAX_MIN,
         "periods": periods,
         "series": series,
+        "longDistance": {"periods": ld_periods, "series": ld_series},
     }
 
 
 def _empty() -> dict:
+    periods = {
+        name: {"from": None, "to": None, "days": length, "minStops": MIN_STOPS[name], "countries": []}
+        for name, length in PERIODS.items()
+    }
     return {
         "asOf": None,
         "generatedAt": datetime.now(BERLIN).isoformat(timespec="seconds"),
         "onTimeMaxMin": ON_TIME_MAX_MIN,
-        "periods": {
-            name: {"from": None, "to": None, "days": length, "minStops": MIN_STOPS[name], "countries": []}
-            for name, length in PERIODS.items()
-        },
+        "periods": periods,
         "series": {},
+        "longDistance": {"periods": periods, "series": {}},
     }
 
 
@@ -175,6 +224,10 @@ def get() -> dict:
         if _cached is not None and _cached_key == key:
             return _cached
         _min_day, max_day = key
-        result = build(_daily_rows(), max_day) if max_day else _empty()
+        if max_day:
+            every, long_distance = split_rows(_daily_rows())
+            result = build(every, max_day, long_distance=long_distance)
+        else:
+            result = _empty()
         _cached, _cached_key = result, key
         return result

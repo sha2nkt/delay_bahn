@@ -81,3 +81,41 @@ def test_unknown_prefix_ignored_and_empty_periods_still_present():
     assert all(period["countries"] == [] for period in doc["periods"].values())
     assert set(doc["periods"]) == {"day", "week", "month"}
     assert doc["series"] == {}
+
+
+def test_split_rows_sums_flags_and_keeps_long_distance():
+    rows = [
+        ("80", AS_OF, False, 900, 9, 800, 700, 2100),
+        ("80", AS_OF, True, 100, 1, 90, 40, 900),
+        ("85", AS_OF, False, 500, 0, 500, 490, 100),   # CH: no long-distance rows that day
+    ]
+    every, long_distance = leaderboard.split_rows(rows)
+    assert every == [("80", AS_OF, 1000, 10, 890, 740, 3000), ("85", AS_OF, 500, 0, 500, 490, 100)]
+    assert long_distance == [("80", AS_OF, 100, 1, 90, 40, 900)]
+
+
+def test_long_distance_ranking_is_its_own_table():
+    every = [row("80", observed=10000, on_time=9000), row("85", observed=10000, on_time=8000)]
+    long_distance = [row("80", observed=1000, on_time=500), row("85", observed=1000, on_time=900)]
+    doc = leaderboard.build(every, AS_OF, long_distance=long_distance)
+    assert codes(doc["periods"]["day"]) == [("DE", 1), ("CH", 2)]
+    ld = doc["longDistance"]
+    assert codes(ld["periods"]["day"]) == [("CH", 1), ("DE", 2)]
+    assert ld["periods"]["day"]["countries"][0]["punctuality"] == 90.0
+    assert ld["periods"]["day"]["minStops"] == leaderboard.MIN_STOPS["day"]
+    assert ld["series"]["DE"][0]["punctuality"] == 50.0
+    assert doc["series"]["DE"][0]["punctuality"] == 90.0
+
+
+def test_long_distance_block_present_when_empty():
+    doc = leaderboard.build([row("80")], AS_OF)
+    assert set(doc["longDistance"]["periods"]) == {"day", "week", "month"}
+    assert doc["longDistance"]["periods"]["day"]["countries"] == []
+    assert doc["longDistance"]["series"] == {}
+    assert set(leaderboard._empty()["longDistance"]["periods"]) == {"day", "week", "month"}
+
+
+def test_long_distance_sql_names_every_country():
+    assert set(leaderboard.LONG_DISTANCE) == set(leaderboard.COUNTRIES)
+    for cc, types in leaderboard.LONG_DISTANCE.items():
+        assert f"WHEN '{cc}' THEN train_type IN ({', '.join(repr(t) for t in types)})" in leaderboard._LONG_DISTANCE_SQL

@@ -19,7 +19,7 @@
 <meta property="og:locale:alternate" content="en_US">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="/style.css?v=120">
-<link rel="stylesheet" href="/leaderboard.css?v=2">
+<link rel="stylesheet" href="/leaderboard.css?v=3">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body class="lb-body">
@@ -89,6 +89,28 @@
     <p id="lb-status" class="lb-status" role="status"></p>
   </section>
 
+  <section class="lb-table-section lb-table-long">
+    <h2 data-i18n="tableHeadingLong">Nur Fernverkehr</h2>
+    <p class="lb-table-lead" data-i18n="tableLeadLong">Dieselbe Rangliste, nur mit Fernzügen (Strecken über 100 km): ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und ihre Pendants. Regional-, S-Bahn- und InterRegio-Züge bleiben außen vor.</p>
+    <div class="lb-table-wrap">
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th class="lb-col-rank" scope="col">#</th>
+            <th scope="col" data-i18n="colCountry">Land</th>
+            <th scope="col"><button type="button" class="lb-sort" data-sort="punctuality"><span data-i18n="colPunctuality">Pünktlich (&lt; 6 min)</span></button></th>
+            <th class="lb-col-num" scope="col"><button type="button" class="lb-sort" data-sort="avgDelay"><span data-i18n="colAvgDelay">Ø Verspätung</span></button></th>
+            <th class="lb-col-num" scope="col"><button type="button" class="lb-sort" data-sort="cancelled"><span data-i18n="colCancelled">Ausfälle</span></button></th>
+            <th class="lb-col-num lb-col-stops" scope="col"><button type="button" class="lb-sort" data-sort="stops"><span data-i18n="colStops">Halte</span></button></th>
+            <th class="lb-col-trend" scope="col" data-i18n="colTrend" data-i18n-title="colTrendTitle" title="Anteil pünktlicher Halte pro Tag in den letzten 30 Tagen, links der älteste Tag, der Punkt ist der neueste. Jede Linie hat ihre eigene Skala.">Letzte 30 Tage</th>
+          </tr>
+        </thead>
+        <tbody id="lb-rows-long"></tbody>
+      </table>
+    </div>
+    <p id="lb-status-long" class="lb-status" role="status"></p>
+  </section>
+
   <details class="lb-method">
     <summary><h2 data-i18n="methodHeading">So wird gezählt</h2></summary>
     <p data-i18n="methodText">Für jedes Land zählen alle aufgezeichneten Zughalte mit Echtzeit-Ankunft. Pünktlich ist ein Halt nach der Definition der Deutschen Bahn, wenn der Zug weniger als 6 Minuten nach Plan ankommt, derselbe Maßstab für alle Länder. Ø Verspätung ist die mittlere Ankunftsverspätung über alle nicht ausgefallenen Halte, zu früh zählt als 0. Die Rangfolge richtet sich nach dem Pünktlichkeitsanteil; bei Gleichstand entscheidet die geringere Ø Verspätung. Länder mit zu wenigen Halten im Zeitraum werden gezeigt, aber nicht gewertet. Die Daten stammen aus den offenen Echtzeit-Quellen der Bahnen (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); ihre Abdeckung unterscheidet sich, zum Beispiel erfasst die österreichische Quelle nur die 200 größten Bahnhöfe.</p>
@@ -113,6 +135,6 @@
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
 </footer>
 <script src="/europe-map.js?v=1"></script>
-<script src="/leaderboard.js?v=1"></script>
+<script src="/leaderboard.js?v=2"></script>
 </body>
 </html>

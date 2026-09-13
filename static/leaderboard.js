@@ -23,6 +23,8 @@ const I18N = {
     asOf: "Stand: {date} · jeden Morgen automatisch aktualisiert",
     podiumHeading: "Das Podium",
     tableHeading: "Die ganze Tabelle",
+    tableHeadingLong: "Nur Fernverkehr",
+    tableLeadLong: "Dieselbe Rangliste, nur mit Fernzügen (Strecken über 100 km): ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und ihre Pendants. Regional-, S-Bahn- und InterRegio-Züge bleiben außen vor.",
     colCountry: "Land",
     colPunctuality: "Pünktlich (< 6 min)",
     colAvgDelay: "Ø Verspätung",
@@ -49,7 +51,7 @@ const I18N = {
     podiumSub: "Ø {delay} Verspätung · {cancelled} Ausfälle",
     sparkTitle: "Pünktlichkeit der letzten 30 Tage: {min} bis {max}",
     methodHeading: "So wird gezählt",
-    methodText: "Für jedes Land zählen alle aufgezeichneten Zughalte mit Echtzeit-Ankunft. Pünktlich ist ein Halt nach der Definition der Deutschen Bahn, wenn der Zug weniger als 6 Minuten nach Plan ankommt, derselbe Maßstab für alle Länder. Ø Verspätung ist die mittlere Ankunftsverspätung über alle nicht ausgefallenen Halte, zu früh zählt als 0. Die Rangfolge richtet sich nach dem Pünktlichkeitsanteil; bei Gleichstand entscheidet die geringere Ø Verspätung. Länder mit zu wenigen Halten im Zeitraum werden gezeigt, aber nicht gewertet. Die Daten stammen aus den offenen Echtzeit-Quellen der Bahnen (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); ihre Abdeckung unterscheidet sich, zum Beispiel erfasst die österreichische Quelle nur die 200 größten Bahnhöfe.",
+    methodText: "Für jedes Land zählen alle aufgezeichneten Zughalte mit Echtzeit-Ankunft. Pünktlich ist ein Halt nach der Definition der Deutschen Bahn, wenn der Zug weniger als 6 Minuten nach Plan ankommt, derselbe Maßstab für alle Länder. Ø Verspätung ist die mittlere Ankunftsverspätung über alle nicht ausgefallenen Halte, zu früh zählt als 0. Die Rangfolge richtet sich nach dem Pünktlichkeitsanteil; bei Gleichstand entscheidet die geringere Ø Verspätung. Länder mit zu wenigen Halten im Zeitraum werden gezeigt, aber nicht gewertet. Die Daten stammen aus den offenen Echtzeit-Quellen der Bahnen (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); ihre Abdeckung unterscheidet sich, zum Beispiel erfasst die österreichische Quelle nur die 200 größten Bahnhöfe. Die Fernverkehrs-Tabelle zählt nur Halte von Zügen, deren Gattung ein Fernverkehrsprodukt ist (ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und Entsprechungen), nach denselben Regeln.",
     mapLabel: "Karte Europas: Länder nach Anteil verspäteter Halte eingefärbt, das pünktlichste Land hervorgehoben",
     footerBack: "← Zur Verbindungssuche",
     footerStories: "Delay Geschichten",
@@ -77,6 +79,8 @@ const I18N = {
     asOf: "Data as of {date} · refreshed automatically every morning",
     podiumHeading: "The podium",
     tableHeading: "The full table",
+    tableHeadingLong: "Long-distance only",
+    tableLeadLong: "The same ranking over long-distance trains only (routes over 100 km): ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity and their equivalents. Regional, suburban and InterRegio trains are left out.",
     colCountry: "Country",
     colPunctuality: "On time (< 6 min)",
     colAvgDelay: "Avg. delay",
@@ -103,7 +107,7 @@ const I18N = {
     podiumSub: "{delay} avg. delay · {cancelled} cancelled",
     sparkTitle: "Punctuality over the last 30 days: {min} to {max}",
     methodHeading: "How we count",
-    methodText: "For every country we count all recorded train stops with a real-time arrival. A stop is on time by Deutsche Bahn's own definition when the train arrives less than 6 minutes after schedule, the same yardstick for every country. Avg. delay is the mean arrival delay over all non-cancelled stops, early arrivals count as 0. Countries rank by their on-time share; ties go to the lower average delay. Countries with too few stops in the period are shown but not ranked. The data comes from the railways' open real-time sources (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); their coverage differs, for instance the Austrian source only covers the 200 largest stations.",
+    methodText: "For every country we count all recorded train stops with a real-time arrival. A stop is on time by Deutsche Bahn's own definition when the train arrives less than 6 minutes after schedule, the same yardstick for every country. Avg. delay is the mean arrival delay over all non-cancelled stops, early arrivals count as 0. Countries rank by their on-time share; ties go to the lower average delay. Countries with too few stops in the period are shown but not ranked. The data comes from the railways' open real-time sources (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); their coverage differs, for instance the Austrian source only covers the 200 largest stations. The long-distance table counts only stops of trains whose category is a long-distance product (ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity and equivalents), by the same rules.",
     mapLabel: "Map of Europe, countries shaded by their share of delayed stops, the most punctual one outlined in gold",
     footerBack: "← Back to the connection search",
     footerStories: "Delay Stories",
@@ -233,7 +237,13 @@ let pinned = null;    // code whose tooltip a tap pinned open
 // table order: which column, and the numeric direction; each metric's default
 // is its best-first direction, a second click on the same header flips it
 const SORT_DEFAULT = { punctuality: "desc", avgDelay: "asc", cancelled: "asc", stops: "desc" };
-let sort = { key: "punctuality", dir: "desc" };
+// the two tables: every train, and long-distance trains only. Each sorts on its
+// own; the map and podium follow the all-trains ranking.
+const TABLES = [
+  { name: "all", rows: "lb-rows", status: "lb-status", view: () => data, sort: { key: "punctuality", dir: "desc" } },
+  { name: "long", rows: "lb-rows-long", status: "lb-status-long", view: () => data.longDistance, sort: { key: "punctuality", dir: "desc" } },
+];
+TABLES.forEach((tbl) => { tbl.section = $(tbl.rows).closest(".lb-table-section"); });
 
 function current() { return data.periods[period]; }
 function entry(code) { return current().countries.find((c) => c.code === code) || null; }
@@ -503,8 +513,8 @@ function renderPodium() {
 }
 
 /* ---------- table ---------- */
-function sparkline(code) {
-  const series = (data.series[code] || []).filter((d) => d.punctuality != null);
+function sparkline(code, view, cur) {
+  const series = (view.series[code] || []).filter((d) => d.punctuality != null);
   if (series.length < 2) return null;
   const W = 100, H = 28, PAD = 3;
   const vals = series.map((d) => d.punctuality);
@@ -515,7 +525,6 @@ function sparkline(code) {
   const title = svgEl("title");
   title.textContent = t("sparkTitle", { min: pct(Math.min(...vals)), max: pct(Math.max(...vals)) });
   s.appendChild(title);
-  const cur = current();
   const from = series.findIndex((d) => d.day >= cur.from);
   if (from >= 0 && period !== "month") {
     s.appendChild(svgEl("rect", {
@@ -533,7 +542,7 @@ function sparkline(code) {
 /* the ranked countries in the chosen order, each with its position under
    that column's best-first ordering (the official rank for the default sort);
    countries without a rank always trail in their API order */
-function sortedRows(countries) {
+function sortedRows(countries, sort) {
   const ranked = countries.filter((c) => c.rank);
   const unranked = countries.filter((c) => !c.rank);
   const key = sort.key;
@@ -545,8 +554,9 @@ function sortedRows(countries) {
   return rows.concat(unranked.map((c) => ({ c, pos: null })));
 }
 
-function renderSortHeaders() {
-  document.querySelectorAll(".lb-sort").forEach((b) => {
+function renderSortHeaders(tbl) {
+  const sort = tbl.sort;
+  tbl.section.querySelectorAll(".lb-sort").forEach((b) => {
     const active = b.dataset.sort === sort.key;
     b.classList.toggle("active", active);
     b.classList.toggle("asc", active && sort.dir === "asc");
@@ -554,19 +564,22 @@ function renderSortHeaders() {
   });
 }
 
-function setSort(key) {
-  sort = { key, dir: sort.key === key ? (sort.dir === "asc" ? "desc" : "asc") : SORT_DEFAULT[key] };
-  if (window.umami) window.umami.track("leaderboard-sort", { key, dir: sort.dir });
-  if (data) renderTable();
+function setSort(tbl, key) {
+  const sort = tbl.sort;
+  tbl.sort = { key, dir: sort.key === key ? (sort.dir === "asc" ? "desc" : "asc") : SORT_DEFAULT[key] };
+  if (window.umami) window.umami.track("leaderboard-sort", { key, dir: tbl.sort.dir, table: tbl.name });
+  if (data) renderTable(tbl);
 }
 
-function renderTable() {
-  const tbody = $("lb-rows");
+function renderTable(tbl) {
+  const tbody = $(tbl.rows);
   tbody.innerHTML = "";
-  const cur = current();
-  $("lb-status").textContent = cur.countries.length ? "" : t("noData");
-  renderSortHeaders();
-  for (const { c, pos } of sortedRows(cur.countries)) {
+  const view = tbl.view();
+  const cur = view && view.periods ? view.periods[period] : null;
+  $(tbl.status).textContent = cur && cur.countries.length ? "" : t("noData");
+  renderSortHeaders(tbl);
+  if (!cur) return;
+  for (const { c, pos } of sortedRows(cur.countries, tbl.sort)) {
     const tr = document.createElement("tr");
     tr.className = c.rank ? "r" + c.rank : "unranked";
     const td = (cls) => { const d = document.createElement("td"); if (cls) d.className = cls; tr.appendChild(d); return d; };
@@ -612,7 +625,7 @@ function renderTable() {
     td("lb-num").textContent = mins(c.avgDelay);
     td("lb-num").textContent = pct(c.cancelled);
     td("lb-num lb-stops").textContent = NF.format(c.stops);
-    const spark = sparkline(c.code);
+    const spark = sparkline(c.code, view, cur);
     const trendTd = td("lb-trend");
     if (spark) trendTd.appendChild(spark);
     tbody.appendChild(tr);
@@ -624,7 +637,7 @@ function renderAll() {
   renderRange();
   renderMap();
   renderPodium();
-  renderTable();
+  TABLES.forEach(renderTable);
   renderAsOf();
 }
 
@@ -678,8 +691,10 @@ setPeriod(period, false);
 document.querySelectorAll(".lb-period").forEach((b) => {
   b.addEventListener("click", () => setPeriod(b.dataset.period, true));
 });
-document.querySelectorAll(".lb-sort").forEach((b) => {
-  b.addEventListener("click", () => setSort(b.dataset.sort));
+TABLES.forEach((tbl) => {
+  tbl.section.querySelectorAll(".lb-sort").forEach((b) => {
+    b.addEventListener("click", () => setSort(tbl, b.dataset.sort));
+  });
 });
 load(true);
 // a page left open: poll while visible, and once more when the tab comes back
