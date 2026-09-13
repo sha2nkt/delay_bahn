@@ -1678,3 +1678,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Verified in headless Chrome at 420 px with stand-in cards: the anchor picks the card at the viewport top with its offset, restoring from scroll 0 lands on the identical `scrollY`, and an anchor taken at the bottom of the list still resolves to a card. A real login round trip is the user's check after the deploy.
 - Busters: `app.js` v135 → **v136** (index.html + sw.js PRECACHE), `SHELL_VERSION` v85 → **v86**. Live pins read first (135/v85, from today's own deploy); no skips. No asset URL was requested with a candidate number before the deploy.
 - Not done: an unverified account on return neither unlocks nor scrolls, as before; the anchor is a card key, so a card that a re-search no longer returns (bahn.de dropped it) falls back to no scroll rather than a guess.
+
+## 2026-09-13 — Paging-gate lead reworded
+
+- The user found the modal's lead ("… right away, with delay reports and your tally: …") hard to parse. It now reads, in the user's own words: "For all earlier and later connections, sign in first. It's free. Your trips land under “My trips” right away. Get delay reports and check your delay tally: how much time delays and cancellations cost you this year." German follows the same split ("… Deine Fahrten landen gleich unter „Meine Fahrten“. Bestell Verspätungs-Reports und sieh deine Verspätungsbilanz: …"). `pageModalLead` in both app.js language tables and the German markup in index.html; title and buttons unchanged.
+- Verified with `node --check`; text-only change.
+- Busters: `app.js` v136 → **v137** (index.html + sw.js PRECACHE), `SHELL_VERSION` v86 → **v87**. Live pins read first (136/v86, from today's own deploy); no skips. No asset URL was requested with a candidate number before the deploy.
