@@ -65,7 +65,7 @@ try {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DelayBahn">
-<link rel="stylesheet" href="/style.css?v=120">
+<link rel="stylesheet" href="/style.css?v=121">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -582,6 +582,16 @@ try {
     <a id="trip-saved-link" class="report-submit trip-saved-link hidden" href="/meine-fahrten" data-i18n="tripSavedLink">Zu Meine Fahrten</a>
   </div>
 </dialog>
+<!-- the second earlier/later press of a visit, signed out: why the account, then the login -->
+<dialog id="page-modal" class="claim-modal report-modal">
+  <div class="claim-modal-inner">
+    <button id="page-modal-close" class="claim-modal-close" type="button" data-i18n-title="reportModalClose" data-i18n-aria="reportModalClose">✕</button>
+    <h2 class="claim-modal-title" data-i18n="pageModalTitle">Weitere Verbindungen mit Konto</h2>
+    <p class="claim-modal-lead" data-i18n="pageModalLead">Für alle früheren und späteren Verbindungen melde dich kurz an. Kostenlos. Deine Fahrten landen gleich unter „Meine Fahrten“, mit Verspätungs-Report und deiner Bilanz: wie viel Zeit dich Verspätungen und Ausfälle dieses Jahr gekostet haben.</p>
+    <button id="page-login-btn" class="report-submit" type="button" data-i18n="pageLoginBtn">Anmelden &amp; weiterblättern</button>
+    <button id="page-modal-alt" class="page-modal-alt" type="button" data-i18n="pageModalAlt">Jetzt nicht</button>
+  </div>
+</dialog>
 <dialog id="ios-install-sheet" class="ios-sheet">
   <div class="ios-sheet-inner">
     <div class="ios-sheet-grip"></div>
@@ -732,7 +742,7 @@ try {
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
   <p class="footer-copyright">Copyright © 2026 Shashank Tripathi</p>
 </footer>
-<script src="/app.js?v=133"></script>
+<script src="/app.js?v=134"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {

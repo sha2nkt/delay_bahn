@@ -1975,6 +1975,14 @@ body.past-mode .stories-banner { display: none; }
 .trip-saved-link:hover { color: #fff; }
 #trip-modal .report-submit.hidden { display: none; }
 
+/* the page gate: the login button, and under it the quiet way out */
+#page-modal .report-submit { display: block; width: 100%; margin-top: 16px; }
+.page-modal-alt {
+  display: block; margin: 10px auto 0; background: none; border: none; padding: 6px 10px;
+  font-size: 13px; font-family: inherit; color: var(--text-muted); cursor: pointer; border-radius: 6px;
+}
+.page-modal-alt:hover { background: var(--gray-bg); color: var(--text); }
+
 .trips-main { max-width: 720px; }
 .trips-intro { font-size: 13.5px; line-height: 1.45; color: var(--text-muted); margin: 0 2px 14px; }
 .trips-login { text-align: center; padding: 22px 18px 24px; }

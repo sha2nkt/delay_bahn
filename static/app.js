@@ -256,6 +256,10 @@ const I18N = {
     tripSavedLead: "Du findest sie unter „Meine Fahrten“ – nach der Fahrt mit der tatsächlichen Verspätung, deinem Entschädigungsanspruch und deiner Bilanz: wie viel Zeit dich Verspätungen und Ausfälle gekostet haben.",
     tripSavedLink: "Zu Meine Fahrten",
     tripBtnOnTitle: "In Meine Fahrten gespeichert – zum Entfernen klicken",
+    pageModalTitle: "Weitere Verbindungen mit Konto",
+    pageModalLead: "Für alle früheren und späteren Verbindungen melde dich kurz an. Kostenlos. Deine Fahrten landen gleich unter „Meine Fahrten“, mit Verspätungs-Report und deiner Bilanz: wie viel Zeit dich Verspätungen und Ausfälle dieses Jahr gekostet haben.",
+    pageLoginBtn: "Anmelden & weiterblättern",
+    pageModalAlt: "Jetzt nicht",
     refundCtaTitle: "Über 1 Stunde Verspätung gehabt?",
     refundCtaLead: "Sieh die Reise, die du tatsächlich hattest – mit Verspätungen und verpassten Anschlüssen.",
     refundCtaSub: "Hol dir dein Geld von der DB zurück – in 3 einfachen Klicks",
@@ -538,6 +542,10 @@ const I18N = {
     tripSavedLead: "Find it under “My trips” – after the journey with the actual delay, what you can claim and your tally: how much time delays and cancellations have cost you.",
     tripSavedLink: "Go to My trips",
     tripBtnOnTitle: "Saved in My trips – click to remove",
+    pageModalTitle: "More connections with an account",
+    pageModalLead: "For all earlier and later connections, sign in first. It's free. Your trips land under “My trips” right away, with delay reports and your tally: how much time delays and cancellations cost you this year.",
+    pageLoginBtn: "Log in & keep browsing",
+    pageModalAlt: "Not now",
     refundCtaTitle: "Hit by over 1 hour of delay?",
     refundCtaLead: "See the journey you actually took, including delays and missed connections.",
     refundCtaSub: "Get your money back from DB in 3 easy clicks",
@@ -2132,6 +2140,7 @@ async function runSearch() {
     setFeedbackNudge(state.journeys.length > 0);
     updatePageButtons();
     render();
+    resumePendingPage();
   } catch (e) {
     if (e.superseded) return;  // a newer search owns the UI now
     // the outbound may well have come back fine: say which half is missing
@@ -2379,6 +2388,8 @@ async function loadPage(dir) {
   const ref = dir === "earlier" ? state.earlierRef : state.laterRef;
   if (!ref) return;
   const btn = dir === "earlier" ? earlierBtn : laterBtn;
+  btn.disabled = true;  // the account lookup behind the gate takes a moment
+  if (!(await pageAllowed(dir))) { btn.disabled = false; return; }
   // counted on intent, not on success: a page that fails upstream is still a
   // user who wanted one. How often this fires decides whether prefetching the
   // adjacent pages is worth the extra bahn.de calls.
@@ -3539,6 +3550,69 @@ async function onTripClick(journeys, url, btn) {
   }
 }
 
+/* Earlier/later pages are free once per visit; the next press asks for the
+   account first. Meant to be gentle: the modal names the reason, closes on a
+   tap outside, and the press it interrupted completes on the way back from
+   the login. A browser without storage never counts, so it is never asked. */
+const PAGE_FREE_KEY = "pageFree";        // sessionStorage: "1" once the free page was used
+const PAGE_PENDING_KEY = "pagePending";  // sessionStorage: the press that waits for the login
+const pageModal = document.getElementById("page-modal");
+let pageUnlocked = false;  // the account was seen on this page load: no more asking
+let pagePendingDir = null;
+
+async function pageAllowed(dir) {
+  if (pageUnlocked) return true;
+  let used = false;
+  try { used = sessionStorage.getItem(PAGE_FREE_KEY) === "1"; } catch (e) { /* no storage */ }
+  if (!used) {
+    try { sessionStorage.setItem(PAGE_FREE_KEY, "1"); } catch (e) { /* no storage: every page is the free one */ }
+    return true;
+  }
+  if (accountHinted()) {
+    let account = null;
+    try { account = await currentAccount(); } catch (e) { /* SDK unreachable: same as signed out */ }
+    if (account && account.verified) { pageUnlocked = true; return true; }
+  }
+  track("page-gate", { dir, leg: state.leg });
+  pagePendingDir = dir;
+  if (!pageModal.open) pageModal.showModal();
+  return false;
+}
+
+document.getElementById("page-modal-close").addEventListener("click", () => pageModal.close());
+document.getElementById("page-modal-alt").addEventListener("click", () => {
+  track("page-gate-dismiss");
+  pageModal.close();
+});
+// a click on the backdrop lands on the dialog element itself
+pageModal.addEventListener("click", (e) => { if (e.target === pageModal) pageModal.close(); });
+
+document.getElementById("page-login-btn").addEventListener("click", () => {
+  try {
+    sessionStorage.setItem(PAGE_PENDING_KEY, JSON.stringify({ dir: pagePendingDir, leg: state.leg, ts: Date.now() }));
+  } catch (e) { /* no storage: the button has to be pressed again after the login */ }
+  track("page-login", { dir: pagePendingDir });
+  const next = location.pathname + location.search;
+  location.assign("/login?next=" + encodeURIComponent(next) + "&reason=page");
+});
+
+/* The press that waited for the login: the search is restored from the URL,
+   and once its list is back the page it asked for follows - on the same leg
+   only; a restored round trip starts over at step 1. */
+async function resumePendingPage() {
+  let pending = null;
+  try {
+    pending = JSON.parse(sessionStorage.getItem(PAGE_PENDING_KEY));
+    sessionStorage.removeItem(PAGE_PENDING_KEY);
+  } catch (e) { /* no storage */ }
+  if (!pending || !(Date.now() - pending.ts < REPORT_PENDING_MAX_AGE) || !accountHinted()) return;
+  let account = null;
+  try { account = await currentAccount(); } catch (e) { return; }
+  if (!account || !account.verified) return;  // the login was abandoned
+  pageUnlocked = true;
+  if (pending.leg === state.leg && (pending.dir === "earlier" ? state.earlierRef : state.laterRef)) loadPage(pending.dir);
+}
+
 /* The header's account corner: the name of the signed-in account - a link to
    its trips - or the link to sign in, which brings the visitor back to this
    page rather than to the stories board. Filled from the same lookup that
@@ -3595,6 +3669,7 @@ async function initReports() {
   try { account = await currentAccount(); } catch (e) { /* SDK unreachable: same as signed out */ }
   renderAuth(account);
   if (!account || !account.verified) return;  // the login was abandoned: nothing is ordered
+  pageUnlocked = true;
   if (pending) {
     openReportModal(pending.journey);
     await orderReport(account, pending.journey, pending.search || reportSearchMeta());
