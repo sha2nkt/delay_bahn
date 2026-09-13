@@ -6,7 +6,9 @@
    stories board simply has nobody logged in. */
 export const config = {
   apiKey: "AIzaSyAxOg0am2kjbsRvOi8CiLKH9VYmbTmszFA",
-  authDomain: "delaybahndb.firebaseapp.com",
+  // this site, not <project>.firebaseapp.com: the server proxies /__/auth/* to
+  // Firebase, so redirect sign-ins keep their state on our own origin
+  authDomain: "delaybahn.com",
   projectId: "delaybahndb",
   appId: "1:859714693884:web:91f58e45ec0ca2ab714579",
 };

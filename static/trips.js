@@ -877,7 +877,7 @@ function showLogin() {
 async function init() {
   applyStatic();
   try {
-    fb = await import("/firebase.js?v=1");
+    fb = await import("/firebase.js?v=2");
     if (fb.auth) {
       await fb.auth.authStateReady();
       const user = fb.auth.currentUser;

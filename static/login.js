@@ -6,7 +6,7 @@
    alternative underneath. Whatever the route, it ends as an ordinary Firebase
    session, and a visitor who left half-way - code unentered, mail unclicked,
    name unchosen - lands back on exactly the step they are missing. */
-import { providers } from "/firebase-config.js?v=1";
+import { providers } from "/firebase-config.js?v=2";
 
 /* The SDK comes from gstatic, and a static import of it would gate this whole
    module on that download - which is exactly what made the card paint in the
@@ -16,7 +16,7 @@ import { providers } from "/firebase-config.js?v=1";
    entry point that needs it awaits `ready` first. Nothing here runs before a
    click except init(), so the wait is never visible. */
 let fb = null;
-const ready = import("/firebase.js?v=1").then((mod) => (fb = mod));
+const ready = import("/firebase.js?v=2").then((mod) => (fb = mod));
 
 const I18N = {
   de: {

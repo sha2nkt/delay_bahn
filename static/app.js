@@ -3158,7 +3158,7 @@ function refreshBells() {
 /* The account this browser holds, or null. `verified` is whether the sign-in
    proved the address - the server insists on that before it mails anything. */
 async function currentAccount() {
-  if (!fb) fb = await import("/firebase.js?v=1");
+  if (!fb) fb = await import("/firebase.js?v=2");
   if (!fb.auth) return null;
   await fb.auth.authStateReady();
   const user = fb.auth.currentUser;

@@ -52,6 +52,16 @@ UNTRACKED_PRODUCTS = {"BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG"}
 # for analytics hosts/paths don't match.
 umami = httpx.AsyncClient(base_url="http://127.0.0.1:3001", timeout=5)
 
+# Firebase's sign-in handler, served first-party under /__/auth/* so the SDK's
+# authDomain can be this site: signInWithRedirect parks its state in the auth
+# domain's sessionStorage, which browsers that partition storage by top-level
+# site (iOS in-app browsers, Safari 16.1+) throw away between the two hops of
+# the redirect - "Unable to process request due to missing initial state".
+# On our own origin the state survives. Firebase's option 1 for this; the
+# OAuth clients' redirect URIs must list https://delaybahn.com/__/auth/handler.
+firebase_auth = httpx.AsyncClient(
+    base_url="https://delaybahndb.firebaseapp.com", timeout=15, follow_redirects=False)
+
 # Per-client search budget: bursty legitimate use (outbound + return + paging +
 # one retry) stays well inside it; only hammering trips it. Limits are per
 # process, which is global in this single-worker deployment.
@@ -1533,6 +1543,26 @@ async def umami_send(request: Request):
     except httpx.HTTPError:
         raise HTTPException(502, "analytics unavailable")
     return Response(resp.content, resp.status_code, media_type=resp.headers.get("content-type"))
+
+
+@app.api_route("/__/auth/{path:path}", methods=["GET", "POST"])
+async def firebase_auth_handler(path: str, request: Request):
+    headers = {k: v for k, v in (
+        ("Accept", request.headers.get("accept")),
+        ("Accept-Language", request.headers.get("accept-language")),
+        ("Content-Type", request.headers.get("content-type")),
+        ("User-Agent", request.headers.get("user-agent")),
+    ) if v}
+    try:
+        resp = await firebase_auth.request(
+            request.method, f"/__/auth/{path}", params=request.query_params,
+            content=await request.body(), headers=headers,
+        )
+    except httpx.HTTPError:
+        raise HTTPException(502, "sign-in unavailable")
+    # httpx already decoded the body, so the encoding/length headers must not travel
+    passed = {k: resp.headers[k] for k in ("cache-control", "location", "content-security-policy") if k in resp.headers}
+    return Response(resp.content, resp.status_code, passed, media_type=resp.headers.get("content-type"))
 
 
 class Feedback(BaseModel):
