@@ -3587,9 +3587,30 @@ document.getElementById("page-modal-alt").addEventListener("click", () => {
 // a click on the backdrop lands on the dialog element itself
 pageModal.addEventListener("click", (e) => { if (e.target === pageModal) pageModal.close(); });
 
+/* Where the visitor was looking when the press was parked: the topmost card
+   still in view and its offset from the viewport top, or the pressed button
+   itself when no card is. The way back scrolls that element to the same spot,
+   so the login round trip leaves the list where it was. */
+function pageScrollAnchor(dir) {
+  const card = [...resultsEl.querySelectorAll(".journey")].find((c) => c.getBoundingClientRect().bottom > 0);
+  if (card) return { key: card.dataset.key, top: card.getBoundingClientRect().top };
+  return { btn: dir, top: (dir === "earlier" ? earlierBtn : laterBtn).getBoundingClientRect().top };
+}
+
+function restorePageScroll(anchor) {
+  if (!anchor) return;
+  const el = anchor.key
+    ? resultsEl.querySelector(`.journey[data-key="${CSS.escape(anchor.key)}"]`)
+    : (anchor.btn === "earlier" ? earlierBtn : laterBtn);
+  if (!el) return;
+  window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - anchor.top, behavior: "instant" });
+}
+
 document.getElementById("page-login-btn").addEventListener("click", () => {
   try {
-    sessionStorage.setItem(PAGE_PENDING_KEY, JSON.stringify({ dir: pagePendingDir, leg: state.leg, ts: Date.now() }));
+    sessionStorage.setItem(PAGE_PENDING_KEY, JSON.stringify({
+      dir: pagePendingDir, leg: state.leg, scroll: pageScrollAnchor(pagePendingDir), ts: Date.now(),
+    }));
   } catch (e) { /* no storage: the button has to be pressed again after the login */ }
   track("page-login", { dir: pagePendingDir });
   const next = location.pathname + location.search;
@@ -3610,7 +3631,9 @@ async function resumePendingPage() {
   try { account = await currentAccount(); } catch (e) { return; }
   if (!account || !account.verified) return;  // the login was abandoned
   pageUnlocked = true;
-  if (pending.leg === state.leg && (pending.dir === "earlier" ? state.earlierRef : state.laterRef)) loadPage(pending.dir);
+  if (pending.leg !== state.leg) return;
+  if (pending.dir === "earlier" ? state.earlierRef : state.laterRef) await loadPage(pending.dir);
+  restorePageScroll(pending.scroll);
 }
 
 /* The header's account corner: the name of the signed-in account - a link to
@@ -3763,6 +3786,7 @@ function render() {
 
     const card = document.createElement("div");
     card.className = "journey";
+    card.dataset.key = journeyKey(journey);  // the scroll anchor a parked page press comes back to
 
     const head = document.createElement("div");
     head.className = "journey-head";
