@@ -1,13 +1,13 @@
 /* Country leaderboard (static/leaderboard.html). Loaded on top of style.css,
    which supplies the header, footer and the design tokens. */
 
-.lb-body { --lb-ink: #1d2a36; --lb-accent: #e8641b; }
+.lb-body { --lb-ink: #1d2a36; --lb-accent: var(--brand-red); }
 .lb-main { max-width: 960px; }
 
 /* ---- hero ---- */
 .lb-hero { text-align: center; padding: 6px 0 0; }
 .lb-kicker { margin: 14px 0 0; line-height: 0; }
-.lb-logo { height: 34px; width: auto; max-width: 100%; }
+.lb-logo { height: 44px; width: auto; max-width: 100%; }
 /* the poster voice of the map's labels: a system serif, no font download */
 .lb-hero h1 {
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
@@ -59,7 +59,7 @@
 .lb-stitches, .lb-leaders, .lb-labels { pointer-events: none; }
 /* small countries get their label pushed off the land, a dotted line leads back */
 .lb-leader { fill: none; stroke: #22313d; stroke-width: 1; stroke-dasharray: 1 3.2; stroke-linecap: round; }
-.lb-leader-dot { fill: #e8641b; stroke: #fff9ea; stroke-width: 1.2; }
+.lb-leader-dot { fill: var(--lb-accent); stroke: #fff9ea; stroke-width: 1.2; }
 /* country name over the big figure, haloed so it reads on parchment and sea alike */
 .lb-label text {
   font-family: inherit; fill: #1d2a36;
@@ -69,7 +69,7 @@
 .lb-label-value { font-size: 36px; font-weight: 800; letter-spacing: -.02em; stroke-width: 5px; font-variant-numeric: tabular-nums; }
 .lb-label-note { font-size: 11px; font-weight: 600; fill: #46545f; stroke-width: 3px; }
 .lb-label.unranked .lb-label-value { fill: #46545f; font-size: 26px; }
-.lb-rank circle { fill: #e8641b; stroke: #fff9ea; stroke-width: 1.5; }
+.lb-rank circle { fill: var(--lb-accent); stroke: #fff9ea; stroke-width: 1.5; }
 .lb-rank text { font-size: 13px; font-weight: 800; fill: #fff; text-anchor: middle; dominant-baseline: central; stroke: none; }
 .lb-legend {
   display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
@@ -265,7 +265,7 @@
 
 @media (max-width: 640px) {
   .lb-hero h1 { font-size: 30px; }
-  .lb-logo { height: 26px; }
+  .lb-logo { height: 32px; }
   .lb-lead { font-size: 14px; }
   .lb-legend { position: static; align-items: center; padding: 8px 0 10px; border-radius: 0; background: none; }
   .lb-legend-ramp { width: 110px; }
