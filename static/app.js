@@ -1808,7 +1808,9 @@ async function initPastPage() {
 
 document.getElementById("refund-cta").addEventListener("click", () => track("refund-cta"));
 document.getElementById("stories-cta").addEventListener("click", () => track("stories-cta"));
-document.getElementById("refund-nav").addEventListener("click", () => track("refund-nav"));
+document.querySelectorAll(".site-nav-link").forEach((a) => {
+  a.addEventListener("click", () => track("site-nav", { to: a.dataset.nav }));
+});
 document.getElementById("trips-nav").addEventListener("click", () => track("trips-nav"));
 document.getElementById("donate-footer-item").hidden = !DONATE_ENABLED;
 document.getElementById("donate-footer").addEventListener("click", () =>

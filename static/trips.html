@@ -7,7 +7,7 @@
 <!-- an account's own list: nothing here is for a crawler -->
 <meta name="robots" content="noindex, follow">
 <link rel="icon" type="image/png" href="/favicon.png">
-<link rel="stylesheet" href="/style.css?v=121">
+<link rel="stylesheet" href="/style.css?v=122">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -25,6 +25,15 @@
     </div>
   </div>
 </header>
+<!-- the section strip, the same on every page: app/main.py fills in the language's paths and marks the current page -->
+<nav class="site-nav" aria-label="Bereiche">
+  <div class="site-nav-inner">
+    <a class="site-nav-link" data-nav="home" href="/"><span class="site-nav-label">Verbindungssuche</span></a>
+    <a class="site-nav-link" data-nav="refund" href="/entschaedigung"><span class="site-nav-label">Entschädigung beantragen</span></a>
+    <a class="site-nav-link" data-nav="leaderboard" href="/rangliste"><span class="site-nav-label">Verspätungs-Rangliste</span><span class="site-nav-new">Neu</span></a>
+    <a class="site-nav-link" data-nav="stories" href="/geschichten"><span class="site-nav-label">Delay Geschichten</span></a>
+  </div>
+</nav>
 
 <main class="trips-main">
   <!-- the tally of the past trips in a window; the script fills it, with zeros while there is nothing to add up -->

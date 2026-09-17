@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, follow">
 <link rel="canonical" href="https://delaybahn.com/login">
 <link rel="icon" type="image/png" href="favicon.png">
-<link rel="stylesheet" href="/style.css?v=121">
+<link rel="stylesheet" href="/style.css?v=122">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -21,6 +21,15 @@
     </div>
   </div>
 </header>
+<!-- the section strip, the same on every page: app/main.py fills in the language's paths and marks the current page -->
+<nav class="site-nav" aria-label="Bereiche">
+  <div class="site-nav-inner">
+    <a class="site-nav-link" data-nav="home" href="/"><span class="site-nav-label">Verbindungssuche</span></a>
+    <a class="site-nav-link" data-nav="refund" href="/entschaedigung"><span class="site-nav-label">Entschädigung beantragen</span></a>
+    <a class="site-nav-link" data-nav="leaderboard" href="/rangliste"><span class="site-nav-label">Verspätungs-Rangliste</span><span class="site-nav-new">Neu</span></a>
+    <a class="site-nav-link" data-nav="stories" href="/geschichten"><span class="site-nav-label">Delay Geschichten</span></a>
+  </div>
+</nav>
 <main class="login-main">
   <!-- 1. every way in, on one card; the address is the last resort -->
   <section id="choose-card" class="login-card auth-modal">
@@ -173,6 +182,6 @@
   <a id="footer-stories" href="/geschichten" data-i18n="footerStories">← Zu den Delay Geschichten</a> ·
   <a href="/impressum.html" data-i18n="footerLegal">Impressum &amp; Datenschutz</a>
 </footer>
-<script type="module" src="/login.js?v=16"></script>
+<script type="module" src="/login.js?v=17"></script>
 </body>
 </html>

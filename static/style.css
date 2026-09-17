@@ -298,9 +298,26 @@ body.past-mode .hero-chart { display: none; }
   box-shadow: 0 1px 3px rgba(0,0,0,.25);
 }
 .refund-nav:hover { background: color-mix(in srgb, var(--brand-red) 8%, #fff); }
-body.past-mode #refund-nav {
-  background: color-mix(in srgb, var(--brand-red) 12%, #fff);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,.25); cursor: default; pointer-events: none;
+
+/* the section strip under the red header, the same on every page: text links,
+   the current page underlined in brand red; on narrow screens the row scrolls
+   sideways instead of wrapping into a second line */
+.site-nav { background: #fff; border-bottom: 1px solid var(--gray-border); }
+.site-nav-inner {
+  max-width: 900px; margin: 0 auto; padding: 0 8px;
+  display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.site-nav-inner::-webkit-scrollbar { display: none; }
+.site-nav-link {
+  flex: none; display: inline-flex; align-items: center; gap: 6px;
+  padding: 11px 10px 9px; font-size: 14px; font-weight: 600; white-space: nowrap;
+  color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent;
+}
+.site-nav-link:hover { color: var(--text); }
+.site-nav-link.active { color: var(--brand-red); border-bottom-color: var(--brand-red); }
+.site-nav-new {
+  padding: 1px 6px; border-radius: 8px; background: var(--brand-red); color: #fff;
+  font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; line-height: 1.5;
 }
 
 .header-lang { display: flex; gap: 6px; flex-shrink: 0; }
@@ -1051,6 +1068,9 @@ body.nudge-on #donate-footer-item { display: none; }
   .header-home .header-title { flex-basis: 100px; }
   /* both pills and the language switch share the second row down to 360px */
   .header-home .refund-nav { padding: 7px 12px; font-size: 12px; }
+  .site-nav-link { padding: 10px 9px 8px; font-size: 13px; }
+  /* the strip runs past the edge: fade the last item so the scroll is visible */
+  .site-nav-inner { mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
   .hero-chart { padding: 24px 16px 20px; }
   .search-card { flex-direction: column; align-items: stretch; }
   /* stacked card: the toggle centers on its line, the button spans below it */

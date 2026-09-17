@@ -950,6 +950,42 @@ STORIES_ALT = {"de": "Delay Geschichten", "en": "Delay Stories"}
 TRIPS_PATHS = {"de": "/meine-fahrten", "en": "/en/my-trips"}
 TRIPS_TITLE = {"de": "Meine Fahrten – DelayBahn", "en": "My Trips – DelayBahn"}
 
+# the section strip under the header (the <nav class="site-nav"> in every page):
+# the same four public destinations everywhere, with the current one marked;
+# the markup carries the German defaults, this fills in the language's paths
+NAV_LABELS = {
+    "home": {"de": "Verbindungssuche", "en": "Connection search"},
+    "leaderboard": {"de": "Verspätungs-Rangliste", "en": "Delay leaderboard"},
+    "stories": {"de": "Delay Geschichten", "en": "Delay Stories"},
+    "refund": {"de": "Entschädigung beantragen", "en": "Claim compensation"},
+}
+_NAV_LINK = re.compile(
+    r'<a class="site-nav-link[^"]*" data-nav="(?P<key>\w+)" href="[^"]*"[^>]*>'
+    r'<span class="site-nav-label">[^<]*')
+
+
+def _site_nav(html: str, lang: str, active: str | None = None) -> str:
+    paths = {
+        "home": PAGE_PATHS[("future", lang)],
+        "leaderboard": LEADERBOARD_PATHS[lang],
+        "stories": STORIES_PATHS[lang],
+        "refund": PAGE_PATHS[("past", lang)],
+    }
+
+    def sub(m: re.Match[str]) -> str:
+        key = m["key"]
+        cls = "site-nav-link active" if key == active else "site-nav-link"
+        current = ' aria-current="page"' if key == active else ""
+        return (f'<a class="{cls}" data-nav="{key}" href="{paths[key]}"{current}>'
+                f'<span class="site-nav-label">{NAV_LABELS[key][lang]}')
+
+    html = _NAV_LINK.sub(sub, html)
+    if lang == "en":
+        html = html.replace('<nav class="site-nav" aria-label="Bereiche">',
+                            '<nav class="site-nav" aria-label="Sections">')
+        html = html.replace('<span class="site-nav-new">Neu</span>', '<span class="site-nav-new">New</span>')
+    return html
+
 OG_LOCALE = {"de": "de_DE", "en": "en_US"}
 
 # (title, meta description, og:description) per variant. The titles mirror
@@ -1046,6 +1082,7 @@ def _translate(html: str, script: str = "app.js") -> str:
 def _page_html(mode: str, lang: str) -> str:
     """Render one (mode, language) variant of the single-page app from index.html."""
     html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+    html = _site_nav(html, lang, "refund" if mode == "past" else "home")
     title, description, og_description = PAGE_META[(mode, lang)]
     url = SITE + PAGE_PATHS[(mode, lang)]
     home = PAGE_PATHS[("future", lang)]
@@ -1073,7 +1110,6 @@ def _page_html(mode: str, lang: str) -> str:
         (r'(<a href=")[^"]*(" hreflang="en")', rf"\g<1>{PAGE_PATHS[(mode, 'en')]}\g<2>"),
         # in-page navigation must stay inside the current language
         (r'(<a class="logo-link" href=")[^"]*', rf"\g<1>{home}"),
-        (r'(<a id="refund-nav" class="refund-nav" href=")[^"]*', rf"\g<1>{past}"),
         (r'(<a id="trips-nav" class="refund-nav trips-nav" href=")[^"]*', rf"\g<1>{TRIPS_PATHS[lang]}"),
         (r'(<a id="refund-cta" class="refund-cta" href=")[^"]*', rf"\g<1>{past}"),
         (r'(<a id="past-exit" class="past-exit" href=")[^"]*', rf"\g<1>{home}"),
@@ -1199,6 +1235,7 @@ def _stories_html(lang: str, story: dict | None = None) -> str:
     by the script, and its title and text in the meta so a shared link unfurls
     as the story rather than as the board."""
     html = (STATIC_DIR / "stories.html").read_text(encoding="utf-8")
+    html = _site_nav(html, lang, "stories")
     other = "de" if lang == "en" else "en"
     paths = {l: STORIES_PATHS[l] + (f"/{story['id']}" if story else "") for l in ("de", "en")}
     if story:
@@ -1374,6 +1411,7 @@ def _leaderboard_html(lang: str) -> str:
     """Render one language of the country leaderboard from leaderboard.html:
     the same page at /rangliste and /leaderboard, only the text language differs."""
     html = (STATIC_DIR / "leaderboard.html").read_text(encoding="utf-8")
+    html = _site_nav(html, lang, "leaderboard")
     other = "de" if lang == "en" else "en"
     title, description = LEADERBOARD_META[lang]
     url = SITE + LEADERBOARD_PATHS[lang]
@@ -1448,6 +1486,7 @@ def _trips_html(lang: str) -> str:
     at /meine-fahrten and /en/my-trips. The list itself is fetched by the
     script with the account's token, so nothing personal is in the markup."""
     html = (STATIC_DIR / "trips.html").read_text(encoding="utf-8")
+    html = _site_nav(html, lang)
     home = PAGE_PATHS[("future", lang)]
     subs = [
         (r'<html lang="[^"]*"', f'<html lang="{lang}"'),

@@ -6,7 +6,7 @@
 <title>Impressum & Datenschutz – DelayBahn</title>
 <meta name="robots" content="noindex, follow">
 <link rel="icon" type="image/png" href="favicon.png">
-<link rel="stylesheet" href="style.css?v=121">
+<link rel="stylesheet" href="style.css?v=122">
 </head>
 <body>
 <header>
@@ -15,6 +15,15 @@
     <span class="header-title">Impressum &amp; Datenschutz</span>
   </div>
 </header>
+<!-- the section strip, the same on every page: app/main.py fills in the language's paths and marks the current page -->
+<nav class="site-nav" aria-label="Bereiche">
+  <div class="site-nav-inner">
+    <a class="site-nav-link" data-nav="home" href="/"><span class="site-nav-label">Verbindungssuche</span></a>
+    <a class="site-nav-link" data-nav="refund" href="/entschaedigung"><span class="site-nav-label">Entschädigung beantragen</span></a>
+    <a class="site-nav-link" data-nav="leaderboard" href="/rangliste"><span class="site-nav-label">Verspätungs-Rangliste</span><span class="site-nav-new">Neu</span></a>
+    <a class="site-nav-link" data-nav="stories" href="/geschichten"><span class="site-nav-label">Delay Geschichten</span></a>
+  </div>
+</nav>
 
 <main>
   <div class="legal-card">
