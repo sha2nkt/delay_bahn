@@ -1138,6 +1138,13 @@ def _page_html(mode: str, lang: str) -> str:
             # the sub-page's heading is the past banner title
             (r'<strong data-i18n="pastTitle">([^<]*)</strong>',
              r'<h1 data-i18n="pastTitle">\1</h1>'),
+            # the header names the page, not the connection search it is built from
+            (r'<span data-i18n="headerTitle">[^<]*</span>',
+             '<span data-i18n="headerTitlePast">Entschädigung beantragen</span>'),
+            (r'<small data-i18n="headerSubtitle">[^<]*</small>',
+             '<small data-i18n="headerSubtitlePast">bei Zugverspätung</small>'),
+            (r'<span class="tagline" data-i18n="tagline">[^<]*</span>',
+             '<span class="tagline" data-i18n="taglinePast">Verspätet? Hol dir dein Geld zurück</span>'),
         ]
     for pattern, repl in subs:
         html = re.sub(pattern, repl, html, count=1)

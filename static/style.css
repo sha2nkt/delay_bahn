@@ -315,6 +315,8 @@ body.past-mode .hero-chart { display: none; }
 }
 .site-nav-link:hover { color: var(--text); }
 .site-nav-link.active { color: var(--brand-red); border-bottom-color: var(--brand-red); }
+/* the home entry carries a house icon that stands in for its label on phones */
+.site-nav-icon { display: none; flex: none; }
 .site-nav-new {
   padding: 1px 6px; border-radius: 8px; background: var(--brand-red); color: #fff;
   font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; line-height: 1.5;
@@ -1071,8 +1073,12 @@ body.nudge-on #donate-footer-item { display: none; }
   .site-nav-link { padding: 10px 9px 8px; font-size: 13px; }
   /* the strip runs past the edge: fade the last item so the scroll is visible */
   .site-nav-inner { mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
-  /* the logo already leads home; on a phone the row keeps only the three features */
-  .site-nav-link[data-nav="home"] { display: none; }
+  /* the home entry shrinks to its house icon; the label stays for screen readers */
+  .site-nav-link[data-nav="home"] { padding-left: 8px; padding-right: 8px; }
+  .site-nav-link[data-nav="home"] .site-nav-label {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .site-nav-icon { display: block; }
   .hero-chart { padding: 24px 16px 20px; }
   .search-card { flex-direction: column; align-items: stretch; }
   /* stacked card: the toggle centers on its line, the button spans below it */
