@@ -231,12 +231,14 @@ function applyStatic() {
   $("auth-login").href = LOGIN;
   $("auth-name").href = SELF;
   $("auth-name").title = t("navTrips");
+  $("auth-name").setAttribute("aria-label", t("navTrips"));
+  $("trips-nav").href = SELF;
 }
 
 function renderAuth() {
   $("auth-login").classList.toggle("hidden", !!me);
   $("auth-user").classList.toggle("hidden", !me);
-  $("auth-name").textContent = me ? me.name : "";
+  $("auth-name-text").textContent = me ? me.name : "";
 }
 
 function setStatus(key, error) {

@@ -269,11 +269,16 @@ function renderAuth() {
   document.getElementById("auth-login").classList.toggle("hidden", !!me);
   document.getElementById("auth-user").classList.toggle("hidden", !me);
   const nameEl = document.getElementById("auth-name");
-  nameEl.textContent = me ? me.name : "";
+  document.getElementById("auth-name-text").textContent = me ? me.name : "";
   // the name is the way to the account's booked trips
-  nameEl.href = lang === "en" ? "/en/my-trips" : "/meine-fahrten";
+  const trips = lang === "en" ? "/en/my-trips" : "/meine-fahrten";
+  nameEl.href = trips;
   nameEl.title = I18N[lang].navTrips;
+  nameEl.setAttribute("aria-label", I18N[lang].navTrips);
+  document.getElementById("trips-nav").href = trips;
 }
+
+document.getElementById("trips-nav").addEventListener("click", () => track("trips-nav"));
 
 /* -- API: every request from a signed-in visitor carries their token, so the
    lists come back with their own votes marked and the writes are theirs -- */

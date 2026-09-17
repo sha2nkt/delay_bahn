@@ -18,15 +18,22 @@
 <meta property="og:locale" content="de_DE">
 <meta property="og:locale:alternate" content="en_US">
 <link rel="icon" type="image/png" href="/favicon.png">
-<link rel="stylesheet" href="/style.css?v=123">
+<link rel="stylesheet" href="/style.css?v=124">
 <link rel="stylesheet" href="/leaderboard.css?v=5">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body class="lb-body">
 <header>
-  <div class="header-inner">
+  <div class="header-inner header-account">
     <a class="logo-link" href="/"><img class="logo" src="/logo.png?v=3" alt="DelayBahn"></a>
     <span class="header-title"><span data-i18n="headerTitle">Länder-Rangliste</span><span class="tagline" data-i18n="tagline">Welches Land bringt seine Züge pünktlich ans Ziel?</span></span>
+    <span class="header-auth">
+      <a id="auth-login" class="auth-link hidden" href="/login" data-i18n="navLogin">Anmelden</a>
+      <span id="auth-user" class="auth-user hidden"><a id="auth-name" class="auth-name" href="/meine-fahrten"><svg class="auth-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.31 0-8 1.66-8 5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-3.34-4.69-5-8-5Z"/></svg><span id="auth-name-text" class="auth-name-text"></span></a><button id="auth-logout" class="auth-logout" type="button" data-i18n="navLogout">Abmelden</button></span>
+    </span>
+    <nav class="header-pills">
+      <a id="trips-nav" class="refund-nav trips-nav" href="/meine-fahrten" data-i18n="navTrips">Meine Fahrten</a>
+    </nav>
     <div class="header-lang">
       <a href="/rangliste" hreflang="de" data-lang="de" class="lang-btn active">DE</a>
       <a href="/leaderboard" hreflang="en" data-lang="en" class="lang-btn">EN</a>
@@ -160,6 +167,6 @@
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
 </footer>
 <script src="/europe-map.js?v=1"></script>
-<script src="/leaderboard.js?v=4"></script>
+<script src="/leaderboard.js?v=6"></script>
 </body>
 </html>

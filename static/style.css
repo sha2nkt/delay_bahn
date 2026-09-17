@@ -1060,14 +1060,14 @@ body.nudge-on #donate-footer-item { display: none; }
 
 @media (max-width: 700px) {
   .header-inner { flex-wrap: wrap; row-gap: 8px; }
-  /* the homepage header also carries the compensation CTA: the account corner
-     stays beside the title and the CTA drops to a second, right-aligned row
-     with the language switch, instead of the pill squeezing the title into
-     single words; a long name is clipped so the corner still fits the row */
-  .header-home { justify-content: flex-end; }
-  .header-home .header-title { flex-basis: 100px; }
-  /* both pills and the language switch share the second row down to 360px */
-  .header-home .refund-nav { padding: 7px 12px; font-size: 12px; }
+  /* every page header carries the account corner and the trips pill: the
+     corner stays beside the title and the pill drops to a second, right-aligned
+     row with the language switch, instead of squeezing the title into single
+     words; a long name is clipped so the corner still fits the row */
+  .header-account { justify-content: flex-end; }
+  .header-account .header-title { flex-basis: 100px; }
+  /* the pill and the language switch share the second row down to 360px */
+  .header-account .refund-nav { padding: 7px 12px; font-size: 12px; }
   .site-nav-link { padding: 10px 9px 8px; font-size: 13px; }
   /* the strip runs past the edge: fade the last item so the scroll is visible */
   .site-nav-inner { mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
@@ -1111,16 +1111,10 @@ body.nudge-on #donate-footer-item { display: none; }
   }
   .return-remove-label, .stopover-remove-label, .traveller-remove-label { display: inline; }
   .trip-stepper { flex-direction: column; }
-  /* single-row headers shrink the logo to fit; the two-row homepage header keeps it full size */
-  .header-inner:not(.header-home) .logo { height: 48px; padding: 4px 8px; border-radius: 6px; }
+  /* single-row headers shrink the logo to fit; the two-row account headers keep it full size */
+  .header-inner:not(.header-account) .logo { height: 48px; padding: 4px 8px; border-radius: 6px; }
   .header-title { font-size: 15px; }
   .header-title small { display: none; }
-  /* the stories header carries the account corner as well: four items on one
-     line squeeze the title down to a word per line, so the title keeps the row
-     beside the logo and the account corner drops to a second, right-aligned row
-     with the language switch; a long name is clipped so the row still fits */
-  .header-stories { justify-content: flex-end; }
-  .header-stories .header-title { flex-basis: calc(100% - 100px); }
 
   .controls { flex-wrap: wrap; }
 
@@ -2108,17 +2102,12 @@ body.past-mode .stories-banner { display: none; }
   .trips-tiles { grid-template-columns: repeat(2, 1fr); gap: 10px 8px; }
   .trips-tile-value { font-size: 19px; }
   .trip-actions .book-btn { flex: 1; text-align: center; }
-  /* the name is a link now: clip it like the bold name before */
-  .header-home .auth-name, .header-stories .auth-name {
-    display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom;
-  }
-  .header-stories .auth-name { max-width: 9em; }
-  /* home header: the barely-readable clipped name becomes a circled account icon */
-  .header-home .auth-name {
+  /* the barely-readable clipped name becomes a circled account icon */
+  .header-account .auth-name {
     display: inline-flex; align-items: center; justify-content: center;
     width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%;
   }
-  .header-home .auth-name:hover { background: rgba(255,255,255,.15); text-decoration: none; }
-  .header-home .auth-name .auth-icon { width: 22px; height: 22px; top: 0; }
-  .header-home .auth-name .auth-name-text { display: none; }
+  .header-account .auth-name:hover { background: rgba(255,255,255,.15); text-decoration: none; }
+  .header-account .auth-name .auth-icon { width: 22px; height: 22px; top: 0; }
+  .header-account .auth-name .auth-name-text { display: none; }
 }

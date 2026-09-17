@@ -10,6 +10,9 @@ const I18N = {
     docTitle: "Europas Bahn-Rangliste – welches Land fährt am pünktlichsten? | DelayBahn",
     headerTitle: "Länder-Rangliste",
     tagline: "Welches Land bringt seine Züge pünktlich ans Ziel?",
+    navLogin: "Anmelden",
+    navLogout: "Abmelden",
+    navTrips: "Meine Fahrten",
     heroKicker: "Europas Bahn-Rangliste",
     heroTitle1: "Wer fährt pünktlich,",
     heroTitle2: "wer lässt warten?",
@@ -79,6 +82,9 @@ const I18N = {
     docTitle: "Europe's rail leaderboard – which country runs the most punctual trains? | DelayBahn",
     headerTitle: "Country leaderboard",
     tagline: "Which country gets its trains there on time?",
+    navLogin: "Login",
+    navLogout: "Logout",
+    navTrips: "My trips",
     heroKicker: "Europe's rail leaderboard",
     heroTitle1: "Who runs on time,",
     heroTitle2: "and who keeps you waiting?",
@@ -715,6 +721,64 @@ async function load(initial) {
   }
 }
 
+/* ---------- account ----------
+   The header's account corner, the same on every page: the name of the
+   signed-in account - a link to its trips - or the link to sign in, which
+   brings the visitor back here. The SDK is imported only when the login page
+   left its "account" hint behind, so the anonymous majority never downloads
+   it; the request box below shares the lookup. */
+const SELF = LANG === "en" ? "/leaderboard" : "/rangliste";
+const TRIPS = LANG === "en" ? "/en/my-trips" : "/meine-fahrten";
+let fb = null;
+let me = null;  // { user, name } once signed in, contact proven, username claimed
+
+async function loadMe() {
+  let hinted = false;
+  try { hinted = localStorage.getItem("account") === "1"; } catch (e) {}
+  if (!hinted) return;
+  try {
+    fb = await import("/firebase.js?v=2");
+    if (fb.auth) {
+      await fb.auth.authStateReady();
+      const user = fb.auth.currentUser;
+      if (user) {
+        const who = await fb.identity(user);
+        if (who.verified && who.name) me = { user, name: who.name };
+      }
+    }
+    if (!me) fb.remember(false);
+  } catch (e) {
+    me = null;
+  }
+}
+
+function renderAuth() {
+  $("auth-login").classList.toggle("hidden", !!me);
+  $("auth-user").classList.toggle("hidden", !me);
+  $("auth-name-text").textContent = me ? me.name : "";
+}
+
+(function initHeaderAccount() {
+  $("auth-login").href = "/login?next=" + encodeURIComponent(SELF);
+  const nameEl = $("auth-name");
+  nameEl.href = TRIPS;
+  nameEl.title = t("navTrips");
+  nameEl.setAttribute("aria-label", t("navTrips"));
+  $("trips-nav").href = TRIPS;
+  $("trips-nav").addEventListener("click", () => {
+    if (window.umami) window.umami.track("trips-nav");
+  });
+  $("auth-logout").addEventListener("click", async () => {
+    try {
+      await fb.signOut(fb.auth);
+    } catch (e) { /* the SDK may still hold the user; the reload sorts it out */ }
+    fb.remember(false);
+    location.reload();
+  });
+})();
+
+const meReady = loadMe().then(renderAuth);
+
 /* ---------- data / analysis requests ----------
    The foot of the page asks for more data or analysis. A request goes to the
    same /api/feedback endpoint as the thumbs on the other pages, as a "request"
@@ -722,9 +786,7 @@ async function load(initial) {
    server wants a bearer. Everyone sees the text box; a visitor without an
    account gets a quiet line with a login link on Send, no redirect, and the
    typed text is parked in sessionStorage so it is back in the box when the
-   login returns here. The
-   SDK is imported only when the login page left its "account" hint behind,
-   so the anonymous majority never downloads it. Unlike the thumbs, a failure
+   login returns here. Unlike the thumbs, a failure
    is shown - the visitor typed something and deserves to know whether it
    arrived. */
 (function initRequests() {
@@ -734,30 +796,11 @@ async function load(initial) {
   const input = $("lb-request-text");
   const send = form.querySelector(".lb-request-send");
   const note = $("lb-request-note");
-  const SELF = LANG === "en" ? "/leaderboard" : "/rangliste";
   const LOGIN = "/login?next=" + encodeURIComponent(SELF + "#lb-request") + "&reason=request";
   const PARKED = "lb-request-draft";
-  let me = null;  // the signed-in, verified Firebase user, else null
 
   $("lb-request-login").href = LOGIN;
   function say(key) { lead.dataset.i18n = key; lead.textContent = t(key); }
-
-  async function loadMe() {
-    let hinted = false;
-    try { hinted = localStorage.getItem("account") === "1"; } catch (e) {}
-    if (!hinted) return;
-    try {
-      const fb = await import("/firebase.js?v=2");
-      if (fb.auth) {
-        await fb.auth.authStateReady();
-        const user = fb.auth.currentUser;
-        if (user && (await fb.identity(user)).verified) me = user;
-      }
-      if (!me) fb.remember(false);
-    } catch (e) {
-      me = null;
-    }
-  }
 
   // no account: a quiet line with the way to the login, the text stays in
   // the box and is parked so it survives the round trip
@@ -785,7 +828,7 @@ async function load(initial) {
     const sid = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     let status = 0;
     try {
-      const token = await me.getIdToken();
+      const token = await me.user.getIdToken();
       const r = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
@@ -818,7 +861,7 @@ async function load(initial) {
   let parked = "";
   try { parked = sessionStorage.getItem(PARKED) || ""; } catch (e) {}
   if (parked && !input.value) input.value = parked;
-  loadMe().then(() => {
+  meReady.then(() => {
     if (location.hash === "#lb-request") input.focus({ preventScroll: true });
   });
 })();
