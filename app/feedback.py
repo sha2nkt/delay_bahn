@@ -45,7 +45,9 @@ CREATE TABLE IF NOT EXISTS feedback (
   text    TEXT NOT NULL DEFAULT '',
   lang    TEXT NOT NULL,
   context TEXT NOT NULL,
-  shot    BLOB
+  shot    BLOB,
+  uid     TEXT,
+  email   TEXT
 )
 """
 
@@ -111,7 +113,13 @@ def throttled(ip: str) -> bool:
 
 
 def save(
-    sid: str, vote: str, text: str, lang: str, context: str, shot: bytes | None
+    sid: str,
+    vote: str,
+    text: str,
+    lang: str,
+    context: str,
+    shot: bytes | None,
+    requester: tuple[str, str | None] | None = None,
 ) -> bool:
     """Blocking - run it off the event loop.
 
@@ -122,15 +130,19 @@ def save(
 
     Returns True when the screenshot was dropped because the rolling 24 h
     screenshot budget is full; the vote and text are stored regardless.
+
+    requester is the (uid, email) behind a signed-in "request" so the wish can
+    be answered by mail later; thumbs stay anonymous.
     """
     dropped = False
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with closing(sqlite3.connect(DB_PATH, timeout=5)) as conn, conn:
         conn.execute(_SCHEMA)
-        try:
-            conn.execute("ALTER TABLE feedback ADD COLUMN shot BLOB")
-        except sqlite3.OperationalError:
-            pass  # pre-existing db already migrated (or born with the column)
+        for column in ("shot BLOB", "uid TEXT", "email TEXT"):
+            try:
+                conn.execute(f"ALTER TABLE feedback ADD COLUMN {column}")
+            except sqlite3.OperationalError:
+                pass  # pre-existing db already migrated (or born with the column)
         if shot is not None:
             since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat(
                 timespec="seconds"
@@ -143,11 +155,13 @@ def save(
                 shot = None
                 dropped = True
         conn.execute(
-            "INSERT INTO feedback (sid, ts, vote, text, lang, context, shot)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO feedback (sid, ts, vote, text, lang, context, shot, uid, email)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
             " ON CONFLICT(sid) DO UPDATE SET"
             " text = CASE WHEN excluded.text != '' THEN excluded.text ELSE feedback.text END,"
-            " shot = COALESCE(excluded.shot, feedback.shot)",
+            " shot = COALESCE(excluded.shot, feedback.shot),"
+            " uid = COALESCE(excluded.uid, feedback.uid),"
+            " email = COALESCE(excluded.email, feedback.email)",
             (
                 sid,
                 datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -156,6 +170,8 @@ def save(
                 lang,
                 context,
                 shot,
+                requester[0] if requester else None,
+                requester[1] if requester else None,
             ),
         )
     return dropped
@@ -176,7 +192,12 @@ _warned_no_topic = False
 
 
 async def notify(
-    vote: str, text: str, lang: str, context: str, shot: tuple[bytes, str] | None
+    vote: str,
+    text: str,
+    lang: str,
+    context: str,
+    shot: tuple[bytes, str] | None,
+    requester: tuple[str, str | None] | None = None,
 ) -> None:
     """Push a written comment - and its screenshot as a second, attachment-only
     message - to ntfy. Never raises - a submission must not fail because the
@@ -201,6 +222,11 @@ async def notify(
     base = os.environ.get("NTFY_URL", "https://ntfy.sh").rstrip("/")
     if vote == "request":
         headers = {"Title": f"DelayBahn analysis request ({lang}, {context})", "Tags": "bulb"}
+        if requester:
+            # in the body, not a header: headers are latin-1 only and the
+            # address is what makes the request answerable
+            uid, email = requester
+            text = f"From: {email or '(no email)'} [{uid}]\n\n{text}"
     else:
         headers = {
             "Title": f"DelayBahn feedback ({vote}, {lang}, {context})",

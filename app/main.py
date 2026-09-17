@@ -1623,7 +1623,7 @@ class Feedback(BaseModel):
     sid: str = Field(min_length=8, max_length=64)
     # "request": a wish for more data or analysis from the leaderboard's foot -
     # no thumbs, the text is the whole point, and it needs a signed-in account
-    # behind the bearer (the account itself is not stored with the text)
+    # behind the bearer; uid and email are stored so the wish can be answered
     vote: Literal["up", "down", "request"]
     text: str = Field("", max_length=1000)
     # optional screenshot as a base64 image data URL; the length bound is the
@@ -1645,12 +1645,14 @@ def _spawn(coro) -> None:
 
 @app.post("/api/feedback", status_code=204)
 async def submit_feedback(fb: Feedback, request: Request) -> Response:
+    requester = None
     if fb.vote == "request":
         user = await _optional_user(request)
         if user is None:
             raise HTTPException(401, "login required")
         if not user["verified"]:
             raise HTTPException(403, "unverified")
+        requester = (user["uid"], user["email"])
     if feedback.throttled(client_ip(request)):
         raise HTTPException(429, "too many submissions")
     text = fb.text.strip()
@@ -1661,7 +1663,7 @@ async def submit_feedback(fb: Feedback, request: Request) -> Response:
     # sqlite3 blocks and /health doubles as an event-loop canary: keep the write off it
     dropped = await anyio.to_thread.run_sync(
         feedback.save, fb.sid, fb.vote, text, fb.lang, fb.context,
-        shot[0] if shot else None,
+        shot[0] if shot else None, requester,
     )
     if dropped:
         # budget full: don't forward the image to ntfy either - under a flood
@@ -1671,7 +1673,7 @@ async def submit_feedback(fb: Feedback, request: Request) -> Response:
             _spawn(feedback.notify_budget())
     # only a comment or screenshot is worth a phone buzz, and never on the request's clock
     if text or shot:
-        _spawn(feedback.notify(fb.vote, text, fb.lang, fb.context, shot))
+        _spawn(feedback.notify(fb.vote, text, fb.lang, fb.context, shot, requester))
     return Response(status_code=204)
 
 
