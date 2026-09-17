@@ -1746,3 +1746,5 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Busters: `style.css` v124 → **v125** (index, leaderboard, stories, trips, login, impressum + the sw.js PRECACHE), `SHELL_VERSION` v90 → **v91**. Live pins read first (124/v90/app.js 138, the highest anywhere across remote branches). Another session's uncommitted past-page header edit (app/main.py, app.js, app.js?v=139, SHELL v92) stays in the working tree and is not part of this commit. No asset URL was requested with a candidate number before the deploy.
 - Not done: nothing else; the "Neu" chip still has no expiry.
 
+- Correction, same day: another session had staged its past-page header retitle (app/main.py, app.js, app.js?v=138 → **v139**) in this checkout at the same moment, so it landed in the same commit bae95ee rather than staying in the tree; the shipped build is coherent (style 125, app.js 139, SHELL v91), and that change's own log entry is still owed by the session that made it.
+
