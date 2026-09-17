@@ -6,7 +6,16 @@
 
 /* ---- hero ---- */
 .lb-hero { text-align: center; padding: 6px 0 0; }
-.lb-hero h1 { font-size: 30px; font-weight: 700; letter-spacing: -.01em; margin: 6px 0 8px; color: var(--lb-ink); }
+.lb-kicker {
+  margin: 10px 0 0; font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--lb-accent);
+}
+/* the poster voice of the map's labels: a system serif, no font download */
+.lb-hero h1 {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
+  font-size: 42px; font-weight: 600; letter-spacing: -.015em; line-height: 1.12; margin: 4px 0 10px; color: var(--lb-ink);
+}
+.lb-hero h1 em { font-style: italic; color: var(--lb-accent); }
 .lb-lead {
   color: var(--text-muted); font-size: 15px; line-height: 1.5;
   max-width: 640px; margin: 0 auto 16px;
@@ -226,7 +235,7 @@
 }
 
 @media (max-width: 640px) {
-  .lb-hero h1 { font-size: 26px; }
+  .lb-hero h1 { font-size: 30px; }
   .lb-lead { font-size: 14px; }
   .lb-legend { position: static; align-items: center; padding: 8px 0 10px; border-radius: 0; background: none; }
   .lb-legend-ramp { width: 110px; }
