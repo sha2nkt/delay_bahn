@@ -1414,6 +1414,10 @@ LEADERBOARD_META = {
 }
 
 
+LEADERBOARD_LOGO = {"de": "/leaderboard-logo-de.png", "en": "/leaderboard-logo-en.png"}
+LEADERBOARD_LOGO_ALT = {"de": "Europas Verspätungs-Rangliste", "en": "Europe's Delay Leaderboard"}
+
+
 def _leaderboard_html(lang: str) -> str:
     """Render one language of the country leaderboard from leaderboard.html:
     the same page at /rangliste and /leaderboard, only the text language differs."""
@@ -1442,6 +1446,8 @@ def _leaderboard_html(lang: str) -> str:
         (r'(<a class="logo-link" href=")[^"]*', rf"\g<1>{home}"),
         (r'(<a href=")[^"]*(" data-i18n="footerBack")', rf"\g<1>{home}\g<2>"),
         (r'(<a href=")[^"]*(" data-i18n="footerStories")', rf"\g<1>{STORIES_PATHS[lang]}\g<2>"),
+        (r'(<img class="lb-logo" id="lb-logo" src=")[^"]*(" alt=")[^"]*',
+         rf"\g<1>{LEADERBOARD_LOGO[lang]}\g<2>{LEADERBOARD_LOGO_ALT[lang]}"),
     ]
     for pattern, repl in subs:
         html = re.sub(pattern, repl, html, count=1)

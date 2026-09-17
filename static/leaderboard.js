@@ -13,7 +13,8 @@ const I18N = {
     navLogin: "Anmelden",
     navLogout: "Abmelden",
     navTrips: "Meine Fahrten",
-    heroKicker: "Europas Bahn-Rangliste",
+    logoSrc: "/leaderboard-logo-de.png",
+    logoAlt: "Europas Verspätungs-Rangliste",
     heroTitle1: "Wer fährt pünktlich,",
     heroTitle2: "wer lässt warten?",
     heroLead: "Sechs Bahnländer, ein Maßstab: der Anteil der Halte, an denen ein Fernzug weniger als 6 Minuten verspätet ankam. Jeden Morgen aus den Verspätungsdaten des Vortags neu berechnet.",
@@ -85,7 +86,8 @@ const I18N = {
     navLogin: "Login",
     navLogout: "Logout",
     navTrips: "My trips",
-    heroKicker: "Europe's rail leaderboard",
+    logoSrc: "/leaderboard-logo-en.png",
+    logoAlt: "Europe's Delay Leaderboard",
     heroTitle1: "Who runs on time,",
     heroTitle2: "and who keeps you waiting?",
     heroLead: "Six rail countries, one yardstick: the share of stops where the long-distance train arrived less than 6 minutes late. Recomputed every morning from the previous day's delay data.",
@@ -259,6 +261,9 @@ function applyI18n() {
     el.placeholder = t(el.dataset.i18nPlaceholder);
   });
   document.querySelector(".lb-periods").setAttribute("aria-label", t("periodGroup"));
+  const logo = document.getElementById("lb-logo");
+  logo.src = t("logoSrc");
+  logo.alt = t("logoAlt");
 }
 
 /* ---------- state ---------- */
