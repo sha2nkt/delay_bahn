@@ -37,7 +37,7 @@
 <main class="lb-main">
   <section class="lb-hero">
     <h1 data-i18n="heroTitle">Europas Bahn-Rangliste</h1>
-    <p class="lb-lead" data-i18n="heroLead">Sechs Bahnländer, ein Maßstab: der Anteil der Halte, an denen der Zug weniger als 6 Minuten verspätet ankam. Jeden Morgen aus den Verspätungsdaten des Vortags neu berechnet.</p>
+    <p class="lb-lead" data-i18n="heroLead">Sechs Bahnländer, ein Maßstab: der Anteil der Halte, an denen ein Fernzug weniger als 6 Minuten verspätet ankam. Jeden Morgen aus den Verspätungsdaten des Vortags neu berechnet.</p>
     <div class="lb-controls">
       <div class="lb-periods" role="group" aria-label="Zeitraum">
         <button type="button" class="lb-period" data-period="day" data-i18n="periodDay">Tag</button>
@@ -60,7 +60,7 @@
       <span class="lb-legend-scale">
         <span data-i18n="legendLow">0 %</span>
         <span class="lb-legend-ramp"></span>
-        <span data-i18n="legendHigh">25 %+</span>
+        <span data-i18n="legendHigh">50 %+</span>
       </span>
     </div>
     <div id="lb-tip" class="lb-tip hidden" role="tooltip"></div>
@@ -70,6 +70,7 @@
 
   <section class="lb-table-section">
     <h2 data-i18n="tableHeading">Die ganze Tabelle</h2>
+    <p class="lb-table-lead" data-i18n="tableLead">Nur Fernzüge (Strecken über 100 km): ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und ihre Pendants. Regional-, S-Bahn- und InterRegio-Züge bleiben außen vor.</p>
     <div class="lb-table-wrap">
       <table class="lb-table">
         <thead>
@@ -89,9 +90,9 @@
     <p id="lb-status" class="lb-status" role="status"></p>
   </section>
 
-  <section class="lb-table-section lb-table-long">
-    <h2 data-i18n="tableHeadingLong">Nur Fernverkehr</h2>
-    <p class="lb-table-lead" data-i18n="tableLeadLong">Dieselbe Rangliste, nur mit Fernzügen (Strecken über 100 km): ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und ihre Pendants. Regional-, S-Bahn- und InterRegio-Züge bleiben außen vor.</p>
+  <section class="lb-table-section lb-table-all">
+    <h2 data-i18n="tableHeadingAll">Alle Züge</h2>
+    <p class="lb-table-lead" data-i18n="tableLeadAll">Dieselbe Rangliste über alle Züge, also auch Regional-, S-Bahn- und InterRegio-Züge.</p>
     <div class="lb-table-wrap">
       <table class="lb-table">
         <thead>
@@ -105,15 +106,15 @@
             <th class="lb-col-trend" scope="col" data-i18n="colTrend" data-i18n-title="colTrendTitle" title="Anteil pünktlicher Halte pro Tag in den letzten 30 Tagen, links der älteste Tag, der Punkt ist der neueste. Jede Linie hat ihre eigene Skala.">Letzte 30 Tage</th>
           </tr>
         </thead>
-        <tbody id="lb-rows-long"></tbody>
+        <tbody id="lb-rows-all"></tbody>
       </table>
     </div>
-    <p id="lb-status-long" class="lb-status" role="status"></p>
+    <p id="lb-status-all" class="lb-status" role="status"></p>
   </section>
 
   <details class="lb-method">
     <summary><h2 data-i18n="methodHeading">So wird gezählt</h2></summary>
-    <p data-i18n="methodText">Für jedes Land zählen alle aufgezeichneten Zughalte mit Echtzeit-Ankunft. Pünktlich ist ein Halt nach der Definition der Deutschen Bahn, wenn der Zug weniger als 6 Minuten nach Plan ankommt, derselbe Maßstab für alle Länder. Ø Verspätung ist die mittlere Ankunftsverspätung über alle nicht ausgefallenen Halte, zu früh zählt als 0. Die Rangfolge richtet sich nach dem Pünktlichkeitsanteil; bei Gleichstand entscheidet die geringere Ø Verspätung. Länder mit zu wenigen Halten im Zeitraum werden gezeigt, aber nicht gewertet. Die Daten stammen aus den offenen Echtzeit-Quellen der Bahnen (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); ihre Abdeckung unterscheidet sich, zum Beispiel erfasst die österreichische Quelle nur die 200 größten Bahnhöfe.</p>
+    <p data-i18n="methodText">Für jedes Land zählen alle aufgezeichneten Halte von Fernzügen (ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und Entsprechungen) mit Echtzeit-Ankunft. Pünktlich ist ein Halt nach der Definition der Deutschen Bahn, wenn der Zug weniger als 6 Minuten nach Plan ankommt, derselbe Maßstab für alle Länder. Ø Verspätung ist die mittlere Ankunftsverspätung über alle nicht ausgefallenen Halte, zu früh zählt als 0. Die Rangfolge richtet sich nach dem Pünktlichkeitsanteil; bei Gleichstand entscheidet die geringere Ø Verspätung. Länder mit zu wenigen Halten im Zeitraum werden gezeigt, aber nicht gewertet. Die Daten stammen aus den offenen Echtzeit-Quellen der Bahnen (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); ihre Abdeckung unterscheidet sich, zum Beispiel erfasst die österreichische Quelle nur die 200 größten Bahnhöfe. Die Tabelle „Alle Züge“ zählt nach denselben Regeln zusätzlich Regional-, S-Bahn- und InterRegio-Züge.</p>
   </details>
 </main>
 
@@ -135,6 +136,6 @@
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
 </footer>
 <script src="/europe-map.js?v=1"></script>
-<script src="/leaderboard.js?v=2"></script>
+<script src="/leaderboard.js?v=3"></script>
 </body>
 </html>

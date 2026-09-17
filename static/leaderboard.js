@@ -11,7 +11,7 @@ const I18N = {
     headerTitle: "Länder-Rangliste",
     tagline: "Welches Land bringt seine Züge pünktlich ans Ziel?",
     heroTitle: "Europas Bahn-Rangliste",
-    heroLead: "Sechs Bahnländer, ein Maßstab: der Anteil der Halte, an denen der Zug weniger als 6 Minuten verspätet ankam. Jeden Morgen aus den Verspätungsdaten des Vortags neu berechnet.",
+    heroLead: "Sechs Bahnländer, ein Maßstab: der Anteil der Halte, an denen ein Fernzug weniger als 6 Minuten verspätet ankam. Jeden Morgen aus den Verspätungsdaten des Vortags neu berechnet.",
     periodDay: "Tag",
     periodWeek: "Woche",
     periodMonth: "Monat",
@@ -19,12 +19,13 @@ const I18N = {
     winnerNone: "Kein Land gewertet – zu wenig Daten in diesem Zeitraum.",
     legendTitle: "Anteil verspäteter Halte",
     legendLow: "0 %",
-    legendHigh: "25 %+",
+    legendHigh: "50 %+",
     asOf: "Stand: {date} · jeden Morgen automatisch aktualisiert",
     podiumHeading: "Das Podium",
     tableHeading: "Die ganze Tabelle",
-    tableHeadingLong: "Nur Fernverkehr",
-    tableLeadLong: "Dieselbe Rangliste, nur mit Fernzügen (Strecken über 100 km): ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und ihre Pendants. Regional-, S-Bahn- und InterRegio-Züge bleiben außen vor.",
+    tableLead: "Nur Fernzüge (Strecken über 100 km): ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und ihre Pendants. Regional-, S-Bahn- und InterRegio-Züge bleiben außen vor.",
+    tableHeadingAll: "Alle Züge",
+    tableLeadAll: "Dieselbe Rangliste über alle Züge, also auch Regional-, S-Bahn- und InterRegio-Züge.",
     colCountry: "Land",
     colPunctuality: "Pünktlich (< 6 min)",
     colAvgDelay: "Ø Verspätung",
@@ -51,7 +52,7 @@ const I18N = {
     podiumSub: "Ø {delay} Verspätung · {cancelled} Ausfälle",
     sparkTitle: "Pünktlichkeit der letzten 30 Tage: {min} bis {max}",
     methodHeading: "So wird gezählt",
-    methodText: "Für jedes Land zählen alle aufgezeichneten Zughalte mit Echtzeit-Ankunft. Pünktlich ist ein Halt nach der Definition der Deutschen Bahn, wenn der Zug weniger als 6 Minuten nach Plan ankommt, derselbe Maßstab für alle Länder. Ø Verspätung ist die mittlere Ankunftsverspätung über alle nicht ausgefallenen Halte, zu früh zählt als 0. Die Rangfolge richtet sich nach dem Pünktlichkeitsanteil; bei Gleichstand entscheidet die geringere Ø Verspätung. Länder mit zu wenigen Halten im Zeitraum werden gezeigt, aber nicht gewertet. Die Daten stammen aus den offenen Echtzeit-Quellen der Bahnen (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); ihre Abdeckung unterscheidet sich, zum Beispiel erfasst die österreichische Quelle nur die 200 größten Bahnhöfe. Die Fernverkehrs-Tabelle zählt nur Halte von Zügen, deren Gattung ein Fernverkehrsprodukt ist (ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und Entsprechungen), nach denselben Regeln.",
+    methodText: "Für jedes Land zählen alle aufgezeichneten Halte von Fernzügen (ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und Entsprechungen) mit Echtzeit-Ankunft. Pünktlich ist ein Halt nach der Definition der Deutschen Bahn, wenn der Zug weniger als 6 Minuten nach Plan ankommt, derselbe Maßstab für alle Länder. Ø Verspätung ist die mittlere Ankunftsverspätung über alle nicht ausgefallenen Halte, zu früh zählt als 0. Die Rangfolge richtet sich nach dem Pünktlichkeitsanteil; bei Gleichstand entscheidet die geringere Ø Verspätung. Länder mit zu wenigen Halten im Zeitraum werden gezeigt, aber nicht gewertet. Die Daten stammen aus den offenen Echtzeit-Quellen der Bahnen (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); ihre Abdeckung unterscheidet sich, zum Beispiel erfasst die österreichische Quelle nur die 200 größten Bahnhöfe. Die Tabelle „Alle Züge“ zählt nach denselben Regeln zusätzlich Regional-, S-Bahn- und InterRegio-Züge.",
     mapLabel: "Karte Europas: Länder nach Anteil verspäteter Halte eingefärbt, das pünktlichste Land hervorgehoben",
     footerBack: "← Zur Verbindungssuche",
     footerStories: "Delay Geschichten",
@@ -67,7 +68,7 @@ const I18N = {
     headerTitle: "Country leaderboard",
     tagline: "Which country gets its trains there on time?",
     heroTitle: "Europe's Rail Leaderboard",
-    heroLead: "Six rail countries, one yardstick: the share of stops where the train arrived less than 6 minutes late. Recomputed every morning from the previous day's delay data.",
+    heroLead: "Six rail countries, one yardstick: the share of stops where the long-distance train arrived less than 6 minutes late. Recomputed every morning from the previous day's delay data.",
     periodDay: "Day",
     periodWeek: "Week",
     periodMonth: "Month",
@@ -75,12 +76,13 @@ const I18N = {
     winnerNone: "No country ranked – too little data in this period.",
     legendTitle: "Share of delayed stops",
     legendLow: "0%",
-    legendHigh: "25%+",
+    legendHigh: "50%+",
     asOf: "Data as of {date} · refreshed automatically every morning",
     podiumHeading: "The podium",
     tableHeading: "The full table",
-    tableHeadingLong: "Long-distance only",
-    tableLeadLong: "The same ranking over long-distance trains only (routes over 100 km): ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity and their equivalents. Regional, suburban and InterRegio trains are left out.",
+    tableLead: "Long-distance trains only (routes over 100 km): ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity and their equivalents. Regional, suburban and InterRegio trains are left out.",
+    tableHeadingAll: "All trains",
+    tableLeadAll: "The same ranking over every train, regional, suburban and InterRegio services included.",
     colCountry: "Country",
     colPunctuality: "On time (< 6 min)",
     colAvgDelay: "Avg. delay",
@@ -107,7 +109,7 @@ const I18N = {
     podiumSub: "{delay} avg. delay · {cancelled} cancelled",
     sparkTitle: "Punctuality over the last 30 days: {min} to {max}",
     methodHeading: "How we count",
-    methodText: "For every country we count all recorded train stops with a real-time arrival. A stop is on time by Deutsche Bahn's own definition when the train arrives less than 6 minutes after schedule, the same yardstick for every country. Avg. delay is the mean arrival delay over all non-cancelled stops, early arrivals count as 0. Countries rank by their on-time share; ties go to the lower average delay. Countries with too few stops in the period are shown but not ranked. The data comes from the railways' open real-time sources (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); their coverage differs, for instance the Austrian source only covers the 200 largest stations. The long-distance table counts only stops of trains whose category is a long-distance product (ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity and equivalents), by the same rules.",
+    methodText: "For every country we count all recorded stops of long-distance trains (ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity and equivalents) with a real-time arrival. A stop is on time by Deutsche Bahn's own definition when the train arrives less than 6 minutes after schedule, the same yardstick for every country. Avg. delay is the mean arrival delay over all non-cancelled stops, early arrivals count as 0. Countries rank by their on-time share; ties go to the lower average delay. Countries with too few stops in the period are shown but not ranked. The data comes from the railways' open real-time sources (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); their coverage differs, for instance the Austrian source only covers the 200 largest stations. The \"All trains\" table adds regional, suburban and InterRegio services by the same rules.",
     mapLabel: "Map of Europe, countries shaded by their share of delayed stops, the most punctual one outlined in gold",
     footerBack: "← Back to the connection search",
     footerStories: "Delay Stories",
@@ -139,7 +141,8 @@ const FLAGS = {
   IT: '<rect width="3" height="2" fill="#009246"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ce2b37"/>',
 };
 // parchment to burnt orange: the share of delayed stops, 0 % at the lightest
-// step and 25 %+ at the darkest, fixed so a colour means the same in every period
+// step and 50 %+ at the darkest (long-distance shares run up to about half),
+// fixed so a colour means the same in every period
 const RAMP = ["#f3ead4", "#f2dcb3", "#f1c98f", "#efa964", "#ea8140", "#d85f22", "#ad3f12"];
 // the window of the projected map that is shown: the six countries plus room
 // for their labels, so the rest of Europe is only a margin around them
@@ -154,7 +157,7 @@ const LABELS = {
   CH: { x: 392, y: 662, lead: [440, 640] },
   AT: { x: 652, y: 512, lead: [648, 520] },
 };
-const DELAYED_MAX = 25;
+const DELAYED_MAX = 50;
 const PERIODS = ["day", "week", "month"];
 const REFRESH_MS = 5 * 60 * 1000;
 
@@ -237,15 +240,15 @@ let pinned = null;    // code whose tooltip a tap pinned open
 // table order: which column, and the numeric direction; each metric's default
 // is its best-first direction, a second click on the same header flips it
 const SORT_DEFAULT = { punctuality: "desc", avgDelay: "asc", cancelled: "asc", stops: "desc" };
-// the two tables: every train, and long-distance trains only. Each sorts on its
-// own; the map and podium follow the all-trains ranking.
+// the two tables: long-distance trains only, and every train. Each sorts on its
+// own; the map and podium follow the long-distance ranking.
 const TABLES = [
-  { name: "all", rows: "lb-rows", status: "lb-status", view: () => data, sort: { key: "punctuality", dir: "desc" } },
-  { name: "long", rows: "lb-rows-long", status: "lb-status-long", view: () => data.longDistance, sort: { key: "punctuality", dir: "desc" } },
+  { name: "long", rows: "lb-rows", status: "lb-status", view: () => data.longDistance, sort: { key: "punctuality", dir: "desc" } },
+  { name: "all", rows: "lb-rows-all", status: "lb-status-all", view: () => data, sort: { key: "punctuality", dir: "desc" } },
 ];
 TABLES.forEach((tbl) => { tbl.section = $(tbl.rows).closest(".lb-table-section"); });
 
-function current() { return data.periods[period]; }
+function current() { return data.longDistance.periods[period]; }
 function entry(code) { return current().countries.find((c) => c.code === code) || null; }
 
 /* ---------- map ---------- */
