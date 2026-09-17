@@ -199,10 +199,13 @@ async def notify(
             )
         return
     base = os.environ.get("NTFY_URL", "https://ntfy.sh").rstrip("/")
-    headers = {
-        "Title": f"DelayBahn feedback ({vote}, {lang}, {context})",
-        "Tags": "+1" if vote == "up" else "-1",
-    }
+    if vote == "request":
+        headers = {"Title": f"DelayBahn analysis request ({lang}, {context})", "Tags": "bulb"}
+    else:
+        headers = {
+            "Title": f"DelayBahn feedback ({vote}, {lang}, {context})",
+            "Tags": "+1" if vote == "up" else "-1",
+        }
     try:
         if text:
             resp = await _ntfy.post(

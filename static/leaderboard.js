@@ -56,6 +56,16 @@ const I18N = {
     methodHeading: "So wird gezählt",
     methodText: "Für jedes Land zählen alle aufgezeichneten Halte von Fernzügen (ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und Entsprechungen) mit Echtzeit-Ankunft. Pünktlich ist ein Halt nach der Definition der Deutschen Bahn, wenn der Zug weniger als 6 Minuten nach Plan ankommt, derselbe Maßstab für alle Länder. Ø Verspätung ist die mittlere Ankunftsverspätung über alle nicht ausgefallenen Halte, zu früh zählt als 0. Die Rangfolge richtet sich nach dem Pünktlichkeitsanteil; bei Gleichstand entscheidet die geringere Ø Verspätung. Länder mit zu wenigen Halten im Zeitraum werden gezeigt, aber nicht gewertet. Die Daten stammen aus den offenen Echtzeit-Quellen der Bahnen (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); ihre Abdeckung unterscheidet sich, zum Beispiel erfasst die österreichische Quelle nur die 200 größten Bahnhöfe. Die Tabelle „Alle Züge“ zählt nach denselben Regeln zusätzlich Regional-, S-Bahn- und InterRegio-Züge.",
     mapLabel: "Karte Europas: Länder nach Anteil verspäteter Halte eingefärbt, das pünktlichste Land hervorgehoben",
+    requestHeading: "Mehr Daten oder Auswertungen gewünscht?",
+    requestLead: "Hier anfragen.",
+    requestPlaceholder: "Zum Beispiel: Wie pünktlich ist der ICE zwischen Berlin und München am Freitagabend?",
+    requestLoginNote: "Zum Senden bitte kurz anmelden – dein Text bleibt erhalten.",
+    requestLoginLink: "Anmelden",
+    requestSend: "Anfrage senden",
+    requestSending: "Wird gesendet …",
+    requestThanks: "Danke! Deine Anfrage ist angekommen. Sobald es die Auswertung gibt, erscheint sie hier auf der Rangliste.",
+    requestError: "Das hat gerade nicht geklappt – bitte später noch einmal versuchen oder an kontakt@delaybahn.com schreiben.",
+    requestTooMany: "Danke, das reicht für heute – wir haben deine Anfragen.",
     footerBack: "← Zur Verbindungssuche",
     footerStories: "Delay Geschichten",
     footerLegal: "Impressum & Datenschutz",
@@ -115,6 +125,16 @@ const I18N = {
     methodHeading: "How we count",
     methodText: "For every country we count all recorded stops of long-distance trains (ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity and equivalents) with a real-time arrival. A stop is on time by Deutsche Bahn's own definition when the train arrives less than 6 minutes after schedule, the same yardstick for every country. Avg. delay is the mean arrival delay over all non-cancelled stops, early arrivals count as 0. Countries rank by their on-time share; ties go to the lower average delay. Countries with too few stops in the period are shown but not ranked. The data comes from the railways' open real-time sources (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); their coverage differs, for instance the Austrian source only covers the 200 largest stations. The \"All trains\" table adds regional, suburban and InterRegio services by the same rules.",
     mapLabel: "Map of Europe, countries shaded by their share of delayed stops, the most punctual one outlined in gold",
+    requestHeading: "Need more data or analysis?",
+    requestLead: "Request it here.",
+    requestPlaceholder: "For example: How punctual is the ICE between Berlin and Munich on Friday evenings?",
+    requestLoginNote: "Please log in to send – your text will be kept.",
+    requestLoginLink: "Log in",
+    requestSend: "Send request",
+    requestSending: "Sending …",
+    requestThanks: "Thanks! Your request has arrived. Once the analysis exists it will show up here on the leaderboard.",
+    requestError: "That did not work just now – please try again later or write to kontakt@delaybahn.com.",
+    requestTooMany: "Thanks, that is plenty for today – we have your requests.",
     footerBack: "← Back to the connection search",
     footerStories: "Delay Stories",
     footerLegal: "Legal notice & privacy",
@@ -228,6 +248,9 @@ function applyI18n() {
   });
   document.querySelectorAll("[data-i18n-title]").forEach((el) => {
     el.title = t(el.dataset.i18nTitle);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
   });
   document.querySelector(".lb-periods").setAttribute("aria-label", t("periodGroup"));
 }
@@ -691,6 +714,114 @@ async function load(initial) {
     loading = false;
   }
 }
+
+/* ---------- data / analysis requests ----------
+   The foot of the page asks for more data or analysis. A request goes to the
+   same /api/feedback endpoint as the thumbs on the other pages, as a "request"
+   vote under the leaderboard context - but only from a signed-in account: the
+   server wants a bearer. Everyone sees the text box; a visitor without an
+   account gets a quiet line with a login link on Send, no redirect, and the
+   typed text is parked in sessionStorage so it is back in the box when the
+   login returns here. The
+   SDK is imported only when the login page left its "account" hint behind,
+   so the anonymous majority never downloads it. Unlike the thumbs, a failure
+   is shown - the visitor typed something and deserves to know whether it
+   arrived. */
+(function initRequests() {
+  const box = $("lb-request");
+  const lead = $("lb-request-lead");
+  const form = $("lb-request-form");
+  const input = $("lb-request-text");
+  const send = form.querySelector(".lb-request-send");
+  const note = $("lb-request-note");
+  const SELF = LANG === "en" ? "/leaderboard" : "/rangliste";
+  const LOGIN = "/login?next=" + encodeURIComponent(SELF + "#lb-request") + "&reason=request";
+  const PARKED = "lb-request-draft";
+  let me = null;  // the signed-in, verified Firebase user, else null
+
+  $("lb-request-login").href = LOGIN;
+  function say(key) { lead.dataset.i18n = key; lead.textContent = t(key); }
+
+  async function loadMe() {
+    let hinted = false;
+    try { hinted = localStorage.getItem("account") === "1"; } catch (e) {}
+    if (!hinted) return;
+    try {
+      const fb = await import("/firebase.js?v=2");
+      if (fb.auth) {
+        await fb.auth.authStateReady();
+        const user = fb.auth.currentUser;
+        if (user && (await fb.identity(user)).verified) me = user;
+      }
+      if (!me) fb.remember(false);
+    } catch (e) {
+      me = null;
+    }
+  }
+
+  // no account: a quiet line with the way to the login, the text stays in
+  // the box and is parked so it survives the round trip
+  function askLogin(text) {
+    try { sessionStorage.setItem(PARKED, text); } catch (e) { /* the text is lost, the login still works */ }
+    if (window.umami) window.umami.track("leaderboard-request-login", { lang: LANG });
+    note.classList.remove("hidden");
+  }
+  // keep the parked copy current while the visitor edits after the nudge
+  input.addEventListener("input", () => {
+    if (note.classList.contains("hidden")) return;
+    try { sessionStorage.setItem(PARKED, input.value); } catch (e) {}
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) form.requestSubmit();
+  });
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text || send.disabled) return;
+    if (!me) { askLogin(text); return; }
+    send.disabled = true;
+    send.textContent = t("requestSending");
+    const sid = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    let status = 0;
+    try {
+      const token = await me.getIdToken();
+      const r = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify({ sid, vote: "request", text, lang: LANG, context: "leaderboard" }),
+      });
+      status = r.status;
+    } catch (err) { /* status stays 0: shown as an error below */ }
+    if (status === 204) {
+      try { sessionStorage.removeItem(PARKED); } catch (e) {}
+      if (window.umami) window.umami.track("leaderboard-request", { lang: LANG });
+      say("requestThanks");
+      form.classList.add("hidden");
+      box.classList.add("lb-request-done");
+    } else if (status === 429) {
+      say("requestTooMany");
+      form.classList.add("hidden");
+      box.classList.add("lb-request-done");
+    } else if (status === 401 || status === 403) {
+      // signed out after all, or a step short: the login page knows which
+      askLogin(text);
+    } else {
+      say("requestError");
+      box.classList.add("lb-request-failed");
+      send.disabled = false;
+      send.textContent = t("requestSend");
+    }
+  });
+
+  // back from the login: the parked text returns to the box, ready to send
+  let parked = "";
+  try { parked = sessionStorage.getItem(PARKED) || ""; } catch (e) {}
+  if (parked && !input.value) input.value = parked;
+  loadMe().then(() => {
+    if (location.hash === "#lb-request") input.focus({ preventScroll: true });
+  });
+})();
 
 applyI18n();
 buildMap();

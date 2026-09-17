@@ -19,7 +19,7 @@
 <meta property="og:locale:alternate" content="en_US">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="/style.css?v=123">
-<link rel="stylesheet" href="/leaderboard.css?v=4">
+<link rel="stylesheet" href="/leaderboard.css?v=5">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body class="lb-body">
@@ -126,6 +126,20 @@
     <summary><h2 data-i18n="methodHeading">So wird gezählt</h2></summary>
     <p data-i18n="methodText">Für jedes Land zählen alle aufgezeichneten Halte von Fernzügen (ICE, IC, EC, Railjet, Nightjet, TGV, Ouigo, Intercity und Entsprechungen) mit Echtzeit-Ankunft. Pünktlich ist ein Halt nach der Definition der Deutschen Bahn, wenn der Zug weniger als 6 Minuten nach Plan ankommt, derselbe Maßstab für alle Länder. Ø Verspätung ist die mittlere Ankunftsverspätung über alle nicht ausgefallenen Halte, zu früh zählt als 0. Die Rangfolge richtet sich nach dem Pünktlichkeitsanteil; bei Gleichstand entscheidet die geringere Ø Verspätung. Länder mit zu wenigen Halten im Zeitraum werden gezeigt, aber nicht gewertet. Die Daten stammen aus den offenen Echtzeit-Quellen der Bahnen (DB IRIS, ÖBB Scotty, opentransportdata.swiss, SNCF GTFS-RT, OVapi, ViaggiaTreno); ihre Abdeckung unterscheidet sich, zum Beispiel erfasst die österreichische Quelle nur die 200 größten Bahnhöfe. Die Tabelle „Alle Züge“ zählt nach denselben Regeln zusätzlich Regional-, S-Bahn- und InterRegio-Züge.</p>
   </details>
+
+  <section id="lb-request" class="lb-request" aria-live="polite">
+    <h2 data-i18n="requestHeading">Mehr Daten oder Auswertungen gewünscht?</h2>
+    <p id="lb-request-lead" class="lb-request-lead" data-i18n="requestLead">Hier anfragen.</p>
+    <div class="lb-request-card">
+      <form id="lb-request-form" class="lb-request-form">
+        <textarea id="lb-request-text" rows="3" maxlength="1000" required data-i18n-placeholder="requestPlaceholder" placeholder="Zum Beispiel: Wie pünktlich ist der ICE zwischen Berlin und München am Freitagabend?"></textarea>
+        <div class="lb-request-actions">
+          <p id="lb-request-note" class="lb-request-note hidden"><span data-i18n="requestLoginNote">Zum Senden bitte kurz anmelden – dein Text bleibt erhalten.</span> <a id="lb-request-login" href="/login" data-i18n="requestLoginLink">Anmelden</a></p>
+          <button type="submit" class="lb-request-send" data-i18n="requestSend">Anfrage senden</button>
+        </div>
+      </form>
+    </div>
+  </section>
 </main>
 
 <footer class="site-footer">
@@ -146,6 +160,6 @@
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
 </footer>
 <script src="/europe-map.js?v=1"></script>
-<script src="/leaderboard.js?v=3"></script>
+<script src="/leaderboard.js?v=4"></script>
 </body>
 </html>

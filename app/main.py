@@ -1608,13 +1608,16 @@ class Feedback(BaseModel):
     # sid is generated per prompt by the browser: the vote lands first and the
     # optional comment follows under the same id, so the two become one row
     sid: str = Field(min_length=8, max_length=64)
-    vote: Literal["up", "down"]
+    # "request": a wish for more data or analysis from the leaderboard's foot -
+    # no thumbs, the text is the whole point, and it needs a signed-in account
+    # behind the bearer (the account itself is not stored with the text)
+    vote: Literal["up", "down", "request"]
     text: str = Field("", max_length=1000)
     # optional screenshot as a base64 image data URL; the length bound is the
     # 512 KiB binary cap in base64 clothing plus header slack
     shot: str = Field("", max_length=720_000)
     lang: Literal["de", "en"] = "de"
-    context: Literal["future", "past", "stories"] = "future"
+    context: Literal["future", "past", "stories", "leaderboard"] = "future"
 
 
 _tasks: set[asyncio.Task] = set()
@@ -1629,6 +1632,12 @@ def _spawn(coro) -> None:
 
 @app.post("/api/feedback", status_code=204)
 async def submit_feedback(fb: Feedback, request: Request) -> Response:
+    if fb.vote == "request":
+        user = await _optional_user(request)
+        if user is None:
+            raise HTTPException(401, "login required")
+        if not user["verified"]:
+            raise HTTPException(403, "unverified")
     if feedback.throttled(client_ip(request)):
         raise HTTPException(429, "too many submissions")
     text = fb.text.strip()

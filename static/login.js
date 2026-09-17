@@ -32,6 +32,7 @@ const I18N = {
     reportLead: "Mit einem Konto bekommst du deinen Verspätungs-Report per E-Mail.",
     tripsLead: "Mit einem Konto merkt sich DelayBahn die Fahrten, die du dir merkst oder auf bahn.de buchst.",
     pageLead: "Mit einem Konto blätterst du ohne Limit durch frühere und spätere Verbindungen.",
+    requestLead: "Mit einem Konto kannst du auf der Rangliste weitere Daten und Auswertungen anfragen.",
     withGoogle: "Weiter mit Google",
     withApple: "Weiter mit Apple",
     withPhone: "Weiter mit Telefonnummer",
@@ -108,6 +109,7 @@ const I18N = {
     reportLead: "With an account you get your delay report by email.",
     tripsLead: "With an account DelayBahn remembers the trips you bookmark or book on bahn.de.",
     pageLead: "With an account you browse earlier and later connections without limit.",
+    requestLead: "With an account you can request more data and analysis on the leaderboard.",
     withGoogle: "Continue with Google",
     withApple: "Continue with Apple",
     withPhone: "Continue with phone",
@@ -186,7 +188,8 @@ const $ = (id) => document.getElementById(id);
 // the visitor here (`next`, a path on this site only - anything else would
 // make the login page an open redirect). `reason` picks the lead line:
 // "report" is the bell on a journey card, "trips" the Meine Fahrten page,
-// "page" the earlier/later buttons under the results.
+// "page" the earlier/later buttons under the results, "request" the
+// data/analysis wish at the foot of the leaderboard.
 const params = new URLSearchParams(location.search);
 const NEXT = /^\/(?!\/)/.test(params.get("next") || "") ? params.get("next") : null;
 const REASON = params.get("reason") || "";
@@ -289,6 +292,7 @@ function applyStatic() {
   if (REASON === "report") $("choose-lead").textContent = t("reportLead");
   if (REASON === "trips") $("choose-lead").textContent = t("tripsLead");
   if (REASON === "page") $("choose-lead").textContent = t("pageLead");
+  if (REASON === "request") $("choose-lead").textContent = t("requestLead");
   document.querySelectorAll(".lang-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.lang === lang);
   });
