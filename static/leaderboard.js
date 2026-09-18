@@ -237,11 +237,12 @@ function rampColor(delayedPct) {
   return "rgb(" + a.map((v, k) => Math.round(v + (b[k] - v) * f)).join(",") + ")";
 }
 
-// on-time bars: red at 80 % and below, yellow around 88 %, green from 97 % up,
-// a fixed scale so the same colour means the same thing in every period
+// on-time bars: red at 50 % and below, yellow around 73 %, green from 97 % up,
+// the span the six countries actually cover (the map ramp bottoms out at 50 %
+// too), fixed so the same colour means the same thing in every period
 const METER_STOPS = ["#c50014", "#e0a800", "#2a7230"];
 function meterColor(punctuality) {
-  const pos = Math.max(0, Math.min(1, (punctuality - 80) / 17)) * (METER_STOPS.length - 1);
+  const pos = Math.max(0, Math.min(1, (punctuality - 50) / 47)) * (METER_STOPS.length - 1);
   const i = Math.min(Math.floor(pos), METER_STOPS.length - 2);
   const f = pos - i;
   const a = hexToRgb(METER_STOPS[i]), b = hexToRgb(METER_STOPS[i + 1]);

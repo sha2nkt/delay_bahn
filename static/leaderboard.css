@@ -11,7 +11,7 @@
 /* the poster voice of the map's labels: a system serif, no font download */
 .lb-hero h1 {
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
-  font-size: 42px; font-weight: 600; letter-spacing: -.015em; line-height: 1.12; margin: 4px 0 10px; color: var(--lb-ink);
+  font-size: 42px; font-weight: 600; letter-spacing: -.015em; line-height: 1.12; margin: 18px 0 10px; color: var(--lb-ink);
 }
 .lb-hero h1 em { font-style: italic; color: var(--lb-accent); }
 .lb-lead {
@@ -264,7 +264,7 @@
 }
 
 @media (max-width: 640px) {
-  .lb-hero h1 { font-size: 30px; }
+  .lb-hero h1 { font-size: 30px; margin-top: 14px; }
   .lb-logo { height: 32px; }
   .lb-lead { font-size: 14px; }
   .lb-legend { position: static; align-items: center; padding: 8px 0 10px; border-radius: 0; background: none; }
