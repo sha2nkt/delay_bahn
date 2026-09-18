@@ -75,6 +75,9 @@ const I18N = {
     footerLegal: "Impressum & Datenschutz",
     footerContact: "Kontakt",
     ctaText: "Finde die Verbindung, die trotzdem ankommt",
+    bannerTitle: "Den Zug buchen, nicht die Verspätung",
+    bannerSub: "DelayBahn zeigt dir vor dem Buchen, wie pünktlich deine Verbindung wirklich ist.",
+    bannerBtn: "Verbindung prüfen",
     ctaStat: "{pct} der Züge in Deutschland sind verspätet.",
     followInstagram: "DelayBahn auf Instagram",
     followLinkedIn: "DelayBahn auf LinkedIn",
@@ -153,6 +156,9 @@ const I18N = {
     footerLegal: "Legal notice & privacy",
     footerContact: "Contact",
     ctaText: "Find the connection that still arrives",
+    bannerTitle: "Book the train, not the delay",
+    bannerSub: "DelayBahn shows you how punctual your connection really is, before you book.",
+    bannerBtn: "Check your connection",
     ctaStat: "{pct} of trains in Germany run late.",
     followInstagram: "DelayBahn on Instagram",
     followLinkedIn: "DelayBahn on LinkedIn",
@@ -692,7 +698,10 @@ function renderTable(tbl) {
 // chosen period, or the bare sentence while there is no figure to show
 function renderCta() {
   const de = entry("DE");
-  $("lb-cta-stat").textContent = de && de.punctuality != null ? t("ctaStat", { pct: pct(100 - de.punctuality) }) : "";
+  const stat = de && de.punctuality != null ? t("ctaStat", { pct: pct(100 - de.punctuality) }) : "";
+  $("lb-cta-stat").textContent = stat;
+  // the banner under the tables leads with the same figure, or its slogan without one
+  $("lb-banner-stat").textContent = stat || t("bannerTitle");
 }
 
 function renderAll() {
@@ -899,8 +908,10 @@ setPeriod(period, false);
 document.querySelectorAll(".lb-period").forEach((b) => {
   b.addEventListener("click", () => setPeriod(b.dataset.period, true));
 });
-$("lb-cta").addEventListener("click", () => {
-  if (window.umami) window.umami.track("lb-cta-search", { period, lang: LANG });
+[["lb-cta", "hero"], ["lb-banner", "banner"]].forEach(([id, place]) => {
+  $(id).addEventListener("click", () => {
+    if (window.umami) window.umami.track("lb-cta-search", { place, period, lang: LANG });
+  });
 });
 TABLES.forEach((tbl) => {
   tbl.section.querySelectorAll(".lb-sort").forEach((b) => {

@@ -33,7 +33,7 @@
 .lb-period:focus-visible { outline: 2px solid var(--brand-red); outline-offset: 2px; }
 .lb-range { font-size: 14px; font-weight: 600; color: var(--text); min-height: 1.4em; }
 .lb-cta { margin: 12px 0 0; font-size: 14px; line-height: 1.45; }
-.lb-cta-link { color: var(--text-muted); text-decoration: none; }
+.lb-cta-link { color: var(--lb-accent); font-weight: 600; text-decoration: none; }
 .lb-cta-link strong { color: var(--text); font-weight: 700; }
 .lb-cta-arrow { color: var(--lb-accent); font-weight: 700; }
 .lb-cta-link:hover span[data-i18n] { text-decoration: underline; }
@@ -223,6 +223,24 @@
 .lb-method summary:focus-visible { outline: 2px solid var(--brand-red); outline-offset: 2px; border-radius: 4px; }
 .lb-method p { font-size: 13px; line-height: 1.55; color: var(--text-muted); background: #fff; border-radius: 10px; padding: 14px 16px; margin-top: 0; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
 
+/* ---- the banner under the tables: the way on to the connection search ---- */
+.lb-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px 24px; flex-wrap: wrap;
+  margin: 26px 0 22px; padding: 20px 24px; border-radius: 14px;
+  background: var(--brand-red); color: #fff; text-decoration: none;
+  box-shadow: 0 4px 14px rgba(253,28,23,.28);
+  transition: transform .15s, box-shadow .15s;
+}
+.lb-banner:hover { text-decoration: none; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(253,28,23,.36); }
+.lb-banner:focus-visible { outline: 3px solid var(--lb-ink); outline-offset: 3px; }
+.lb-banner-text { display: flex; flex-direction: column; gap: 4px; flex: 1 1 320px; }
+.lb-banner-stat { font-size: 21px; font-weight: 800; line-height: 1.25; letter-spacing: -.01em; }
+.lb-banner-sub { font-size: 14px; line-height: 1.45; opacity: .92; }
+.lb-banner-btn {
+  flex: none; background: #fff; color: var(--brand-red); border-radius: 22px; padding: 11px 22px;
+  font-size: 15px; font-weight: 800; white-space: nowrap;
+}
+
 /* ---- analysis requests: the ask at the foot of the page ---- */
 .lb-request { margin-top: 10px; }
 .lb-request-lead { margin: -4px 2px 10px; font-size: 13px; line-height: 1.5; color: var(--text-muted); max-width: 640px; }
@@ -264,6 +282,7 @@
 @keyframes lb-toast { 0%, 100% { opacity: 0; transform: translate(-50%, 8px); } 10%, 85% { opacity: 1; transform: translate(-50%, 0); } }
 
 @media (prefers-reduced-motion: reduce) {
+  .lb-banner { transition: none; }
   .lb-step, .lb-step-trophy { animation: none; }
   .lb-featured .lb-country, .lb-meter-fill { transition: none; }
 }
