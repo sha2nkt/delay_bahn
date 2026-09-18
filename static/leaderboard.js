@@ -74,7 +74,6 @@ const I18N = {
     footerStories: "Delay Geschichten",
     footerLegal: "Impressum & Datenschutz",
     footerContact: "Kontakt",
-    ctaText: "Finde die Verbindung, die trotzdem ankommt",
     bannerTitle: "Den Zug buchen, nicht die Verspätung",
     bannerSub: "DelayBahn zeigt dir vor dem Buchen, wie pünktlich deine Verbindung wirklich ist.",
     bannerBtn: "Verbindung prüfen",
@@ -155,7 +154,6 @@ const I18N = {
     footerStories: "Delay Stories",
     footerLegal: "Legal notice & privacy",
     footerContact: "Contact",
-    ctaText: "Find the connection that still arrives",
     bannerTitle: "Book the train, not the delay",
     bannerSub: "DelayBahn shows you how punctual your connection really is, before you book.",
     bannerBtn: "Check your connection",
@@ -694,14 +692,12 @@ function renderTable(tbl) {
 }
 
 /* ---------- glue ---------- */
-// the hero's link to the connection search: Germany's delayed share for the
-// chosen period, or the bare sentence while there is no figure to show
+// the two banners to the connection search: Germany's delayed share for the
+// chosen period, or its slogan while there is no figure to show
 function renderCta() {
   const de = entry("DE");
   const stat = de && de.punctuality != null ? t("ctaStat", { pct: pct(100 - de.punctuality) }) : "";
-  $("lb-cta-stat").textContent = stat;
-  // the banner under the tables leads with the same figure, or its slogan without one
-  $("lb-banner-stat").textContent = stat || t("bannerTitle");
+  ["lb-banner-stat", "lb-banner-foot-stat"].forEach((id) => { $(id).textContent = stat || t("bannerTitle"); });
 }
 
 function renderAll() {
@@ -908,7 +904,7 @@ setPeriod(period, false);
 document.querySelectorAll(".lb-period").forEach((b) => {
   b.addEventListener("click", () => setPeriod(b.dataset.period, true));
 });
-[["lb-cta", "hero"], ["lb-banner", "banner"]].forEach(([id, place]) => {
+[["lb-banner", "hero"], ["lb-banner-foot", "banner"]].forEach(([id, place]) => {
   $(id).addEventListener("click", () => {
     if (window.umami) window.umami.track("lb-cta-search", { place, period, lang: LANG });
   });

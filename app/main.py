@@ -1445,8 +1445,8 @@ def _leaderboard_html(lang: str) -> str:
         # in-page navigation stays inside the current language
         (r'(<a class="logo-link" href=")[^"]*', rf"\g<1>{home}"),
         (r'(<a href=")[^"]*(" data-i18n="footerBack")', rf"\g<1>{home}\g<2>"),
-        (r'(<a id="lb-cta" class="lb-cta-link" href=")[^"]*', rf"\g<1>{home}"),
         (r'(<a id="lb-banner" class="lb-banner" href=")[^"]*', rf"\g<1>{home}"),
+        (r'(<a id="lb-banner-foot" class="lb-banner lb-banner-strong" href=")[^"]*', rf"\g<1>{home}"),
         (r'(<a href=")[^"]*(" data-i18n="footerStories")', rf"\g<1>{STORIES_PATHS[lang]}\g<2>"),
         (r'(<img class="lb-logo" id="lb-logo" src=")[^"]*(" alt=")[^"]*',
          rf"\g<1>{LEADERBOARD_LOGO[lang]}\g<2>{LEADERBOARD_LOGO_ALT[lang]}"),
