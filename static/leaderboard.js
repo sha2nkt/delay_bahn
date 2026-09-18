@@ -74,6 +74,9 @@ const I18N = {
     footerStories: "Delay Geschichten",
     footerLegal: "Impressum & Datenschutz",
     footerContact: "Kontakt",
+    followInstagram: "DelayBahn auf Instagram",
+    followLinkedIn: "DelayBahn auf LinkedIn",
+    followX: "DelayBahn auf X",
     footerData: "Verspätungsdaten:",
     footerMap: "Karte: Natural Earth",
     footerDisclaimer: "DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.",
@@ -147,6 +150,9 @@ const I18N = {
     footerStories: "Delay Stories",
     footerLegal: "Legal notice & privacy",
     footerContact: "Contact",
+    followInstagram: "DelayBahn on Instagram",
+    followLinkedIn: "DelayBahn on LinkedIn",
+    followX: "DelayBahn on X",
     footerData: "Delay data:",
     footerMap: "Map: Natural Earth",
     footerDisclaimer: "DelayBahn is an independent project and is not affiliated with Deutsche Bahn AG. \"DB\" and \"Deutsche Bahn\" are trademarks of Deutsche Bahn AG.",
@@ -257,6 +263,9 @@ function applyI18n() {
   });
   document.querySelectorAll("[data-i18n-title]").forEach((el) => {
     el.title = t(el.dataset.i18nTitle);
+  });
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+    el.setAttribute("aria-label", t(el.dataset.i18nAria));
   });
   document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
     el.placeholder = t(el.dataset.i18nPlaceholder);
