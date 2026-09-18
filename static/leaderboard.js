@@ -74,6 +74,8 @@ const I18N = {
     footerStories: "Delay Geschichten",
     footerLegal: "Impressum & Datenschutz",
     footerContact: "Kontakt",
+    ctaText: "Finde die Verbindung, die trotzdem ankommt",
+    ctaStat: "{pct} der Züge in Deutschland sind verspätet.",
     followInstagram: "DelayBahn auf Instagram",
     followLinkedIn: "DelayBahn auf LinkedIn",
     followX: "DelayBahn auf X",
@@ -150,6 +152,8 @@ const I18N = {
     footerStories: "Delay Stories",
     footerLegal: "Legal notice & privacy",
     footerContact: "Contact",
+    ctaText: "Find the connection that still arrives",
+    ctaStat: "{pct} of trains in Germany run late.",
     followInstagram: "DelayBahn on Instagram",
     followLinkedIn: "DelayBahn on LinkedIn",
     followX: "DelayBahn on X",
@@ -684,8 +688,16 @@ function renderTable(tbl) {
 }
 
 /* ---------- glue ---------- */
+// the hero's link to the connection search: Germany's delayed share for the
+// chosen period, or the bare sentence while there is no figure to show
+function renderCta() {
+  const de = entry("DE");
+  $("lb-cta-stat").textContent = de && de.punctuality != null ? t("ctaStat", { pct: pct(100 - de.punctuality) }) : "";
+}
+
 function renderAll() {
   renderRange();
+  renderCta();
   renderMap();
   renderPodium();
   TABLES.forEach(renderTable);
@@ -886,6 +898,9 @@ buildMap();
 setPeriod(period, false);
 document.querySelectorAll(".lb-period").forEach((b) => {
   b.addEventListener("click", () => setPeriod(b.dataset.period, true));
+});
+$("lb-cta").addEventListener("click", () => {
+  if (window.umami) window.umami.track("lb-cta-search", { period, lang: LANG });
 });
 TABLES.forEach((tbl) => {
   tbl.section.querySelectorAll(".lb-sort").forEach((b) => {

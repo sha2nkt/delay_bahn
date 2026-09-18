@@ -32,6 +32,11 @@
 .lb-period.active { background: var(--brand-red); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
 .lb-period:focus-visible { outline: 2px solid var(--brand-red); outline-offset: 2px; }
 .lb-range { font-size: 14px; font-weight: 600; color: var(--text); min-height: 1.4em; }
+.lb-cta { margin: 12px 0 0; font-size: 14px; line-height: 1.45; }
+.lb-cta-link { color: var(--text-muted); text-decoration: none; }
+.lb-cta-link strong { color: var(--text); font-weight: 700; }
+.lb-cta-arrow { color: var(--lb-accent); font-weight: 700; }
+.lb-cta-link:hover span[data-i18n] { text-decoration: underline; }
 /* ---- map ---- */
 /* an atlas plate: a muted sea, the rest of Europe barely lifted off it, and the
    six countries in the table as parchment cut-outs with a stitched seam */
