@@ -237,12 +237,12 @@ function rampColor(delayedPct) {
   return "rgb(" + a.map((v, k) => Math.round(v + (b[k] - v) * f)).join(",") + ")";
 }
 
-// on-time bars: red at 50 % and below, yellow around 73 %, green from 97 % up,
-// the span the six countries actually cover (the map ramp bottoms out at 50 %
-// too), fixed so the same colour means the same thing in every period
+// on-time bars: red at the table's floor and below, yellow halfway, green from
+// 97 % up. Each table has its own floor (TABLES[].meterFloor), the span its six
+// countries actually cover, fixed so a colour means the same in every period
 const METER_STOPS = ["#c50014", "#e0a800", "#2a7230"];
-function meterColor(punctuality) {
-  const pos = Math.max(0, Math.min(1, (punctuality - 50) / 47)) * (METER_STOPS.length - 1);
+function meterColor(punctuality, floor) {
+  const pos = Math.max(0, Math.min(1, (punctuality - floor) / (97 - floor))) * (METER_STOPS.length - 1);
   const i = Math.min(Math.floor(pos), METER_STOPS.length - 2);
   const f = pos - i;
   const a = hexToRgb(METER_STOPS[i]), b = hexToRgb(METER_STOPS[i + 1]);
@@ -282,8 +282,8 @@ const SORT_DEFAULT = { punctuality: "desc", avgDelay: "asc", cancelled: "asc", s
 // the two tables: long-distance trains only, and every train. Each sorts on its
 // own; the map and podium follow the long-distance ranking.
 const TABLES = [
-  { name: "long", rows: "lb-rows", status: "lb-status", view: () => data.longDistance, sort: { key: "punctuality", dir: "desc" } },
-  { name: "all", rows: "lb-rows-all", status: "lb-status-all", view: () => data, sort: { key: "punctuality", dir: "desc" } },
+  { name: "long", rows: "lb-rows", status: "lb-status", view: () => data.longDistance, meterFloor: 50, sort: { key: "punctuality", dir: "desc" } },
+  { name: "all", rows: "lb-rows-all", status: "lb-status-all", view: () => data, meterFloor: 80, sort: { key: "punctuality", dir: "desc" } },
 ];
 TABLES.forEach((tbl) => { tbl.section = $(tbl.rows).closest(".lb-table-section"); });
 
@@ -654,7 +654,7 @@ function renderTable(tbl) {
     const fill = document.createElement("div");
     fill.className = "lb-meter-fill";
     fill.style.width = "0%";
-    if (c.punctuality != null) fill.style.background = meterColor(c.punctuality);
+    if (c.punctuality != null) fill.style.background = meterColor(c.punctuality, tbl.meterFloor);
     track.appendChild(fill);
     const val = document.createElement("span");
     val.className = "lb-meter-value";
