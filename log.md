@@ -1841,3 +1841,10 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Verified: `node --check` on leaderboard.js. Not rendered in a browser; the longer heading's wrap at phone width is unchecked.
 - Busters: `leaderboard.js` v15 -> **v16** (pinned in `leaderboard.html` only). Live pin read first (15) and no remote branch pins it higher; not in the sw.js PRECACHE, so no `SHELL_VERSION` bump. Another session's `SHELL_VERSION` v91 -> v92 edit in sw.js stays in the working tree. No asset URL was requested with a candidate number before the deploy.
 - Not done: the source logo PNGs remain untracked.
+
+## 2026-09-18 — Leaderboard: shorter podium heading, legend runs low to high
+
+- After seeing the previous entry's heading live the user asked for the shorter option instead: "Das Podium · die pünktlichsten Bahnen" / "The podium · most punctual railways" (the 6-minute definition stays in the hero lead, the table heading and the method note). The user then asked whether the legend's 50 % end belonged on the left; it does, a scale reads low to high, so the legend now runs "unter 50 % [dark to light] 100 %" / "under 50% … 100%": `legendLow`/`legendHigh` swapped in the I18N table and the static German defaults, and the `.lb-legend-ramp` gradient reversed so each colour keeps its end. Map colours and `RAMP` untouched.
+- Verified: `node --check` on leaderboard.js. Not rendered in a browser. The previous entry's post-deploy check of the served `leaderboard.js?v=16` was denied by the permission classifier and left to the user.
+- Busters: `leaderboard.css` v12 -> **v13**, `leaderboard.js` v16 -> **v17** (pinned in `leaderboard.html` only). Live pins read first (12 and 16) and no remote branch pins either higher; not in the sw.js PRECACHE, so no `SHELL_VERSION` bump. Another session's `SHELL_VERSION` v91 -> v92 edit in sw.js stays in the working tree. No asset URL was requested with a candidate number before the deploy.
+- Not done: the source logo PNGs remain untracked.
