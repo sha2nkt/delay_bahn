@@ -81,6 +81,9 @@ const I18N = {
     save: "Speichern",
     cancel: "Abbrechen",
     edited: "bearbeitet",
+    translated: "automatisch übersetzt",
+    showOriginal: "Original anzeigen",
+    showTranslation: "Übersetzung anzeigen",
     removed: "[entfernt]",
     moreTitle: "Mehr",
     confirmDeleteStory: "Diese Geschichte wirklich löschen?",
@@ -195,6 +198,9 @@ const I18N = {
     save: "Save",
     cancel: "Cancel",
     edited: "edited",
+    translated: "machine-translated",
+    showOriginal: "Show original",
+    showTranslation: "Show translation",
     removed: "[removed]",
     moreTitle: "More",
     confirmDeleteStory: "Delete this story for good?",
@@ -302,6 +308,9 @@ async function api(path, opts = {}) {
   }
   return resp.status === 204 ? null : resp.json();
 }
+// reads name the page language, so posts written in the other one come back
+// with a translation attached
+const inLang = (path) => path + (path.includes("?") ? "&" : "?") + "lang=" + lang;
 const postJSON = (path, body) => api(path, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -446,7 +455,7 @@ const STORY_PATH = lang === "en" ? "/stories/" : "/geschichten/";
 const storyUrl = (story) => location.origin + STORY_PATH + story.id;
 
 function embedCode(story) {
-  const title = (t("logoAlt") + ": " + story.title).replace(/"/g, "&quot;");
+  const title = (t("logoAlt") + ": " + (story.translated || story).title).replace(/"/g, "&quot;");
   return '<iframe src="' + location.origin + "/embed" + STORY_PATH + story.id + '"'
     + ' width="100%" height="360" style="border:0;max-width:640px" loading="lazy"'
     + ' title="' + title + '"></iframe>';
@@ -530,6 +539,23 @@ function shareMenu(story, panel) {
 }
 
 /* -- story cards -- */
+// A machine translation says that it is one, and the author's own words stay
+// one click away. `show` repaints the post from whichever version it is handed.
+function translationMark(item, show) {
+  const mark = el("span", "translated-mark", t("translated") + " · ");
+  const btn = el("button", "read-more", t("showOriginal"));
+  btn.type = "button";
+  let original = false;
+  btn.addEventListener("click", () => {
+    original = !original;
+    show(original ? item : item.translated);
+    btn.textContent = t(original ? "showTranslation" : "showOriginal");
+    if (original) track("story-show-original");
+  });
+  mark.append(btn);
+  return mark;
+}
+
 function storyText(text) {
   const p = el("p", "story-text");
   if (text.length <= CLAMP + 100) { p.textContent = text; return p; }
@@ -609,9 +635,20 @@ function storyCard(story) {
   const tags = problemTags(story);
   const tagRow = el("div", "story-tags");
   tags.forEach((label) => tagRow.append(el("span", "story-tag", label)));
-  body.append(el("h3", "story-title", story.title), meta);
+  const shown = story.translated || story;
+  const titleEl = el("h3", "story-title", shown.title);
+  let textEl = storyText(shown.text);
+  if (story.translated) {
+    meta.append(el("span", "meta-sep", "·"), translationMark(story, (version) => {
+      titleEl.textContent = version.title;
+      const next = storyText(version.text);
+      textEl.replaceWith(next);
+      textEl = next;
+    }));
+  }
+  body.append(titleEl, meta);
   if (tags.length) body.append(tagRow);
-  body.append(storyText(story.text), bar, share, commentsWrap);
+  body.append(textEl, bar, share, commentsWrap);
 
   card.append(voteColumn(story, "story"), body);
   return card;
@@ -695,7 +732,7 @@ async function toggleComments(story, btn, wrap) {
   if (wrap.dataset.loaded) return;
   wrap.textContent = "…";
   try {
-    const list = await api("/api/stories/" + story.id + "/comments");
+    const list = await api(inLang("/api/stories/" + story.id + "/comments"));
     wrap.dataset.loaded = "1";
     renderComments(story, wrap, btn, list);
   } catch (e) {
@@ -752,7 +789,12 @@ function renderComments(story, wrap, btn, list) {
         node.insertBefore(commentForm(story, wrap, btn, c.id), kids);
       });
 
-      const body = el("p", "comment-text", c.text);
+      const body = el("p", "comment-text", (c.translated || c).text);
+      if (c.translated) {
+        meta.append(el("span", "meta-sep", "·"), translationMark(c, (version) => {
+          body.textContent = version.text;
+        }));
+      }
       const bar = el("div", "comment-actions");
       bar.append(replyBtn);
       if (mine(c)) {
@@ -805,6 +847,10 @@ function editComment(cbody, body, bar, comment) {
       comment.text = updated.text;
       comment.edited = updated.edited;
       body.textContent = updated.text;
+      // the translation was of the old words
+      delete comment.translated;
+      const stale = cbody.querySelector(":scope > .comment-meta > .translated-mark");
+      if (stale) { stale.previousElementSibling.remove(); stale.remove(); }
       // the "edited" mark belongs in the meta line, which is still on screen
       const meta = cbody.querySelector(":scope > .comment-meta");
       if (meta && !meta.querySelector(".edited-mark")) {
@@ -836,7 +882,7 @@ async function removeComment(story, wrap, btn, comment) {
   // whether it vanished or left a tombstone depends on replies; re-fetching
   // the thread is what tells us, and it keeps the count honest
   try {
-    renderComments(story, wrap, btn, await api("/api/stories/" + story.id + "/comments"));
+    renderComments(story, wrap, btn, await api(inLang("/api/stories/" + story.id + "/comments")));
   } catch (e) { /* the thread is stale but still readable */ }
 }
 
@@ -871,7 +917,7 @@ function commentForm(story, wrap, btn, parentId) {
       track(parentId ? "story-reply" : "story-comment");
       // re-render from a fresh fetch: places the reply correctly and picks up
       // anything others wrote in the meantime
-      const list = await api("/api/stories/" + story.id + "/comments");
+      const list = await api(inLang("/api/stories/" + story.id + "/comments"));
       renderComments(story, wrap, btn, list);
     } catch (e) {
       if (e.status === 401) { toLogin(); return; }
@@ -893,7 +939,7 @@ function topRow(story) {
   const score = el("span", "top-score");
   score.dataset.storyId = story.id;
   score.append(icon("up"), el("span", "top-num", story.score));
-  line.append(score, el("span", "top-title", story.title),
+  line.append(score, el("span", "top-title", (story.translated || story).title),
               el("span", "top-station", story.from_station));
   const detail = el("div", "top-detail hidden");
   line.addEventListener("click", () => {
@@ -910,7 +956,7 @@ function topRow(story) {
 
 async function loadTop() {
   try {
-    cacheTop = await api("/api/stories?sort=top&limit=" + TOP_N);
+    cacheTop = await api(inLang("/api/stories?sort=top&limit=" + TOP_N));
   } catch (e) {
     cacheTop = [];
   }
@@ -950,7 +996,7 @@ async function loadNew() {
   const moreBtn = document.getElementById("more-btn");
   if (!cacheNew.length) status.textContent = "…";
   try {
-    const page = await api(`/api/stories?sort=${newSort}&limit=${PAGE}&offset=${newOffset}`);
+    const page = await api(inLang(`/api/stories?sort=${newSort}&limit=${PAGE}&offset=${newOffset}`));
     newOffset += page.length;
     status.textContent = "";
     page.forEach(appendStory);
@@ -977,10 +1023,10 @@ async function loadPermalink() {
   box.classList.remove("hidden");
   slot.textContent = "…";
   try {
-    const story = await api("/api/stories/" + permalinkId);
+    const story = await api(inLang("/api/stories/" + permalinkId));
     slot.textContent = "";
     // the tab and history entry name the story, as the server-rendered head did
-    if (story.title) document.title = story.title + " – " + t("logoAlt");
+    if (story.title) document.title = (story.translated || story).title + " – " + t("logoAlt");
     const card = storyCard(story);
     slot.append(card);
     // the link was shared for the thread as much as for the story

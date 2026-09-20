@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field, StringConstraints
 
 from app import (
     auth, bahn_api, delays, feedback, leaderboard, live_delays, mailer, ratelimit, reports,
-    stories, trips,
+    stories, translate, trips,
 )
 from app.config import env_int
 
@@ -135,6 +135,7 @@ async def lifespan(app: FastAPI):
     await live_delays.close()
     await feedback.close()
     await stories.close()
+    await translate.close()
     await umami.aclose()
 
 
@@ -1246,11 +1247,12 @@ def _stories_html(lang: str, story: dict | None = None) -> str:
     other = "de" if lang == "en" else "en"
     paths = {l: STORIES_PATHS[l] + (f"/{story['id']}" if story else "") for l in ("de", "en")}
     if story:
+        shown = story.get("translated") or story
         # user text: escaped for the markup, and backslashes doubled so re.sub
         # reads them as characters rather than as group references
         title, description = (
             escape(s, quote=True).replace("\\", "\\\\")
-            for s in (f"{story['title']} – {STORIES_ALT[lang]}", _excerpt(story["text"]))
+            for s in (f"{shown['title']} – {STORIES_ALT[lang]}", _excerpt(shown["text"]))
         )
         og_description = description
     else:
@@ -1323,6 +1325,8 @@ async def _story_page(story_id: int, lang: str) -> HTMLResponse:
     # a JSON error is no page to land on. A tombstone keeps its thread, so it
     # renders as a normal permalink; only the meta stays generic.
     live = story if story and not story["deleted"] else None
+    if live:
+        await _translated("story", [live], lang)
     return HTMLResponse(
         _stories_html(lang, live),
         status_code=200 if story else 404,
@@ -1345,6 +1349,7 @@ def _embed_html(story: dict, lang: str) -> str:
     chrome, its own few lines of CSS, every link opening in the parent. The
     labels come from the same I18N table the board uses."""
     strings = _en_strings("stories.js", lang)
+    shown = story.get("translated") or story
     leg = story["from_station"]
     if story["to_station"]:
         leg += f" → {story['to_station']}"
@@ -1360,7 +1365,7 @@ def _embed_html(story: dict, lang: str) -> str:
                 else strings.get("commentsN", "{n}").replace("{n}", str(n)))
     values = {
         "lang": lang,
-        "title": escape(story["title"]),
+        "title": escape(shown["title"]),
         "url": SITE + STORIES_PATHS[lang] + f"/{story['id']}",
         "board_url": SITE + STORIES_PATHS[lang],
         "board_name": STORIES_ALT[lang],
@@ -1368,8 +1373,10 @@ def _embed_html(story: dict, lang: str) -> str:
         "leg": escape(leg),
         "author": escape(story["author"] or strings.get("anon", "")),
         "date": posted.strftime("%d.%m.%Y" if lang == "de" else "%b %d, %Y"),
+        "translated": (" · " + escape(strings.get("translated", ""))
+                       if "translated" in story else ""),
         "tags": f'<div class="tags">{tags}</div>' if tags else "",
-        "text": escape(story["text"]),
+        "text": escape(shown["text"]),
         "score": str(story["score"]),
         "comments": escape(comments),
         "read_more": escape(strings.get("embedRead", "")),
@@ -1384,6 +1391,7 @@ async def _story_embed(story_id: int, lang: str) -> HTMLResponse:
     story = await anyio.to_thread.run_sync(stories.get_story, story_id)
     if story is None or story["deleted"]:
         raise HTTPException(404, "story not found")
+    await _translated("story", [story], lang)
     return HTMLResponse(_embed_html(story, lang), headers={"Cache-Control": "no-cache"})
 
 
@@ -1643,6 +1651,18 @@ def _spawn(coro) -> None:
     task = asyncio.create_task(coro)
     _tasks.add(task)
     task.add_done_callback(_tasks.discard)
+
+
+async def _translated(kind: str, items: list[dict], lang: str | None) -> list[dict]:
+    """The items with their translation for this page language attached where
+    one exists; the ones without are sent off to be translated for the next
+    reader, and go out in the original now."""
+    if lang is None:
+        return items
+    missing = await anyio.to_thread.run_sync(translate.attach, kind, items, lang)
+    for item in missing:
+        _spawn(translate.translate(kind, item))
+    return items
 
 
 @app.post("/api/feedback", status_code=204)
@@ -1967,11 +1987,13 @@ async def stories_index(
     sort: Literal["new", "top", "liked", "commented"] = "new",
     limit: int = Query(30, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    lang: Literal["de", "en"] | None = None,
 ):
     user = await _optional_user(request)
-    return await anyio.to_thread.run_sync(
+    found = await anyio.to_thread.run_sync(
         stories.list_stories, sort, limit, offset, user["uid"] if user else None
     )
+    return await _translated("story", found, lang)
 
 
 @app.post("/api/stories", status_code=201)
@@ -1990,6 +2012,7 @@ async def stories_create(story: StoryIn, request: Request):
         f"DelayBahn story: {leg} ({user['name']})",
         f"{story.title}\n\n{story.text[:500]}",
     ))
+    _spawn(translate.translate("story", created))
     return created
 
 
@@ -2051,18 +2074,22 @@ async def stories_vote(story_id: int, vote: StoryVoteIn, request: Request):
 
 
 @app.get("/api/stories/{story_id}/comments")
-async def stories_comments(story_id: int, request: Request):
+async def stories_comments(
+    story_id: int, request: Request, lang: Literal["de", "en"] | None = None
+):
     user = await _optional_user(request)
     result = await anyio.to_thread.run_sync(
         stories.list_comments, story_id, user["uid"] if user else None
     )
     if result is None:
         raise HTTPException(404, "story not found")
-    return result
+    return await _translated("comment", result, lang)
 
 
 @app.get("/api/stories/{story_id}")
-async def stories_show(story_id: int, request: Request):
+async def stories_show(
+    story_id: int, request: Request, lang: Literal["de", "en"] | None = None
+):
     # the fixed /api/stories/problems path is registered earlier and keeps winning
     user = await _optional_user(request)
     story = await anyio.to_thread.run_sync(
@@ -2070,6 +2097,7 @@ async def stories_show(story_id: int, request: Request):
     )
     if story is None:
         raise HTTPException(404, "story not found")
+    await _translated("story", [story], lang)
     return story
 
 
@@ -2082,6 +2110,7 @@ async def stories_edit(story_id: int, edit: StoryEditIn, request: Request):
     )
     if updated is None:
         raise HTTPException(403, "not your story, or it is already removed")
+    _spawn(translate.translate("story", updated))
     return updated
 
 
@@ -2091,6 +2120,7 @@ async def stories_delete(story_id: int, request: Request) -> Response:
     ok = await anyio.to_thread.run_sync(stories.delete_story, story_id, user["name"])
     if not ok:
         raise HTTPException(403, "not your story, or it is already removed")
+    await anyio.to_thread.run_sync(translate.forget, "story", story_id)
     return Response(status_code=204)
 
 
@@ -2118,6 +2148,7 @@ async def comment_edit(comment_id: int, edit: CommentEditIn, request: Request):
     )
     if updated is None:
         raise HTTPException(403, "not your comment, or it is already removed")
+    _spawn(translate.translate("comment", updated))
     return updated
 
 
@@ -2129,6 +2160,7 @@ async def comment_delete(comment_id: int, request: Request) -> Response:
     )
     if not ok:
         raise HTTPException(403, "not your comment, or it is already removed")
+    await anyio.to_thread.run_sync(translate.forget, "comment", comment_id)
     return Response(status_code=204)
 
 
@@ -2149,6 +2181,7 @@ async def stories_comment_create(
     _spawn(stories.notify(
         f"DelayBahn comment on story #{story_id} ({user['name']})", comment.text[:500]
     ))
+    _spawn(translate.translate("comment", created))
     return created
 
 

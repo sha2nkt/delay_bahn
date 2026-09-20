@@ -18,6 +18,7 @@ dependencies = [
     "gtfs-realtime-bindings>=2.1.0",
     "brotli>=1.2.0",
     "firebase-admin>=7.5.0",
+    "anthropic>=1.7.0",
 ]
 
 [dependency-groups]

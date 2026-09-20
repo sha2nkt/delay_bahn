@@ -1615,6 +1615,8 @@ body.past-mode .stories-banner { display: none; }
 
 /* what an edit and a removal look like from the outside */
 .edited-mark { font-style: italic; }
+.translated-mark { font-style: italic; }
+.translated-mark .read-more { font-size: inherit; font-style: normal; }
 .story-removed, .comment-removed {
   margin: 4px 0; font-size: 14px; font-style: italic; color: var(--text-muted);
 }
