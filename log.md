@@ -1867,3 +1867,10 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Dependencies: `anthropic` added (1.7.0 in `uv.lock`). `httpx2` is imported for the transport and is only a transitive dependency of `anthropic`; declaring it was denied by the permission classifier and is left to the user.
 - Busters: `style.css` v125 -> **v126** (seven pins: six pages + the sw.js PRECACHE), `stories.js` v27 -> **v28**, `SHELL_VERSION` v93 -> **v94**. Live pins read first (125 / 27 / v93) and no remote branch or worktree pins any of them higher. No asset URL was requested with a candidate number before the deploy.
 - Not done: Haiku 4.5 as a cheaper model needs the effort setting dropped for it (it rejects the parameter); the impressum has no English version, so the new paragraph is German only like the rest; the source logo PNGs remain untracked.
+
+## 2026-09-21 — Leaderboard: a note under the podium heading says the ranking counts long-distance trains
+
+- Visitors complained that nothing near the podium says its ranking is long-distance only (the hero lead and the table lead say so, the podium and map do not). A muted 12 px line now sits under the podium heading: "Gewertet werden Fernzüge" / "Ranked on long-distance trains" (`podiumNote` in the I18N table plus the static German default; `.lb-podium-note`, and the heading's bottom margin drops to 4 px so the note hangs off it). The user cut a first version's bracketed train types ("ICE, IC, TGV, Railjet …") and then the word "only"/"nur". Podium cards and map untouched.
+- Verified: `node --check` on leaderboard.js. Not rendered in a browser.
+- Busters: `leaderboard.css` v13 -> **v14**, `leaderboard.js` v17 -> **v18** (pinned in `leaderboard.html` only). Live pins read first (13 and 17) and no remote branch or worktree pins either higher; not in the sw.js PRECACHE, so no `SHELL_VERSION` bump. No asset URL was requested with a candidate number before the deploy.
+- Proposed and not taken: naming long-distance trains in the map legend too. Not done: the source logo PNGs remain untracked.
