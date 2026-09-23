@@ -1,0 +1,2234 @@
+{
+ "AALST": {
+  "eva": "08800351",
+  "name": "Aalst"
+ },
+ "AALST-KERREBROEK": {
+  "eva": "08800604",
+  "name": "Aalst-Kerrebroek"
+ },
+ "AALTER": {
+  "eva": "08800300",
+  "name": "Aalter"
+ },
+ "AARSCHOT": {
+  "eva": "08800032",
+  "name": "Aarschot"
+ },
+ "AARSELE": {
+  "eva": "08800594",
+  "name": "Aarsele"
+ },
+ "ACREN": {
+  "eva": "08800387",
+  "name": "Acren"
+ },
+ "AISEAU": {
+  "eva": "08800478",
+  "name": "Aiseau"
+ },
+ "ALKEN": {
+  "eva": "08800225",
+  "name": "Alken"
+ },
+ "AMAY": {
+  "eva": "08800467",
+  "name": "Amay"
+ },
+ "AMPSIN": {
+  "eva": "08800468",
+  "name": "Ampsin"
+ },
+ "ANDENNE": {
+  "eva": "08800019",
+  "name": "Andenne"
+ },
+ "ANDERLECHT": {
+  "eva": "08811940",
+  "name": "Anderlecht"
+ },
+ "ANGLEUR": {
+  "eva": "08800033",
+  "name": "Angleur"
+ },
+ "ANS": {
+  "eva": "08800013",
+  "name": "Ans"
+ },
+ "ANSEREMME": {
+  "eva": "08800562",
+  "name": "Anseremme"
+ },
+ "ANTOING": {
+  "eva": "08800580",
+  "name": "Antoing"
+ },
+ "ANTWERPEN-BERCHEM": {
+  "eva": "08800008",
+  "name": "Antwerpen-Berchem"
+ },
+ "ANTWERPEN-CENTRAAL": {
+  "eva": "08800007",
+  "name": "Antwerpen-Centraal"
+ },
+ "ANTWERPEN-HAVEN": {
+  "eva": "08833353",
+  "name": "Antwerpen-Haven"
+ },
+ "ANTWERPEN-LINKEROEVER": {
+  "eva": "08894839",
+  "name": "Antwerpen-Linkeroever"
+ },
+ "ANTWERPEN-LUCHTBAL": {
+  "eva": "08800187",
+  "name": "Antwerpen-Luchtbal"
+ },
+ "ANTWERPEN-NOORDERDOKKEN": {
+  "eva": "08800188",
+  "name": "Antwerpen-Noorderdokken"
+ },
+ "ANTWERPEN-OOST": {
+  "eva": "08800180",
+  "name": "Antwerpen-Oost"
+ },
+ "ANTWERPEN-ZUID": {
+  "eva": "08800310",
+  "name": "Antwerpen-Zuid"
+ },
+ "ANZEGEM": {
+  "eva": "08800374",
+  "name": "Anzegem"
+ },
+ "APPELTERRE": {
+  "eva": "08800380",
+  "name": "Appelterre"
+ },
+ "ARCHENNES": {
+  "eva": "08800503",
+  "name": "Archennes"
+ },
+ "ARLON": {
+  "eva": "08800022",
+  "name": "Arlon"
+ },
+ "ASSE": {
+  "eva": "08800338",
+  "name": "Asse"
+ },
+ "ASSESSE": {
+  "eva": "08800547",
+  "name": "Assesse"
+ },
+ "ATH": {
+  "eva": "08800163",
+  "name": "Ath"
+ },
+ "ATHUS": {
+  "eva": "08800147",
+  "name": "Athus"
+ },
+ "AUBANGE": {
+  "eva": "08866654",
+  "name": "Aubange"
+ },
+ "AUVELAIS": {
+  "eva": "08800106",
+  "name": "Auvelais"
+ },
+ "AYE": {
+  "eva": "08800553",
+  "name": "Aye"
+ },
+ "AYWAILLE": {
+  "eva": "08800176",
+  "name": "Aywaille"
+ },
+ "BAASRODE-ZUID": {
+  "eva": "08800319",
+  "name": "Baasrode-Zuid"
+ },
+ "BALEGEM-DORP": {
+  "eva": "08800440",
+  "name": "Balegem-Dorp"
+ },
+ "BALEGEM-ZUID": {
+  "eva": "08800441",
+  "name": "Balegem-Zuid"
+ },
+ "BALEN": {
+  "eva": "08800202",
+  "name": "Balen"
+ },
+ "BAMBRUGGE": {
+  "eva": "08800359",
+  "name": "Bambrugge"
+ },
+ "BARVAUX": {
+  "eva": "08800162",
+  "name": "Barvaux"
+ },
+ "BAS-OHA": {
+  "eva": "08800469",
+  "name": "Bas-Oha"
+ },
+ "BASSE-WAVRE": {
+  "eva": "08800501",
+  "name": "Basse-Wavre"
+ },
+ "BEAURAING": {
+  "eva": "08800564",
+  "name": "Beauraing"
+ },
+ "BEERNEM": {
+  "eva": "08800302",
+  "name": "Beernem"
+ },
+ "BEERSEL": {
+  "eva": "08800584",
+  "name": "Beersel"
+ },
+ "BEERVELDE": {
+  "eva": "08894151",
+  "name": "Beervelde"
+ },
+ "BEGIJNENDIJK": {
+  "eva": "08800208",
+  "name": "Begijnendijk"
+ },
+ "BEIGNEE": {
+  "eva": "08800493",
+  "name": "Beignée"
+ },
+ "BELLEM": {
+  "eva": "08800299",
+  "name": "Bellem"
+ },
+ "BELSELE": {
+  "eva": "08800355",
+  "name": "Belsele"
+ },
+ "BERINGEN": {
+  "eva": "08800203",
+  "name": "Beringen"
+ },
+ "BERLAAR": {
+  "eva": "08800205",
+  "name": "Berlaar"
+ },
+ "BERTRIX": {
+  "eva": "08800035",
+  "name": "Bertrix"
+ },
+ "BERZEE": {
+  "eva": "08800036",
+  "name": "Berzée"
+ },
+ "BEUZET": {
+  "eva": "08800539",
+  "name": "Beuzet"
+ },
+ "BEVEREN(WAAS)": {
+  "eva": "08800037",
+  "name": "Beveren"
+ },
+ "BEVERLO": {
+  "eva": "08832227",
+  "name": "Beverlo"
+ },
+ "BIERGES-WALIBI": {
+  "eva": "08800499",
+  "name": "Bierges-Walibi"
+ },
+ "BIERSET-AWANS": {
+  "eva": "08800262",
+  "name": "Bierset-Awans"
+ },
+ "BILZEN": {
+  "eva": "08800038",
+  "name": "Bilzen"
+ },
+ "BINCHE": {
+  "eva": "08800418",
+  "name": "Binche"
+ },
+ "BISSEGEM": {
+  "eva": "08800347",
+  "name": "Bissegem"
+ },
+ "BLANKENBERGE": {
+  "eva": "08800039",
+  "name": "Blankenberge"
+ },
+ "BLANMONT": {
+  "eva": "08800535",
+  "name": "Blanmont"
+ },
+ "BLATON": {
+  "eva": "08800040",
+  "name": "Blaton"
+ },
+ "BLERET": {
+  "eva": "08800256",
+  "name": "Bleret"
+ },
+ "BOCKSTAEL": {
+  "eva": "08800282",
+  "name": "Bockstael"
+ },
+ "BOECHOUT": {
+  "eva": "08800195",
+  "name": "Boechout"
+ },
+ "BOKRIJK": {
+  "eva": "08800210",
+  "name": "Bokrijk"
+ },
+ "BOMAL": {
+  "eva": "08800279",
+  "name": "Bomal"
+ },
+ "BOOISCHOT": {
+  "eva": "08800207",
+  "name": "Booischot"
+ },
+ "BOOM": {
+  "eva": "08800315",
+  "name": "Boom"
+ },
+ "BOONDAAL": {
+  "eva": "08800581",
+  "name": "Boondaal-Boondael"
+ },
+ "BOORTMEERBEEK": {
+  "eva": "08800326",
+  "name": "Boortmeerbeek"
+ },
+ "BORDET": {
+  "eva": "08800232",
+  "name": "Bordet"
+ },
+ "BORNEM": {
+  "eva": "08800353",
+  "name": "Bornem"
+ },
+ "BOSVOORDE": {
+  "eva": "08800526",
+  "name": "Boitsfort"
+ },
+ "BOUSSU": {
+  "eva": "08800409",
+  "name": "Boussu"
+ },
+ "BOUWEL": {
+  "eva": "08800198",
+  "name": "Bouwel"
+ },
+ "BRACQUEGNIES": {
+  "eva": "08800430",
+  "name": "Bracquegnies"
+ },
+ "BRAINE-L'ALLEUD": {
+  "eva": "08800042",
+  "name": "Braine-l’Alleud"
+ },
+ "BRAINE-LE-COMTE": {
+  "eva": "08800041",
+  "name": "Braine-le-Comte"
+ },
+ "BRESSOUX": {
+  "eva": "08800107",
+  "name": "Bressoux"
+ },
+ "BRUGELETTE": {
+  "eva": "08800390",
+  "name": "Brugelette"
+ },
+ "BRUGGE": {
+  "eva": "08800029",
+  "name": "Brugge / Bruges"
+ },
+ "BRUGGE-SINT-PIETERS": {
+  "eva": "08800307",
+  "name": "Brugge-Sint-Pieters"
+ },
+ "BRUSSEL-CENTRAAL": {
+  "eva": "08800003",
+  "name": "Bruxelles-Central"
+ },
+ "BRUSSEL-CONGRES": {
+  "eva": "08800212",
+  "name": "Bruxelles-Congrès"
+ },
+ "BRUSSEL-KAPELLEKERK": {
+  "eva": "08800211",
+  "name": "Bruxelles-Chapelle"
+ },
+ "BRUSSEL-LUXEMBURG": {
+  "eva": "08800005",
+  "name": "Bruxelles-Luxembourg"
+ },
+ "BRUSSEL-NOORD": {
+  "eva": "08800002",
+  "name": "Bruxelles-Nord"
+ },
+ "BRUSSEL-SCHUMAN": {
+  "eva": "08800146",
+  "name": "Bruxelles-Schuman"
+ },
+ "BRUSSEL-WEST": {
+  "eva": "08815040",
+  "name": "Bruxelles Ouest/Brussel West"
+ },
+ "BRUSSEL-ZUID": {
+  "eva": "08800004",
+  "name": "Bruxelles-Midi"
+ },
+ "BRUSSELS AIRPORT - ZAVENTEM": {
+  "eva": "08800043",
+  "name": "Brussels-Airport-Zaventem"
+ },
+ "BUDA": {
+  "eva": "08800213",
+  "name": "Buda"
+ },
+ "BUGGENHOUT": {
+  "eva": "08800044",
+  "name": "Buggenhout"
+ },
+ "BUIZINGEN": {
+  "eva": "08800400",
+  "name": "Buizingen"
+ },
+ "BURST": {
+  "eva": "08800360",
+  "name": "Burst"
+ },
+ "CALLENELLE": {
+  "eva": "08800578",
+  "name": "Callenelle"
+ },
+ "CAMBRON-CASTEAU": {
+  "eva": "08800391",
+  "name": "Cambron-Casteau"
+ },
+ "CARLSBOURG": {
+  "eva": "08800569",
+  "name": "Carlsbourg"
+ },
+ "CARNIERES": {
+  "eva": "08800433",
+  "name": "Carnieres"
+ },
+ "CEROUX-MOUSTY": {
+  "eva": "08800517",
+  "name": "Ceroux-Mousty"
+ },
+ "CHAPELLE-DIEU": {
+  "eva": "08800521",
+  "name": "Chapelle-Dieu"
+ },
+ "CHAPOIS": {
+  "eva": "08800551",
+  "name": "Chapois"
+ },
+ "CHARLEROI-CENTRAL": {
+  "eva": "08800024",
+  "name": "Charleroi-Central"
+ },
+ "CHARLEROI-OUEST": {
+  "eva": "08800509",
+  "name": "Charleroi-Ouest"
+ },
+ "CHASTRE": {
+  "eva": "08800536",
+  "name": "Chastre"
+ },
+ "CHATEAU-DE-SEILLES": {
+  "eva": "08800470",
+  "name": "Château-de-Seilles"
+ },
+ "CHATELET": {
+  "eva": "08800045",
+  "name": "Châtelet"
+ },
+ "CHAUDFONTAINE": {
+  "eva": "08842051",
+  "name": "Chaudfontaine"
+ },
+ "CHENEE": {
+  "eva": "08800264",
+  "name": "Chênée"
+ },
+ "CINEY": {
+  "eva": "08800046",
+  "name": "Ciney"
+ },
+ "COMBLAIN-LA-TOUR": {
+  "eva": "08800276",
+  "name": "Comblain-la-Tour"
+ },
+ "COO": {
+  "eva": "08800175",
+  "name": "Coo"
+ },
+ "COUILLET": {
+  "eva": "08800474",
+  "name": "Couillet"
+ },
+ "COUR-SUR-HEURE": {
+  "eva": "08800495",
+  "name": "Cour-sur-Heure"
+ },
+ "COURCELLES-MOTTE": {
+  "eva": "08800423",
+  "name": "Courcelles-Motte"
+ },
+ "COURRIERE": {
+  "eva": "08800546",
+  "name": "Courrière"
+ },
+ "COURT-SAINT-ETIENNE": {
+  "eva": "08800516",
+  "name": "Court-Saint-Étienne"
+ },
+ "COUVIN": {
+  "eva": "08800182",
+  "name": "Couvin"
+ },
+ "DAVE-SAINT-MARTIN": {
+  "eva": "08800543",
+  "name": "Dave-Saint-Martin"
+ },
+ "DE HOEK": {
+  "eva": "08800453",
+  "name": "De Hoek"
+ },
+ "DE PANNE": {
+  "eva": "08800047",
+  "name": "De Panne"
+ },
+ "DE PINTE": {
+  "eva": "08800048",
+  "name": "De Pinte"
+ },
+ "DEINZE": {
+  "eva": "08800049",
+  "name": "Deinze"
+ },
+ "DELTA": {
+  "eva": "08800228",
+  "name": "Delta"
+ },
+ "DENDERLEEUW": {
+  "eva": "08800050",
+  "name": "Denderleeuw"
+ },
+ "DENDERMONDE": {
+  "eva": "08800051",
+  "name": "Dendermonde"
+ },
+ "DIEGEM": {
+  "eva": "08800246",
+  "name": "Diegem"
+ },
+ "DIEPENBEEK": {
+  "eva": "08800240",
+  "name": "Diepenbeek"
+ },
+ "DIESDELLE": {
+  "eva": "08814464",
+  "name": "Vivier d’Oie"
+ },
+ "DIEST": {
+  "eva": "08800052",
+  "name": "Diest"
+ },
+ "DIKSMUIDE": {
+  "eva": "08800053",
+  "name": "Diksmuide"
+ },
+ "DILBEEK": {
+  "eva": "08800285",
+  "name": "Dilbeek"
+ },
+ "DINANT": {
+  "eva": "08800054",
+  "name": "Dinant"
+ },
+ "DOLHAIN-GILEPPE": {
+  "eva": "08800269",
+  "name": "Dolhain-Gileppe"
+ },
+ "DRONGEN": {
+  "eva": "08800296",
+  "name": "Drongen"
+ },
+ "DUFFEL": {
+  "eva": "08800218",
+  "name": "Duffel"
+ },
+ "DUINBERGEN": {
+  "eva": "08800305",
+  "name": "Duinbergen"
+ },
+ "ECAUSSINNES": {
+  "eva": "08800413",
+  "name": "Écaussinnes"
+ },
+ "EDE": {
+  "eva": "08800367",
+  "name": "Ede"
+ },
+ "EDINGEN": {
+  "eva": "08800027",
+  "name": "Enghien"
+ },
+ "EEKLO": {
+  "eva": "08800332",
+  "name": "Eeklo"
+ },
+ "EICHEM": {
+  "eva": "08800379",
+  "name": "Eichem"
+ },
+ "EINE": {
+  "eva": "08800364",
+  "name": "Eine"
+ },
+ "EKE-NAZARETH": {
+  "eva": "08800361",
+  "name": "Eke-Nazareth"
+ },
+ "EKEREN": {
+  "eva": "08800189",
+  "name": "Ekeren"
+ },
+ "ENGIS": {
+  "eva": "08800464",
+  "name": "Engis"
+ },
+ "EPPEGEM": {
+  "eva": "08800215",
+  "name": "Eppegem"
+ },
+ "ERBISOEUL": {
+  "eva": "08800393",
+  "name": "Erbisœul"
+ },
+ "EREMBODEGEM": {
+  "eva": "08800290",
+  "name": "Erembodegem"
+ },
+ "ERNAGE": {
+  "eva": "08800537",
+  "name": "Ernage"
+ },
+ "ERPE-MERE": {
+  "eva": "08800358",
+  "name": "Erpe-Mere"
+ },
+ "ERPS-KWERPS": {
+  "eva": "08800250",
+  "name": "Erps-Kwerps"
+ },
+ "ERQUELINNES": {
+  "eva": "08800023",
+  "name": "Erquelinnes"
+ },
+ "ERQUELINNES-VILLAGE": {
+  "eva": "08800492",
+  "name": "Erquelinnes-Village"
+ },
+ "ESNEUX": {
+  "eva": "08800273",
+  "name": "Esneux"
+ },
+ "ESSEN": {
+  "eva": "08800009",
+  "name": "Essen"
+ },
+ "ESSENE-LOMBEEK": {
+  "eva": "08800288",
+  "name": "Essene-Lombeek"
+ },
+ "ETTERBEEK": {
+  "eva": "08800227",
+  "name": "Etterbeek"
+ },
+ "EUPEN": {
+  "eva": "08800110",
+  "name": "Eupen"
+ },
+ "EVERE": {
+  "eva": "08800231",
+  "name": "Evere"
+ },
+ "EVERGEM": {
+  "eva": "08893252",
+  "name": "Evergem"
+ },
+ "EZEMAAL": {
+  "eva": "08800254",
+  "name": "Ezemaal"
+ },
+ "FAMILLEUREUX": {
+  "eva": "08800415",
+  "name": "Familleureux"
+ },
+ "FARCIENNES": {
+  "eva": "08800476",
+  "name": "Farciennes"
+ },
+ "FAUX": {
+  "eva": "08800515",
+  "name": "Faux"
+ },
+ "FEXHE-LE-HAUT-CLOCHER": {
+  "eva": "08800259",
+  "name": "Fexhe-le-Haut-Clocher"
+ },
+ "FLAWINNE": {
+  "eva": "08800483",
+  "name": "Flawinne"
+ },
+ "FLEMALLE-GRANDE": {
+  "eva": "08800461",
+  "name": "Flemalle-Grande"
+ },
+ "FLEMALLE-HAUTE": {
+  "eva": "08800015",
+  "name": "Flemalle-Haute"
+ },
+ "FLEURUS": {
+  "eva": "08800055",
+  "name": "Fleurus"
+ },
+ "FLOREE": {
+  "eva": "08800548",
+  "name": "Florée"
+ },
+ "FLOREFFE": {
+  "eva": "08800482",
+  "name": "Floreffe"
+ },
+ "FLORENVILLE": {
+  "eva": "08800559",
+  "name": "Florenville"
+ },
+ "FLORIVAL": {
+  "eva": "08800504",
+  "name": "Florival"
+ },
+ "FONTAINE-VALMONT": {
+  "eva": "08800489",
+  "name": "Fontaine-Valmont"
+ },
+ "FORCHIES": {
+  "eva": "08800435",
+  "name": "Forchies"
+ },
+ "FORRIERES": {
+  "eva": "08800554",
+  "name": "Forrières"
+ },
+ "FRAIPONT": {
+  "eva": "08800266",
+  "name": "Fraipont"
+ },
+ "FRAMERIES": {
+  "eva": "08800407",
+  "name": "Frameries"
+ },
+ "FRANCHIMONT": {
+  "eva": "08800591",
+  "name": "Franchimont"
+ },
+ "FRANIERE": {
+  "eva": "08800481",
+  "name": "Franière"
+ },
+ "FROYENNES": {
+  "eva": "08800395",
+  "name": "Froyennes"
+ },
+ "GALMAARDEN": {
+  "eva": "08800445",
+  "name": "Galmaarden"
+ },
+ "GASTUCHE": {
+  "eva": "08800502",
+  "name": "Gastuche"
+ },
+ "GAVERE-ASPER": {
+  "eva": "08800362",
+  "name": "Gavere-Asper"
+ },
+ "GEDINNE": {
+  "eva": "08800567",
+  "name": "Gedinne"
+ },
+ "GEEL": {
+  "eva": "08800056",
+  "name": "Geel"
+ },
+ "GEMBLOUX": {
+  "eva": "08800057",
+  "name": "Gembloux"
+ },
+ "GENDRON-CELLES": {
+  "eva": "08800563",
+  "name": "Gendron-Celles"
+ },
+ "GENK": {
+  "eva": "08800111",
+  "name": "Genk"
+ },
+ "GENLY": {
+  "eva": "08800408",
+  "name": "Genly"
+ },
+ "GENT-DAMPOORT": {
+  "eva": "08800058",
+  "name": "Gent-Dampoort"
+ },
+ "GENT-SINT-PIETERS": {
+  "eva": "08800031",
+  "name": "Gent-Sint-Pieters"
+ },
+ "GENTBRUGGE": {
+  "eva": "08800328",
+  "name": "Gentbrugge"
+ },
+ "GENVAL": {
+  "eva": "08800530",
+  "name": "Genval"
+ },
+ "GERAARDSBERGEN": {
+  "eva": "08800059",
+  "name": "Geraardsbergen"
+ },
+ "GHLIN": {
+  "eva": "08800394",
+  "name": "Ghlin"
+ },
+ "GLONS": {
+  "eva": "08800239",
+  "name": "Glons"
+ },
+ "GODARVILLE": {
+  "eva": "08800419",
+  "name": "Godarville"
+ },
+ "GODINNE": {
+  "eva": "08800524",
+  "name": "Godinne"
+ },
+ "GONTRODE": {
+  "eva": "08800436",
+  "name": "Gontrode"
+ },
+ "GOUVY": {
+  "eva": "08800060",
+  "name": "Gouvy"
+ },
+ "GOUY-LEZ-PIETON": {
+  "eva": "08800420",
+  "name": "Gouy-lez-Pieton"
+ },
+ "GRAIDE": {
+  "eva": "08800568",
+  "name": "Graide"
+ },
+ "GROENENDAAL": {
+  "eva": "08800527",
+  "name": "Groenendaal"
+ },
+ "GROOT-BIJGAARDEN": {
+  "eva": "08800284",
+  "name": "Groot-Bijgaarden"
+ },
+ "GRUPONT": {
+  "eva": "08800061",
+  "name": "Grupont"
+ },
+ "HAACHT": {
+  "eva": "08800325",
+  "name": "Haacht"
+ },
+ "HAALTERT": {
+  "eva": "08800366",
+  "name": "Haaltert"
+ },
+ "HABAY": {
+  "eva": "08800555",
+  "name": "Habay"
+ },
+ "HAININ": {
+  "eva": "08800410",
+  "name": "Hainin"
+ },
+ "HALANZY": {
+  "eva": "08866530",
+  "name": "Halanzy"
+ },
+ "HALLE": {
+  "eva": "08800006",
+  "name": "Halle"
+ },
+ "HAM-SUR-HEURE": {
+  "eva": "08800494",
+  "name": "Ham-sur-Heure"
+ },
+ "HAM-SUR-SAMBRE": {
+  "eva": "08800479",
+  "name": "Ham-sur-Sambre"
+ },
+ "HAMBOS": {
+  "eva": "08800323",
+  "name": "Hambos"
+ },
+ "HAMOIR": {
+  "eva": "08800277",
+  "name": "Hamoir"
+ },
+ "HAMONT": {
+  "eva": "08832664",
+  "name": "Hamont"
+ },
+ "HANSBEKE": {
+  "eva": "08800298",
+  "name": "Hansbeke"
+ },
+ "HARCHIES": {
+  "eva": "08800575",
+  "name": "Harchies"
+ },
+ "HARELBEKE": {
+  "eva": "08800161",
+  "name": "Harelbeke"
+ },
+ "HAREN": {
+  "eva": "08800233",
+  "name": "Haren"
+ },
+ "HAREN-ZUID": {
+  "eva": "08800587",
+  "name": "Haren-Zuid"
+ },
+ "HASSELT": {
+  "eva": "08800114",
+  "name": "Hasselt"
+ },
+ "HAUTE-FLONE": {
+  "eva": "08800466",
+  "name": "Haute-Flône"
+ },
+ "HAVERSIN": {
+  "eva": "08800552",
+  "name": "Haversin"
+ },
+ "HAVRE": {
+  "eva": "08800428",
+  "name": "Havre"
+ },
+ "HEIDE": {
+  "eva": "08800062",
+  "name": "Heide"
+ },
+ "HEIST": {
+  "eva": "08800306",
+  "name": "Heist"
+ },
+ "HEIST-OP-DEN-BERG": {
+  "eva": "08800206",
+  "name": "Heist-op-den-Berg"
+ },
+ "HEIZIJDE": {
+  "eva": "08800342",
+  "name": "Heizijde"
+ },
+ "HEMIKSEM": {
+  "eva": "08800313",
+  "name": "Hemiksem"
+ },
+ "HENNUYERES": {
+  "eva": "08800403",
+  "name": "Hennuyères"
+ },
+ "HERENT": {
+  "eva": "08800252",
+  "name": "Herent"
+ },
+ "HERENTALS": {
+  "eva": "08800063",
+  "name": "Herentals"
+ },
+ "HERGENRATH": {
+  "eva": "08800116",
+  "name": "Hergenrath"
+ },
+ "HERNE": {
+  "eva": "08800443",
+  "name": "Herne"
+ },
+ "HERSEAUX": {
+  "eva": "08800064",
+  "name": "Herseaux"
+ },
+ "HERSTAL": {
+  "eva": "08800236",
+  "name": "Herstal"
+ },
+ "HERZELE": {
+  "eva": "08800369",
+  "name": "Herzele"
+ },
+ "HEUSDEN": {
+  "eva": "08800204",
+  "name": "Heusden"
+ },
+ "HEVER": {
+  "eva": "08800327",
+  "name": "Hever"
+ },
+ "HEVERLEE": {
+  "eva": "08800508",
+  "name": "Heverlee"
+ },
+ "HILLEGEM": {
+  "eva": "08800370",
+  "name": "Hillegem"
+ },
+ "HOBOKEN-POLDER": {
+  "eva": "08800311",
+  "name": "Hoboken-Polder"
+ },
+ "HOEILAART": {
+  "eva": "08800528",
+  "name": "Hoeilaart"
+ },
+ "HOFSTADE": {
+  "eva": "08800234",
+  "name": "Hofstade"
+ },
+ "HOLLEKEN": {
+  "eva": "08800451",
+  "name": "Holleken"
+ },
+ "HONY": {
+  "eva": "08800272",
+  "name": "Hony"
+ },
+ "HOURAING": {
+  "eva": "08800386",
+  "name": "Houraing"
+ },
+ "HOURPES": {
+  "eva": "08800487",
+  "name": "Hourpes"
+ },
+ "HOUYET": {
+  "eva": "08800065",
+  "name": "Houyet"
+ },
+ "HOVE": {
+  "eva": "08800220",
+  "name": "Hove"
+ },
+ "HUIZINGEN": {
+  "eva": "08800585",
+  "name": "Huizingen"
+ },
+ "HUY": {
+  "eva": "08800185",
+  "name": "Huy"
+ },
+ "IDDERGEM": {
+  "eva": "08800376",
+  "name": "Iddergem"
+ },
+ "IDEGEM": {
+  "eva": "08800382",
+  "name": "Idegem"
+ },
+ "IEPER": {
+  "eva": "08800066",
+  "name": "Ieper"
+ },
+ "INGELMUNSTER": {
+  "eva": "08800346",
+  "name": "Ingelmunster"
+ },
+ "IZEGEM": {
+  "eva": "08800067",
+  "name": "Izegem"
+ },
+ "JAMBES": {
+  "eva": "08800522",
+  "name": "Jambes"
+ },
+ "JAMBES-EST": {
+  "eva": "08800542",
+  "name": "Jambes-Est"
+ },
+ "JAMIOULX": {
+  "eva": "08800068",
+  "name": "Jamioulx"
+ },
+ "JEMAPPES": {
+  "eva": "08800571",
+  "name": "Jemappes"
+ },
+ "JEMEPPE-SUR-MEUSE": {
+  "eva": "08800460",
+  "name": "Jemeppe-sur-Meuse"
+ },
+ "JEMEPPE-SUR-SAMBRE": {
+  "eva": "08800069",
+  "name": "Jemeppe-sur-Sambre"
+ },
+ "JETTE": {
+  "eva": "08800070",
+  "name": "Jette"
+ },
+ "JURBISE": {
+  "eva": "08800071",
+  "name": "Jurbise"
+ },
+ "JUSLENVILLE": {
+  "eva": "08800589",
+  "name": "Juslenville"
+ },
+ "KALMTHOUT": {
+  "eva": "08800183",
+  "name": "Kalmthout"
+ },
+ "KAPELLE-OP-DEN-BOS": {
+  "eva": "08800317",
+  "name": "Kapelle-op-den-Bos"
+ },
+ "KAPELLEN": {
+  "eva": "08800072",
+  "name": "Kapellen"
+ },
+ "KESSEL": {
+  "eva": "08800196",
+  "name": "Kessel"
+ },
+ "KIEWIT": {
+  "eva": "08800226",
+  "name": "Kiewit"
+ },
+ "KIJKUIT": {
+  "eva": "08800192",
+  "name": "Kijkuit"
+ },
+ "KNOKKE": {
+  "eva": "08800074",
+  "name": "Knokke"
+ },
+ "KOKSIJDE": {
+  "eva": "08800075",
+  "name": "Koksijde"
+ },
+ "KOMEN": {
+  "eva": "08800350",
+  "name": "Comines"
+ },
+ "KONTICH-LINT": {
+  "eva": "08800219",
+  "name": "Kontich"
+ },
+ "KORTEMARK": {
+  "eva": "08800076",
+  "name": "Kortemark"
+ },
+ "KORTENBERG": {
+  "eva": "08800249",
+  "name": "Kortenberg"
+ },
+ "KORTRIJK": {
+  "eva": "08800077",
+  "name": "Kortrijk"
+ },
+ "KWATRECHT": {
+  "eva": "08800294",
+  "name": "Kwatrecht"
+ },
+ "LA HULPE": {
+  "eva": "08800529",
+  "name": "La Hulpe"
+ },
+ "LA LOUVIERE-CENTRE": {
+  "eva": "08800416",
+  "name": "La Louvière Centre"
+ },
+ "LA LOUVIERE-SUD": {
+  "eva": "08800078",
+  "name": "La Louvière Sud"
+ },
+ "LA ROCHE(BRABANT)": {
+  "eva": "08800514",
+  "name": "La Roche (Brabant)"
+ },
+ "LABUISSIERE": {
+  "eva": "08800490",
+  "name": "Labuissière"
+ },
+ "LANDEGEM": {
+  "eva": "08800297",
+  "name": "Landegem"
+ },
+ "LANDELIES": {
+  "eva": "08800486",
+  "name": "Landelies"
+ },
+ "LANDEN": {
+  "eva": "08800079",
+  "name": "Landen"
+ },
+ "LANDSKOUTER": {
+  "eva": "08800437",
+  "name": "Landskouter"
+ },
+ "LANGDORP": {
+  "eva": "08800243",
+  "name": "Langdorp"
+ },
+ "LE CAMPINAIRE": {
+  "eva": "08800475",
+  "name": "Le Campinaire"
+ },
+ "LEBBEKE": {
+  "eva": "08800343",
+  "name": "Lebbeke"
+ },
+ "LEDE": {
+  "eva": "08800291",
+  "name": "Lede"
+ },
+ "LEIGNON": {
+  "eva": "08800550",
+  "name": "Leignon"
+ },
+ "LEMAN": {
+  "eva": "08800462",
+  "name": "Leman"
+ },
+ "LEMBEEK": {
+  "eva": "08800401",
+  "name": "Lembeek"
+ },
+ "LENS": {
+  "eva": "08800392",
+  "name": "Lens"
+ },
+ "LEOPOLDSBURG": {
+  "eva": "08800080",
+  "name": "Leopoldsburg"
+ },
+ "LESSINES": {
+  "eva": "08800081",
+  "name": "Lessines"
+ },
+ "LEUVEN": {
+  "eva": "08800011",
+  "name": "Leuven"
+ },
+ "LEUZE": {
+  "eva": "08800028",
+  "name": "Leuze"
+ },
+ "LEVAL": {
+  "eva": "08800417",
+  "name": "Leval"
+ },
+ "LIBRAMONT": {
+  "eva": "08800021",
+  "name": "Libramont"
+ },
+ "LICHTERVELDE": {
+  "eva": "08800082",
+  "name": "Lichtervelde"
+ },
+ "LIEDEKERKE": {
+  "eva": "08800289",
+  "name": "Liedekerke"
+ },
+ "LIEGE-CARRE": {
+  "eva": "08800235",
+  "name": "Liège-Carré"
+ },
+ "LIEGE-GUILLEMINS": {
+  "eva": "08800012",
+  "name": "Liège-Guillemins"
+ },
+ "LIEGE-SAINT-LAMBERT": {
+  "eva": "08800586",
+  "name": "Liège-Saint-Lambert"
+ },
+ "LIER": {
+  "eva": "08800083",
+  "name": "Lier"
+ },
+ "LIERDE": {
+  "eva": "08800442",
+  "name": "Lierde"
+ },
+ "LIERS": {
+  "eva": "08800238",
+  "name": "Liers"
+ },
+ "LIGNY": {
+  "eva": "08800511",
+  "name": "Ligny"
+ },
+ "LILLOIS": {
+  "eva": "08800454",
+  "name": "Lillois"
+ },
+ "LIMAL": {
+  "eva": "08800498",
+  "name": "Limal"
+ },
+ "LINKEBEEK": {
+  "eva": "08800450",
+  "name": "Linkebeek"
+ },
+ "LISSEWEGE": {
+  "eva": "08800308",
+  "name": "Lissewege"
+ },
+ "LOBBES": {
+  "eva": "08800126",
+  "name": "Lobbes"
+ },
+ "LODELINSART": {
+  "eva": "08800510",
+  "name": "Lodelinsart"
+ },
+ "LOKEREN": {
+  "eva": "08800127",
+  "name": "Lokeren"
+ },
+ "LOMMEL": {
+  "eva": "08800128",
+  "name": "Lommel"
+ },
+ "LONDERZEEL": {
+  "eva": "08800158",
+  "name": "Londerzeel"
+ },
+ "LONZEE": {
+  "eva": "08800538",
+  "name": "Lonzée"
+ },
+ "LOT": {
+  "eva": "08800399",
+  "name": "Lot"
+ },
+ "LOUVAIN-LA-NEUVE": {
+  "eva": "08800533",
+  "name": "Louvain-la-Neuve-Université"
+ },
+ "LUSTIN": {
+  "eva": "08800523",
+  "name": "Lustin"
+ },
+ "LUTTRE": {
+  "eva": "08800422",
+  "name": "Luttre"
+ },
+ "MAFFLE": {
+  "eva": "08800388",
+  "name": "Maffle"
+ },
+ "MALDEREN": {
+  "eva": "08800318",
+  "name": "Malderen"
+ },
+ "MANAGE": {
+  "eva": "08800121",
+  "name": "Manage"
+ },
+ "MARBEHAN": {
+  "eva": "08800156",
+  "name": "Marbehan"
+ },
+ "MARCHE-EN-FAMENNE": {
+  "eva": "08800281",
+  "name": "Marche-en-Famenne"
+ },
+ "MARCHE-LES-DAMES": {
+  "eva": "08800473",
+  "name": "Marche-les-Dames"
+ },
+ "MARCHE-LEZ-ECAUSSINNES": {
+  "eva": "08800414",
+  "name": "Marche-lez-Écaussinnes"
+ },
+ "MARCHIENNE-AU-PONT": {
+  "eva": "08800122",
+  "name": "Marchienne-au-Pont"
+ },
+ "MARCHIENNE-ZONE": {
+  "eva": "08800485",
+  "name": "Marchienne-Zone"
+ },
+ "MARIA-AALTER": {
+  "eva": "08800301",
+  "name": "Maria-Aalter"
+ },
+ "MARIEMBOURG": {
+  "eva": "08800132",
+  "name": "Mariembourg"
+ },
+ "MARLOIE": {
+  "eva": "08800154",
+  "name": "Marloie"
+ },
+ "MASNUY-SAINT-PIERRE": {
+  "eva": "08800405",
+  "name": "Masnuy-Saint-Pierre"
+ },
+ "MAUBRAY": {
+  "eva": "08800579",
+  "name": "Maubray"
+ },
+ "MAZY": {
+  "eva": "08800520",
+  "name": "Mazy"
+ },
+ "MECHELEN": {
+  "eva": "08800010",
+  "name": "Mechelen"
+ },
+ "MECHELEN-NEKKERSPOEL": {
+  "eva": "08800179",
+  "name": "Mechelen-Nekkerspoel"
+ },
+ "MEISER": {
+  "eva": "08800230",
+  "name": "Meiser"
+ },
+ "MELKOUWEN": {
+  "eva": "08800223",
+  "name": "Melkouwen"
+ },
+ "MELLE": {
+  "eva": "08800295",
+  "name": "Melle"
+ },
+ "MELREUX-HOTTON": {
+  "eva": "08800280",
+  "name": "Melreux-Hotton"
+ },
+ "MELSELE": {
+  "eva": "08800356",
+  "name": "Melsele"
+ },
+ "MENEN": {
+  "eva": "08800153",
+  "name": "Menen"
+ },
+ "MERCHTEM": {
+  "eva": "08800340",
+  "name": "Merchtem"
+ },
+ "MERELBEKE": {
+  "eva": "08800123",
+  "name": "Merelbeke"
+ },
+ "MERODE": {
+  "eva": "08800229",
+  "name": "Merode"
+ },
+ "MERY": {
+  "eva": "08800271",
+  "name": "Méry"
+ },
+ "MESSANCY": {
+  "eva": "08866662",
+  "name": "Messancy"
+ },
+ "MEVERGNIES-ATTRE": {
+  "eva": "08800389",
+  "name": "Mevergnies-Attre"
+ },
+ "MILMORT": {
+  "eva": "08800237",
+  "name": "Milmort"
+ },
+ "MOENSBERG": {
+  "eva": "08800583",
+  "name": "Moensberg"
+ },
+ "MOESKROEN": {
+  "eva": "08800159",
+  "name": "Mouscron"
+ },
+ "MOL": {
+  "eva": "08800124",
+  "name": "Mol"
+ },
+ "MOLLEM": {
+  "eva": "08800339",
+  "name": "Mollem"
+ },
+ "MOMALLE": {
+  "eva": "08800258",
+  "name": "Momalle"
+ },
+ "MONS": {
+  "eva": "08800025",
+  "name": "Mons"
+ },
+ "MONT-SAINT-GUIBERT": {
+  "eva": "08800534",
+  "name": "Mont-Saint-Guibert"
+ },
+ "MOORTSELE": {
+  "eva": "08800438",
+  "name": "Moortsele"
+ },
+ "MORLANWELZ": {
+  "eva": "08800432",
+  "name": "Morlanwelz"
+ },
+ "MORTSEL": {
+  "eva": "08800194",
+  "name": "Mortsel"
+ },
+ "MORTSEL-LIERSESTEENWEG": {
+  "eva": "08800607",
+  "name": "Mortsel-Liersesteenweg"
+ },
+ "MORTSEL-OUDE GOD": {
+  "eva": "08800221",
+  "name": "Mortsel-Oude God"
+ },
+ "MOUSTIER": {
+  "eva": "08800480",
+  "name": "Moustier"
+ },
+ "MOUTERIJ": {
+  "eva": "08811403",
+  "name": "Germoir"
+ },
+ "MUIZEN": {
+  "eva": "08800129",
+  "name": "Muizen"
+ },
+ "MUNKZWALM": {
+  "eva": "08800372",
+  "name": "Munkzwalm"
+ },
+ "NAMECHE": {
+  "eva": "08800472",
+  "name": "Namêche"
+ },
+ "NAMUR": {
+  "eva": "08800018",
+  "name": "Namur"
+ },
+ "NANINNE": {
+  "eva": "08800544",
+  "name": "Naninne"
+ },
+ "NATOYE": {
+  "eva": "08800549",
+  "name": "Natoye"
+ },
+ "NEERPELT": {
+  "eva": "08800130",
+  "name": "Neerpelt"
+ },
+ "NEERWINDEN": {
+  "eva": "08800255",
+  "name": "Neerwinden"
+ },
+ "NESSONVAUX": {
+  "eva": "08800267",
+  "name": "Nessonvaux"
+ },
+ "NEUFCHATEAU": {
+  "eva": "08800181",
+  "name": "Neufchâteau"
+ },
+ "NEUFVILLES": {
+  "eva": "08800404",
+  "name": "Neufvilles"
+ },
+ "NIEL": {
+  "eva": "08800314",
+  "name": "Niel"
+ },
+ "NIEUWKERKEN-WAAS": {
+  "eva": "08800334",
+  "name": "Nieuwkerken-Waas"
+ },
+ "NIJLEN": {
+  "eva": "08800197",
+  "name": "Nijlen"
+ },
+ "NIMY": {
+  "eva": "08800426",
+  "name": "Nimy"
+ },
+ "NINOVE": {
+  "eva": "08800378",
+  "name": "Ninove"
+ },
+ "NIVELLES": {
+  "eva": "08800152",
+  "name": "Nivelles"
+ },
+ "NOORDERKEMPEN": {
+  "eva": "08821105",
+  "name": "Noorderkempen"
+ },
+ "NOSSEGEM": {
+  "eva": "08800248",
+  "name": "Nossegem"
+ },
+ "OBAIX-BUZET": {
+  "eva": "08800456",
+  "name": "Obaix-Buzet"
+ },
+ "OBOURG": {
+  "eva": "08800427",
+  "name": "Obourg"
+ },
+ "OKEGEM": {
+  "eva": "08800377",
+  "name": "Okegem"
+ },
+ "OLEN": {
+  "eva": "08800605",
+  "name": "Olen"
+ },
+ "OOSTENDE": {
+  "eva": "08800030",
+  "name": "Oostende"
+ },
+ "OOSTKAMP": {
+  "eva": "08800303",
+  "name": "Oostkamp"
+ },
+ "OPWIJK": {
+  "eva": "08800150",
+  "name": "Opwijk"
+ },
+ "OTTIGNIES": {
+  "eva": "08800138",
+  "name": "Ottignies"
+ },
+ "OUD-HEVERLEE": {
+  "eva": "08800507",
+  "name": "Oud-Heverlee"
+ },
+ "OUDEGEM": {
+  "eva": "08800320",
+  "name": "Oudegem"
+ },
+ "OUDENAARDE": {
+  "eva": "08800149",
+  "name": "Oudenaarde"
+ },
+ "OUGREE": {
+  "eva": "08843174",
+  "name": "Ougree"
+ },
+ "OVERPELT": {
+  "eva": "08800201",
+  "name": "Overpelt"
+ },
+ "PALISEUL": {
+  "eva": "08800570",
+  "name": "Paliseul"
+ },
+ "PAPIGNIES": {
+  "eva": "08800385",
+  "name": "Papignies"
+ },
+ "PECROT": {
+  "eva": "08800505",
+  "name": "Pécrot"
+ },
+ "PEPINSTER": {
+  "eva": "08800178",
+  "name": "Pepinster"
+ },
+ "PEPINSTER-CITE": {
+  "eva": "08800588",
+  "name": "Pepinster-Cité"
+ },
+ "PERUWELZ": {
+  "eva": "08800577",
+  "name": "Péruwelz"
+ },
+ "PHILIPPEVILLE": {
+  "eva": "08800140",
+  "name": "Philippeville"
+ },
+ "PIETON": {
+  "eva": "08800434",
+  "name": "Piéton"
+ },
+ "POIX-SAINT-HUBERT": {
+  "eva": "08800141",
+  "name": "Poix-Saint-Hubert"
+ },
+ "PONT-A-CELLES": {
+  "eva": "08800421",
+  "name": "Pont-à-Celles"
+ },
+ "PONT-DE-SERAING": {
+  "eva": "08800459",
+  "name": "Pont-de-Seraing"
+ },
+ "POPERINGE": {
+  "eva": "08800142",
+  "name": "Poperinge"
+ },
+ "POULSEUR": {
+  "eva": "08800177",
+  "name": "Poulseur"
+ },
+ "PROFONDSART": {
+  "eva": "08800532",
+  "name": "Profondsart"
+ },
+ "PRY": {
+  "eva": "08800496",
+  "name": "Pry"
+ },
+ "PUURS": {
+  "eva": "08800316",
+  "name": "Puurs"
+ },
+ "QUAREGNON": {
+  "eva": "08800572",
+  "name": "Quaregnon"
+ },
+ "QUEVY": {
+  "eva": "08800026",
+  "name": "Quevy"
+ },
+ "QUIEVRAIN": {
+  "eva": "08800412",
+  "name": "Quievrain"
+ },
+ "REBAIX": {
+  "eva": "08800384",
+  "name": "Rebaix"
+ },
+ "REMICOURT": {
+  "eva": "08800257",
+  "name": "Remicourt"
+ },
+ "RHISNES": {
+  "eva": "08800541",
+  "name": "Rhisnes"
+ },
+ "RIVAGE": {
+  "eva": "08800014",
+  "name": "Rivage"
+ },
+ "RIXENSART": {
+  "eva": "08800531",
+  "name": "Rixensart"
+ },
+ "ROCHEFORT-JEMELLE": {
+  "eva": "08800020",
+  "name": "Jemelle"
+ },
+ "ROESELARE": {
+  "eva": "08800164",
+  "name": "Roeselare"
+ },
+ "RONET": {
+  "eva": "08800155",
+  "name": "Ronet"
+ },
+ "RONSE": {
+  "eva": "08800165",
+  "name": "Ronse"
+ },
+ "ROUX": {
+  "eva": "08800424",
+  "name": "Roux"
+ },
+ "RUISBROEK": {
+  "eva": "08800398",
+  "name": "Ruisbroek"
+ },
+ "RUISBROEK-SAUVEGARDE": {
+  "eva": "08800099",
+  "name": "Ruisbroek-Sauvegarde"
+ },
+ "SAINT-DENIS-BOVESSE": {
+  "eva": "08800540",
+  "name": "Saint-Denis-Bovesse"
+ },
+ "SAINT-GHISLAIN": {
+  "eva": "08800133",
+  "name": "Saint-Ghislain"
+ },
+ "SART-BERNARD": {
+  "eva": "08800545",
+  "name": "Sart-Bernard"
+ },
+ "SCHAARBEEK": {
+  "eva": "08800001",
+  "name": "Schaerbeek"
+ },
+ "SCHELDEWINDEKE": {
+  "eva": "08800439",
+  "name": "Scheldewindeke"
+ },
+ "SCHELLE": {
+  "eva": "08824232",
+  "name": "Schelle"
+ },
+ "SCHELLEBELLE": {
+  "eva": "08800293",
+  "name": "Schellebelle"
+ },
+ "SCHENDELBEKE": {
+  "eva": "08800383",
+  "name": "Schendelbeke"
+ },
+ "SCHOONAARDE": {
+  "eva": "08800166",
+  "name": "Schoonaarde"
+ },
+ "SCHULEN": {
+  "eva": "08800245",
+  "name": "Schulen"
+ },
+ "SCLAIGNEAUX": {
+  "eva": "08800471",
+  "name": "Sclaigneaux"
+ },
+ "SCLESSIN": {
+  "eva": "08800457",
+  "name": "Sclessin"
+ },
+ "SERAING": {
+  "eva": "08843067",
+  "name": "Seraing"
+ },
+ "SERSKAMP": {
+  "eva": "08800292",
+  "name": "Serskamp"
+ },
+ "SILLY": {
+  "eva": "08800167",
+  "name": "Silly"
+ },
+ "SIMONIS": {
+  "eva": "08812013",
+  "name": "Simonis"
+ },
+ "SINAAI": {
+  "eva": "08800333",
+  "name": "Sinaai"
+ },
+ "SINT-AGATHA-BERCHEM": {
+  "eva": "08800283",
+  "name": "Sint-Agatha-Berchem"
+ },
+ "SINT-DENIJS-BOEKEL": {
+  "eva": "08800373",
+  "name": "Sint-Denijs-Boekel"
+ },
+ "SINT-GENESIUS-RODE": {
+  "eva": "08800452",
+  "name": "Sint-Genesius-Rode"
+ },
+ "SINT-GILLIS(DENDERMONDE)": {
+  "eva": "08800344",
+  "name": "Sint-Gillis-Dendermonde"
+ },
+ "SINT-JOB": {
+  "eva": "08800582",
+  "name": "Sint-Job"
+ },
+ "SINT-JORIS-WEERT": {
+  "eva": "08800506",
+  "name": "Sint-Joris-Weert"
+ },
+ "SINT-KATELIJNE-WAVER": {
+  "eva": "08800217",
+  "name": "Sint-Katelijne-Waver"
+ },
+ "SINT-MARIABURG": {
+  "eva": "08800190",
+  "name": "Sint-Mariaburg"
+ },
+ "SINT-MARTENS-BODEGEM": {
+  "eva": "08800286",
+  "name": "Sint-Martens-Bodegem"
+ },
+ "SINT-NIKLAAS": {
+  "eva": "08800143",
+  "name": "Sint-Niklaas"
+ },
+ "SINT-TRUIDEN": {
+  "eva": "08800209",
+  "name": "Sint-Truiden"
+ },
+ "SLEIDINGE": {
+  "eva": "08800330",
+  "name": "Sleidinge"
+ },
+ "SOIGNIES": {
+  "eva": "08800144",
+  "name": "Soignies"
+ },
+ "SOLRE-SUR-SAMBRE": {
+  "eva": "08800491",
+  "name": "Solre-sur-Sambre"
+ },
+ "SPA": {
+  "eva": "08800168",
+  "name": "Spa"
+ },
+ "SPA-GERONSTERE": {
+  "eva": "08800592",
+  "name": "Spa-Géronstère"
+ },
+ "STATTE": {
+  "eva": "08800169",
+  "name": "Statte"
+ },
+ "STOCKEM": {
+  "eva": "08800556",
+  "name": "Stockem"
+ },
+ "SY": {
+  "eva": "08800278",
+  "name": "Sy"
+ },
+ "TAMINES": {
+  "eva": "08800135",
+  "name": "Tamines"
+ },
+ "TEMSE": {
+  "eva": "08800354",
+  "name": "Temse"
+ },
+ "TERHAGEN": {
+  "eva": "08800368",
+  "name": "Terhagen"
+ },
+ "TERNAT": {
+  "eva": "08800287",
+  "name": "Ternat"
+ },
+ "TESTELT": {
+  "eva": "08800244",
+  "name": "Testelt"
+ },
+ "THEUX": {
+  "eva": "08800590",
+  "name": "Theux"
+ },
+ "THIEU": {
+  "eva": "08800429",
+  "name": "Thieu"
+ },
+ "THUIN": {
+  "eva": "08800488",
+  "name": "Thuin"
+ },
+ "THULIN": {
+  "eva": "08800411",
+  "name": "Thulin"
+ },
+ "THURN EN TAXIS": {
+  "eva": "08815016",
+  "name": "Tour et Taxis"
+ },
+ "TIELEN": {
+  "eva": "08800200",
+  "name": "Tielen"
+ },
+ "TIELT": {
+  "eva": "08800084",
+  "name": "Tielt"
+ },
+ "TIENEN": {
+  "eva": "08800085",
+  "name": "Tienen"
+ },
+ "TILFF": {
+  "eva": "08800270",
+  "name": "Tilff"
+ },
+ "TILLY": {
+  "eva": "08800512",
+  "name": "Tilly"
+ },
+ "TOLLEMBEEK": {
+  "eva": "08800444",
+  "name": "Tollembeek"
+ },
+ "TONGEREN": {
+  "eva": "08800086",
+  "name": "Tongeren"
+ },
+ "TORHOUT": {
+  "eva": "08800087",
+  "name": "Torhout"
+ },
+ "TOURNAI": {
+  "eva": "08800170",
+  "name": "Tournai"
+ },
+ "TROIS-PONTS": {
+  "eva": "08800088",
+  "name": "Trois-Ponts"
+ },
+ "TROOZ": {
+  "eva": "08800265",
+  "name": "Trooz"
+ },
+ "TUBIZE": {
+  "eva": "08800402",
+  "name": "Tubize"
+ },
+ "TURNHOUT": {
+  "eva": "08800171",
+  "name": "Turnhout"
+ },
+ "UKKEL-KALEVOET": {
+  "eva": "08800449",
+  "name": "Ukkel-Kalevoet"
+ },
+ "UKKEL-STALLE": {
+  "eva": "08800448",
+  "name": "Ukkel-Stalle"
+ },
+ "VELTEM": {
+  "eva": "08800251",
+  "name": "Veltem"
+ },
+ "VERTRIJK": {
+  "eva": "08800253",
+  "name": "Vertrijk"
+ },
+ "VERVIERS-CENTRAL": {
+  "eva": "08800016",
+  "name": "Verviers-Central"
+ },
+ "VERVIERS-PALAIS": {
+  "eva": "08800268",
+  "name": "Verviers-Palais"
+ },
+ "VEURNE": {
+  "eva": "08800089",
+  "name": "Veurne"
+ },
+ "VIANE-MOERBEKE": {
+  "eva": "08800446",
+  "name": "Viane-Moerbeke"
+ },
+ "VICHTE": {
+  "eva": "08800375",
+  "name": "Vichte"
+ },
+ "VIELSALM": {
+  "eva": "08800274",
+  "name": "Vielsalm"
+ },
+ "VIJFHUIZEN": {
+  "eva": "08800357",
+  "name": "Vijfhuizen"
+ },
+ "VILLE-POMMEROEUL": {
+  "eva": "08800574",
+  "name": "Ville-Pommerœul"
+ },
+ "VILLERS-LA-VILLE": {
+  "eva": "08800513",
+  "name": "Villers-la-Ville"
+ },
+ "VILVOORDE": {
+  "eva": "08800090",
+  "name": "Vilvoorde"
+ },
+ "VIRTON": {
+  "eva": "08800561",
+  "name": "Virton"
+ },
+ "VISE": {
+  "eva": "08800172",
+  "name": "Visé"
+ },
+ "VIVILLE": {
+  "eva": "08800557",
+  "name": "Viville"
+ },
+ "VOROUX": {
+  "eva": "08800260",
+  "name": "Voroux"
+ },
+ "VORST-OOST": {
+  "eva": "08800447",
+  "name": "Vorst-Oost"
+ },
+ "VORST-ZUID": {
+  "eva": "08800397",
+  "name": "Vorst-Zuid"
+ },
+ "WAARSCHOOT": {
+  "eva": "08800331",
+  "name": "Waarschoot"
+ },
+ "WALCOURT": {
+  "eva": "08800091",
+  "name": "Walcourt"
+ },
+ "WAREGEM": {
+  "eva": "08800092",
+  "name": "Waregem"
+ },
+ "WAREMME": {
+  "eva": "08800093",
+  "name": "Waremme"
+ },
+ "WATERLOO": {
+  "eva": "08800136",
+  "name": "Waterloo"
+ },
+ "WATERMAAL": {
+  "eva": "08800525",
+  "name": "Watermael"
+ },
+ "WAVRE": {
+  "eva": "08800500",
+  "name": "Wavre"
+ },
+ "WEERDE": {
+  "eva": "08800216",
+  "name": "Weerde"
+ },
+ "WELKENRAEDT": {
+  "eva": "08800017",
+  "name": "Welkenraedt"
+ },
+ "WELLE": {
+  "eva": "08800365",
+  "name": "Welle"
+ },
+ "WERVIK": {
+  "eva": "08800349",
+  "name": "Wervik"
+ },
+ "WESPELAAR-TILDONK": {
+  "eva": "08800324",
+  "name": "Wespelaar-Tildonk"
+ },
+ "WETTEREN": {
+  "eva": "08800094",
+  "name": "Wetteren"
+ },
+ "WEVELGEM": {
+  "eva": "08800348",
+  "name": "Wevelgem"
+ },
+ "WEZEMAAL": {
+  "eva": "08800241",
+  "name": "Wezemaal"
+ },
+ "WICHELEN": {
+  "eva": "08800321",
+  "name": "Wichelen"
+ },
+ "WIJGMAAL": {
+  "eva": "08800322",
+  "name": "Wijgmaal"
+ },
+ "WILDERT": {
+  "eva": "08800193",
+  "name": "Wildert"
+ },
+ "WILLEBROEK": {
+  "eva": "08800352",
+  "name": "Willebroek"
+ },
+ "WOLFSTEE": {
+  "eva": "08821709",
+  "name": "Wolfstee"
+ },
+ "WONDELGEM": {
+  "eva": "08800329",
+  "name": "Wondelgem"
+ },
+ "YVES-GOMEZEE": {
+  "eva": "08800497",
+  "name": "Yves-Gomezée"
+ },
+ "YVOIR": {
+  "eva": "08800095",
+  "name": "Yvoir"
+ },
+ "ZANDBERGEN": {
+  "eva": "08800381",
+  "name": "Zandbergen"
+ },
+ "ZAVENTEM": {
+  "eva": "08800247",
+  "name": "Zaventem"
+ },
+ "ZEDELGEM": {
+  "eva": "08800345",
+  "name": "Zedelgem"
+ },
+ "ZEEBRUGGE-BUNDEL ZWANKENDAMME": {
+  "eva": "08800309",
+  "name": "Zwankendamme"
+ },
+ "ZEEBRUGGE-DORP": {
+  "eva": "08800184",
+  "name": "Zeebrugge-Dorp"
+ },
+ "ZEEBRUGGE-STRAND": {
+  "eva": "08800100",
+  "name": "Zeebrugge-Strand"
+ },
+ "ZELE": {
+  "eva": "08800096",
+  "name": "Zele"
+ },
+ "ZELLIK": {
+  "eva": "08800337",
+  "name": "Zellik"
+ },
+ "ZICHEM": {
+  "eva": "08800097",
+  "name": "Zichem"
+ },
+ "ZINGEM": {
+  "eva": "08800363",
+  "name": "Zingem"
+ },
+ "ZOLDER": {
+  "eva": "08800145",
+  "name": "Zolder"
+ },
+ "ZONHOVEN": {
+  "eva": "08832334",
+  "name": "Zonhoven"
+ },
+ "ZOTTEGEM": {
+  "eva": "08800098",
+  "name": "Zottegem"
+ },
+ "ZWIJNDRECHT": {
+  "eva": "08800336",
+  "name": "Zwijndrecht"
+ }
+}
