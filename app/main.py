@@ -254,6 +254,17 @@ def normalize_leg(abschnitt: dict, window: int, past: bool = False, live: bool =
     return leg
 
 
+def _cancelled_upstream(verbindung: dict) -> bool:
+    """bahn.de's "Reise nicht möglich": the connection is cancelled in its live data.
+    Sent two ways — a connection-level RIS note, and per leg the boarding or alighting
+    stop struck (a train ending early still can't get the passenger there)."""
+    if any(n.get("key") == "text.realtime.connection.cancelled" for n in verbindung.get("risNotizen") or []):
+        return True
+    return any(a.get("originCancelled") or a.get("destinationCancelled")
+               for a in verbindung.get("verbindungsAbschnitte") or []
+               if (a.get("verkehrsmittel") or {}).get("typ") == "PUBLICTRANSPORT")
+
+
 def _live_stops(abschnitte: list[dict]) -> set[tuple[str, datetime]]:
     """Every (station, planned time) an itinerary touches, for a live IRIS prefetch."""
     stops = set()
@@ -520,6 +531,8 @@ async def _if_missed_connection(legs: list[dict], tt: dict, window: int,
         return None
     best_arrival, best_legs = None, None
     for verbindung in data.get("verbindungen", []):
+        if _cancelled_upstream(verbindung):
+            continue
         rlegs = [normalize_leg(x, window) for x in verbindung.get("verbindungsAbschnitte", [])]
         rtrain = [l for l in rlegs if not l["walking"]]
         if not rtrain or any(_flix(l) for l in rtrain):
@@ -805,6 +818,11 @@ async def journeys(
 
     journeys_out = []
     for verbindung in data.get("verbindungen", []):
+        # bahn.de lists cancelled connections greyed out as "Reise nicht möglich";
+        # here they'd look like any other row, so they're dropped. Past lookups
+        # keep them: the cancellation is the verdict they're there to report.
+        if not past and _cancelled_upstream(verbindung):
+            continue
         legs = [normalize_leg(a, window, past, live) for a in verbindung.get("verbindungsAbschnitte", [])]
         train_legs = [leg for leg in legs if not leg["walking"]]
         if not train_legs:
