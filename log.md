@@ -1895,3 +1895,10 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - `_cancelled_upstream()` in `app/main.py` returns true on the RIS note or on any train leg whose boarding or alighting stop is struck (a train ending early cannot get the passenger there either). The search loop skips such rows for upcoming journeys; the if-missed replan skips them as alternatives. Past-mode lookups keep them on purpose: there the cancellation is the verdict the row exists to report, and IRIS/parquet supply it.
 - Verified against live bahn.de for Stuttgart Hbf -> Tübingen Hbf on 2026-09-24 at 07:05 and 09:05: the 07:10 and 09:11 RE6 rows (19379, 19383) drop, the Bus RE6, MEX and S1 rows stay. 296 tests pass.
 - Busters: none, backend only. Not done: the source logo PNGs remain untracked.
+
+## 2026-09-26 — Median note under the per-day delay chart
+
+- Users read the journey/leg badge as an average delay. The per-day chart that opens from the badge now carries a muted 11 px footnote under the bars: "The number in the badge is the median of these days, not the average – a single outlier barely moves it." / "Die Zahl im Badge ist der Median dieser Tage, nicht der Durchschnitt – einzelne Ausreißer verschieben sie kaum." (`chartMedianNote` in the I18N table, `.day-chart-note`). Placed under the chart rather than under the caption on the user's call, so it sits next to the outlier bar that makes the point.
+- Verified: `node --check` on app.js. Not rendered in a browser.
+- Busters: `style.css` v126 -> **v127** (index plus stories, trips, leaderboard, impressum, login), `app.js` v140 -> **v141**, `SHELL_VERSION` v94 -> **v95** with the PRECACHE URLs. Live pins, every remote branch and every worktree read first; none past 126/140/v94. No asset URL was requested with a candidate number before the deploy.
+- Not done: the source logo PNGs remain untracked.

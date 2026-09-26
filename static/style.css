@@ -424,6 +424,7 @@ button.badge[aria-expanded="true"] .badge-caret { transform: rotate(180deg); }
   display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
   font-size: 12px; color: var(--text-muted); margin-bottom: 4px;
 }
+.day-chart-note { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 .day-chart-cancel { color: var(--red); font-weight: 600; white-space: nowrap; }
 .day-chart-nudge { animation: day-chart-nudge 6s ease forwards; }
 @keyframes day-chart-nudge {

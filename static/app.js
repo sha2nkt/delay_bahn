@@ -151,6 +151,7 @@ const I18N = {
     badgeClickHint: "Verspätung pro Tag anzeigen",
     chartDayCaption: (win) => `Ankunftsverspätung pro Tag – letzte ${win} Tage`,
     chartCanceled: "ausgefallen",
+    chartMedianNote: "Die Zahl im Badge ist der Median dieser Tage, nicht der Durchschnitt – einzelne Ausreißer verschieben sie kaum.",
     direct: "direkt",
     transfers: (n) => `${n} Umstieg${n > 1 ? "e" : ""}`,
     walk: "Fußweg",
@@ -441,6 +442,7 @@ const I18N = {
     badgeClickHint: "Show per-day delays",
     chartDayCaption: (win) => `Arrival delay per day – last ${win} days`,
     chartCanceled: "cancelled",
+    chartMedianNote: "The number in the badge is the median of these days, not the average – a single outlier barely moves it.",
     direct: "direct",
     transfers: (n) => `${n} transfer${n > 1 ? "s" : ""}`,
     walk: "Walk",
@@ -2926,6 +2928,9 @@ function buildDayChart(stats, refEl) {
   }
 
   panel.appendChild(svg);
+  panel.appendChild(Object.assign(document.createElement("div"), {
+    className: "day-chart-note", textContent: t("chartMedianNote"),
+  }));
   panel.appendChild(bubble);
   return panel;
 }
