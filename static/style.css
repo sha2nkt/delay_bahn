@@ -484,6 +484,12 @@ button.badge[aria-expanded="true"] .badge-caret { transform: rotate(180deg); }
   font-weight: 700; font-size: 13px; line-height: 18px; min-width: 70px; text-align: center;
 }
 .leg .badge { font-size: 11px; padding: 2px 8px; }
+.leg .stop-time { white-space: nowrap; }
+.leg .platform {
+  display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 3px;
+  border: 1px solid var(--gray-border); font-size: 11px; font-weight: 600;
+  line-height: 16px; white-space: nowrap; color: var(--text-muted);
+}
 .leg .walk { color: var(--text-muted); font-style: italic; }
 
 .price { font-size: 17px; font-weight: 700; white-space: nowrap; }

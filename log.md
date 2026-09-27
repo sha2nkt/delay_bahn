@@ -1902,3 +1902,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Verified: `node --check` on app.js. Not rendered in a browser.
 - Busters: `style.css` v126 -> **v127** (index plus stories, trips, leaderboard, impressum, login), `app.js` v140 -> **v141**, `SHELL_VERSION` v94 -> **v95** with the PRECACHE URLs. Live pins, every remote branch and every worktree read first; none past 126/140/v94. No asset URL was requested with a candidate number before the deploy.
 - Not done: the source logo PNGs remain untracked.
+
+## 2026-09-27 — Platform numbers in the search results
+
+- The user asked for platforms in the connection list, as bahn.de shows them. bahn.de sends them per stop in `halte[]`: `gleis` scheduled, `ezGleis` only when the platform changed live. `normalize_leg` now puts `departurePlatform` / `arrivalPlatform` on each leg from the first and last halt, the live platform where there is one - the user wanted the current platform only, with no change marker. The frontend renders a small grey outlined chip after each stop time ("Gl. 14" / "Pl. 14", `stopTimeNode`, `.leg .platform`); time and chip sit in one `white-space: nowrap` span because at 390 px the chip otherwise wrapped onto a line of its own. Past-mode searches show it as well. Buses and other legs bahn.de sends no platform for show none.
+- Verified: live bahn.de through `normalize_leg` (Hamburg Hbf 8A-F -> Berlin Hbf 3, Berlin 4 -> München 22; one live change seen, München 19 -> 20), and headless Chrome on Tübingen Hbf -> Berlin Hbf at 1280 px and 390 px.
+- Busters: style.css 127 -> 128 (all six pages), app.js 141 -> 142, SHELL_VERSION v95 -> v96 with the PRECACHE URLs. Built on main directly, no worktree, on the user's call.

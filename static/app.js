@@ -146,6 +146,7 @@ const I18N = {
     notTracked: "nicht erfasst",
     notTrackedTooltip: "Für U-Bahn, Tram, Bus und Fähre werden keine Verspätungsdaten erhoben",
     liveTimeTooltip: "Voraussichtliche Zeit inkl. aktueller Verspätung",
+    platform: (p) => `Gl. ${p}`,
     badgeDays: (matched, total) => `(${matched}/${total} Tage)`,
     badgeTooltip: (win, max) => `Mittlere Ankunftsverspätung (Median) der letzten ${win} Tage (max. +${max} min)`,
     badgeClickHint: "Verspätung pro Tag anzeigen",
@@ -437,6 +438,7 @@ const I18N = {
     notTracked: "not tracked",
     notTrackedTooltip: "Delay data isn't collected for metro, tram, bus and ferry services",
     liveTimeTooltip: "Expected time including the current delay",
+    platform: (p) => `Pl. ${p}`,
     badgeDays: (matched, total) => `(${matched}/${total} days)`,
     badgeTooltip: (win, max) => `Median arrival delay over the last ${win} days (max. +${max} min)`,
     badgeClickHint: "Show per-day delays",
@@ -2572,6 +2574,19 @@ function timeNode(planned, live) {
   return frag;
 }
 
+// time and platform chip kept on one line, so the chip never wraps away on its own
+function stopTimeNode(planned, live, platform) {
+  const el = document.createElement("span");
+  el.className = "stop-time";
+  el.append(timeNode(planned, live));
+  if (platform) {
+    el.append(Object.assign(document.createElement("span"), {
+      className: "platform", textContent: t("platform", platform),
+    }));
+  }
+  return el;
+}
+
 // products the backend collects no delay data for (matches UNTRACKED_PRODUCTS in app/main.py)
 const UNTRACKED_PRODUCTS = new Set(["BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG"]);
 
@@ -2666,9 +2681,9 @@ function buildLegRow(leg, past, struck) {
   // past mode shows the schedule; the actual delay is the story of the badge next to it
   desc.append(
     document.createTextNode(`${leg.origin?.name || ""} `),
-    timeNode(leg.plannedDeparture, past ? null : leg.departure),
+    stopTimeNode(leg.plannedDeparture, past ? null : leg.departure, leg.departurePlatform),
     document.createTextNode(` → ${leg.destination?.name || ""} `),
-    timeNode(leg.plannedArrival, past ? null : leg.arrival),
+    stopTimeNode(leg.plannedArrival, past ? null : leg.arrival, leg.arrivalPlatform),
   );
   let badge;
   if (struck) {

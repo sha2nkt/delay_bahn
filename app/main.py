@@ -237,6 +237,12 @@ def normalize_leg(abschnitt: dict, window: int, past: bool = False, live: bool =
         leg["departure"] = abfahrt["echtzeit"]
     if ankunft.get("echtzeit") and ankunft["echtzeit"] != ankunft.get("sollzeit"):
         leg["arrival"] = ankunft["echtzeit"]
+    # platforms live on the boarding/alighting stops; ezGleis is the live one where it changed
+    halte = abschnitt.get("halte") or []
+    if halte:
+        for key, halt in (("departurePlatform", halte[0]), ("arrivalPlatform", halte[-1])):
+            if halt.get("ezGleis") or halt.get("gleis"):
+                leg[key] = halt.get("ezGleis") or halt["gleis"]
 
     fahrt_nr = leg["line"]["fahrtNr"]
     tracked = leg["line"]["product"] not in UNTRACKED_PRODUCTS

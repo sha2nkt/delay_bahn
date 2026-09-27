@@ -44,6 +44,7 @@ Status: done = implemented and verified end-to-end; partial = works with caveats
 | Cancellation tracking | done | cancelled days excluded from the median, surfaced as "N× (teil-)ausgefallen" note ; connections bahn.de itself marks cancelled ("Reise nicht möglich") are not listed for upcoming journeys |
 | Honest partial coverage | done | badge shows "n/7 Tage"; no data → gray "keine Daten", never a fake 0 |
 | Color-coded badges | done | green < 3 min, yellow 3–9, red ≥ 10, gray no data |
+| Platform per stop | done | every train leg shows its boarding and alighting platform as a small grey chip after the stop time ("Gl. 3" / "Pl. 3"), the live platform where bahn.de reports a change (`ezGleis`), else the scheduled one (`gleis` on the leg's first/last `halte`); time and chip never wrap apart; buses carry none (2026-09-27, browser-verified desktop + 390 px) |
 | Sort by least delay | done | missing-data journeys last; journeys with a likely-missed connection after normal ones (2026-07-22); ties broken by worst leg |
 | Swiss delay coverage | done | official istdaten v2 daily files; 31-day history from day one; all operators feeding SBB customer info (SBB/BLS/RhB/SOB verified) |
 | French delay coverage | done | SNCF GTFS-RT poller + 35-day mirror backfill; TGV/Ouigo/TER/Intercités; "actual" = last realtime projection before arrival |
