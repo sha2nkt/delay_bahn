@@ -320,6 +320,10 @@ body.past-mode .hero-chart { display: none; }
 .site-nav-link.active { color: var(--brand-red); border-bottom-color: var(--brand-red); }
 /* the home entry carries a house icon that stands in for its label on phones */
 .site-nav-icon { display: none; flex: none; }
+.site-nav-new {
+  padding: 1px 6px; border-radius: 8px; background: var(--brand-red); color: #fff;
+  font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; line-height: 1.5;
+}
 
 .header-lang { display: flex; gap: 6px; flex-shrink: 0; }
 .lang-btn {

@@ -1936,3 +1936,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - The user asked to name co-founder Tejasvini Bhatt on the site, in the Impressum rather than the footer. A "Mitgründerin" block now sits under the § 18 MStV line: "Tejasvini Bhatt, CFO", Falkenweg 20, 72076 Tübingen, as the contact for business enquiries through kontakt@delaybahn.com with the subject pre-filled "Geschäftliche Anfrage – z. Hd. Tejasvini Bhatt". The § 5 DDG provider, § 18 MStV and GDPR controller entries still name only Shashank Tripathi; a GbR listing was offered and not chosen.
 - Busters: none. impressum.html is served no-cache and is not in the sw.js PRECACHE; no CSS or JS changed.
 - Not done: the source logo PNGs remain untracked; the uncommitted 2026-09-25 line-search entry in this file belongs to another session and stays out of this commit.
+
+## 2026-09-28 — "Neu" pill restyled on the "Wo ist mein Zug?" link
+
+- The map link's "Neu" pill rendered as plain text: the leaderboard-pill removal also deleted the `.site-nav-new` rule and the Neu->New swap that this link still relies on. Both are back (`static/style.css`, `_site_nav` in `app/main.py`), so the pill is the red rounded badge again, "Neu" in German and "New" in English.
+- Verified: `_site_nav` on leaderboard.html yields "Neu" for de and "New" for en.
+- Busters: `style.css` v131 -> **v132** (six pages and the sw.js PRECACHE), `SHELL_VERSION` v99 -> **v100**. Live, every branch and every worktree read first; none past 131/v99. The private map page's `train.html` moved its stale style pin 126 -> 132 and dropped its leftover leaderboard pill in the delaybahn-map repo.
