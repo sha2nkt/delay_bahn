@@ -1091,8 +1091,9 @@ body.nudge-on #donate-footer-item { display: none; }
   .site-nav-icon { display: block; }
   .hero-chart { padding: 24px 16px 20px; }
   .search-card { flex-direction: column; align-items: stretch; }
-  /* stacked card: the toggle centers on its line, the button spans below it */
-  .search-actions { flex-direction: column; align-items: stretch; gap: 4px; }
+  /* stacked card: the toggle and the button span the card one above the other,
+     with the card's own 12px gap so the two outlined boxes don't touch */
+  .search-actions { flex-direction: column; align-items: stretch; gap: 12px; }
   /* the switch row and the toggle each carry the padding that aligns them with
      the inputs beside them on desktop; stacked they sit on top of the card's own
      12px gap and open a hole, so the padding moves onto the labels, where it

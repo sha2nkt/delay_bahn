@@ -1914,3 +1914,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - The user found the advanced-options toggle in the search card too easy to miss: muted 13 px grey text with a chevron did not read as clickable. `.advanced-toggle` is now an outlined secondary button beside Suchen: white fill, 1 px `--gray-border` outline, 4 px radius like the search button, 14 px dark `--text`; hover and the open state fill it `--gray-bg`. On phones it stays full-width above Suchen; the stacked-layout padding override was reduced to `justify-content: center` so the button keeps its own padding.
 - Verified: headless Chrome screenshots of index.html at desktop and phone widths.
 - Busters: `style.css` v128 -> **v129** (index plus stories, trips, leaderboard, impressum, login and the sw.js PRECACHE), `SHELL_VERSION` v96 -> **v97**. Live pins, every branch and every worktree read first; none past 128/v96. No asset URL was requested with a candidate number before the deploy.
+
+## 2026-09-28 — Phone spacing between "Erweiterte Optionen" and Suchen
+
+- Once the toggle became an outlined button, the stacked phone layout's 4 px `.search-actions` gap left the two boxes nearly touching. The gap is now 12 px, the card's own gap. Desktop is unchanged.
+- Verified: headless Chrome at 390 px (iframe frame, since headless Chrome will not size a window below 500 px), before and after.
+- Busters: `style.css` v129 -> **v130** (all six pages and the sw.js PRECACHE), `SHELL_VERSION` v97 -> **v98**. Live, every branch and every worktree read first; none past 129/v97.
