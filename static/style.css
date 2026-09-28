@@ -102,13 +102,16 @@ main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
    beside the switches instead of being orphaned under the fields. */
 .search-actions { display: flex; align-items: center; gap: 12px; }
 /* occasional settings (age bracket, transfer time, transport modes, stopovers)
-   fold away behind a plain text toggle so the card's main row keeps its shape */
+   fold away behind an outlined secondary button so the card's main row keeps its
+   shape while the toggle still reads as clickable beside Suchen */
 .advanced-toggle {
-  background: none; border: none; cursor: pointer; padding: 10px 0;
-  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  background: #fff; border: 1px solid var(--gray-border); border-radius: 4px;
+  cursor: pointer; padding: 10px 14px;
+  font-size: 14px; font-weight: 600; color: var(--text);
   font-family: inherit; display: flex; align-items: center; gap: 6px;
 }
-.advanced-toggle:hover { color: var(--text); }
+.advanced-toggle:hover { background: var(--gray-bg); border-color: var(--text-muted); }
+.advanced-toggle[aria-expanded="true"] { background: var(--gray-bg); }
 .advanced-chevron { font-size: 18px; line-height: 1; transition: transform .15s; }
 .advanced-toggle[aria-expanded="true"] .advanced-chevron { transform: rotate(90deg); }
 .advanced-panel {
@@ -1094,7 +1097,7 @@ body.nudge-on #donate-footer-item { display: none; }
      the inputs beside them on desktop; stacked they sit on top of the card's own
      12px gap and open a hole, so the padding moves onto the labels, where it
      still buys a finger-sized tap target */
-  .advanced-toggle { justify-content: center; padding: 2px 0 10px; }
+  .advanced-toggle { justify-content: center; }
   .dticket-toggles { padding: 0; }
   .dticket-toggle { padding: 6px 0; }
   .field input, .field select, .transport-btn { min-width: 0; width: 100%; }
