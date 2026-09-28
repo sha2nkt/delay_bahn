@@ -16,6 +16,9 @@ def main():
     parser.add_argument("--interval", type=float, default=120, help="seconds between fetches (default: 120)")
     parser.add_argument("--db", type=Path, default=PROJECT_ROOT / "data" / "nl" / "obs.sqlite", help="observation store path")
     parser.add_argument("--url", default=FEED_URL, help="GTFS-RT train updates URL")
+    parser.add_argument("--save", type=Path, default=PROJECT_ROOT / "data" / "nl" / "trainUpdates.pb",
+                        help="where each fetch is also written, for the live train map to read instead of fetching "
+                             "the feed a second time (OVapi rate-limits per address); '' to skip")
     args = parser.parse_args()
 
     conn = open_obs_db(args.db)
@@ -26,6 +29,10 @@ def main():
         try:
             resp = client.get(args.url)
             resp.raise_for_status()
+            if args.save and str(args.save):
+                tmp = args.save.with_suffix(".tmp")
+                tmp.write_bytes(resp.content)
+                tmp.replace(args.save)
             rows = decode_feed(resp.content, int(datetime.now(timezone.utc).timestamp()))
             upsert_obs(conn, rows)
             cycle += 1

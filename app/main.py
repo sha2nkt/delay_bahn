@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import re
+import sys
 from collections import OrderedDict
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
@@ -24,6 +25,13 @@ from app import (
     stories, translate, trips,
 )
 from app.config import env_int
+
+# the live train map is a separate, private package; the site runs without it,
+# minus the map, so a public clone starts as before
+try:
+    import delaybahn_map
+except ImportError:
+    delaybahn_map = None
 
 log = logging.getLogger(__name__)
 
@@ -128,9 +136,13 @@ async def lifespan(app: FastAPI):
     asyncio.create_task(_warm_leaderboard())
     credits_watch = asyncio.create_task(mailer.watch_credits())
     trip_sweep = asyncio.create_task(_sweep_trip_verdicts())
+    if delaybahn_map:
+        delaybahn_map.start()
     yield
     credits_watch.cancel()
     trip_sweep.cancel()
+    if delaybahn_map:
+        await delaybahn_map.stop()
     await bahn_api.close()
     await live_delays.close()
     await feedback.close()
@@ -919,6 +931,7 @@ async def health():
             "departureOnDate": len(delays._dep_date_cache),
         },
         "upstream": bahn_api.status(),
+        **(delaybahn_map.status() if delaybahn_map else {}),
         "auth": auth.status(),
         "mail": mailer.status(),
     }
@@ -976,7 +989,7 @@ TRIPS_PATHS = {"de": "/meine-fahrten", "en": "/en/my-trips"}
 TRIPS_TITLE = {"de": "Meine Fahrten – DelayBahn", "en": "My Trips – DelayBahn"}
 
 # the section strip under the header (the <nav class="site-nav"> in every page):
-# the same four public destinations everywhere, with the current one marked;
+# the same public destinations everywhere, with the current one marked;
 # the markup carries the German defaults, this fills in the language's paths
 NAV_LABELS = {
     "home": {"de": "Verbindungssuche", "en": "Connection search"},
@@ -984,9 +997,13 @@ NAV_LABELS = {
     "stories": {"de": "Delay Geschichten", "en": "Delay Stories"},
     "refund": {"de": "Entschädigung beantragen", "en": "Claim compensation"},
 }
+if delaybahn_map:
+    NAV_LABELS["train"] = delaybahn_map.NAV_LABEL
 _NAV_LINK = re.compile(
     r'<a class="site-nav-link[^"]*" data-nav="(?P<key>\w+)" href="[^"]*"[^>]*>'
     r'<span class="site-nav-label">[^<]*')
+# the map's link is in the markup; without the package it comes out
+_NAV_TRAIN_LINK = re.compile(r'\s*<a class="site-nav-link[^"]*" data-nav="train" .*?</a>', re.S)
 
 
 def _site_nav(html: str, lang: str, active: str | None = None) -> str:
@@ -996,6 +1013,10 @@ def _site_nav(html: str, lang: str, active: str | None = None) -> str:
         "stories": STORIES_PATHS[lang],
         "refund": PAGE_PATHS[("past", lang)],
     }
+    if delaybahn_map:
+        paths["train"] = delaybahn_map.PATHS[lang]
+    else:
+        html = _NAV_TRAIN_LINK.sub("", html, count=1)
 
     def sub(m: re.Match[str]) -> str:
         key = m["key"]
@@ -1657,13 +1678,14 @@ class Feedback(BaseModel):
     # "request": a wish for more data or analysis from the leaderboard's foot -
     # no thumbs, the text is the whole point, and it needs a signed-in account
     # behind the bearer; uid and email are stored so the wish can be answered
-    vote: Literal["up", "down", "request"]
+    # "comment": text sent without a vote, where the box is open from the start
+    vote: Literal["up", "down", "request", "comment"]
     text: str = Field("", max_length=1000)
     # optional screenshot as a base64 image data URL; the length bound is the
     # 512 KiB binary cap in base64 clothing plus header slack
     shot: str = Field("", max_length=720_000)
     lang: Literal["de", "en"] = "de"
-    context: Literal["future", "past", "stories", "leaderboard"] = "future"
+    context: Literal["future", "past", "stories", "leaderboard", "train"] = "future"
 
 
 _tasks: set[asyncio.Task] = set()
@@ -2579,5 +2601,9 @@ class HtmlNoCacheStatic(StaticFiles):
             response.headers["Cache-Control"] = "no-cache"
         return response
 
+
+if delaybahn_map:
+    # before the catch-all static mount: a route added after it is never reached
+    delaybahn_map.install(app, sys.modules[__name__])
 
 app.mount("/", HtmlNoCacheStatic(directory=STATIC_DIR, html=True), name="static")

@@ -30,6 +30,13 @@ if [ -n "$STASHED" ]; then git stash pop; fi
 # `set -e` here) must abort the deploy rather than restart into an app whose
 # imports fail. A no-op when the lockfile hasn't moved.
 uv sync --frozen
+# The live train map is a private package (deploy-key clone at ~/delaybahn-map).
+# uv sync prunes what the lockfile does not name, so it is re-installed after
+# every sync; a box without the clone runs the site without the map.
+if [ -d ~/delaybahn-map ]; then
+  git -C ~/delaybahn-map pull --ff-only
+  uv pip install -q -e ~/delaybahn-map
+fi
 echo "deployed: $(git log --oneline -1)"
 EOF
 

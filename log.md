@@ -1926,6 +1926,11 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - The leaderboard is no longer new; the red "Neu"/"New" pill after "Verspätungs-Rangliste" in the site nav is gone from all six pages. Its leftovers went with it: the `.site-nav-new` rule in style.css, the `navNew` strings and relabel line in login.js, and the Neu->New swap in `app/main.py`'s English rewrite.
 - Busters: `style.css` v130 -> **v131** (six pages and the sw.js PRECACHE), `login.js` v18 -> **v21** (a branch already holds 20), `SHELL_VERSION` v98 -> **v99**. Live, every branch and every worktree read first.
 
+## 2026-09-28 — Live train map moved to a private package
+
+- "Wo ist mein Zug?" (`/wo-ist-mein-zug`, `/en/where-is-my-train`) is served by `delaybahn_map`, a separate package that is not part of this repository. `app/main.py` imports it when installed, mounts its routes before the static catch-all, starts and stops it with the lifespan and folds its status into `/health`; without it the site runs as before and `_site_nav` drops the map's link. `scripts/deploy.sh` pulls and re-installs the package from its clone on the server after `uv sync`, which would otherwise prune it.
+- Kept here, generic: bahn.de departure boards, journey ids and train runs in `app/bahn_api.py`; IRIS quota accounting and stop lookups in `app/live_delays.py`; `stories.train_reports`; feedback of kind "comment" and the "train" context; the service worker's push handler; the login page's way back to the page it was opened from; sitemap and Datenschutz entries for the map.
+
 ## 2026-09-28 — Co-founder in the Impressum
 
 - The user asked to name co-founder Tejasvini Bhatt on the site, in the Impressum rather than the footer. A "Mitgründerin" block now sits under the § 18 MStV line: "Tejasvini Bhatt, CFO", Falkenweg 20, 72076 Tübingen, as the contact for business enquiries through kontakt@delaybahn.com with the subject pre-filled "Geschäftliche Anfrage – z. Hd. Tejasvini Bhatt". The § 5 DDG provider, § 18 MStV and GDPR controller entries still name only Shashank Tripathi; a GbR listing was offered and not chosen.

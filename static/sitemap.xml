@@ -44,6 +44,20 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://delaybahn.com/rangliste"/>
   </url>
   <url>
+    <loc>https://delaybahn.com/wo-ist-mein-zug</loc>
+    <changefreq>weekly</changefreq>
+    <xhtml:link rel="alternate" hreflang="de" href="https://delaybahn.com/wo-ist-mein-zug"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://delaybahn.com/en/where-is-my-train"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://delaybahn.com/wo-ist-mein-zug"/>
+  </url>
+  <url>
+    <loc>https://delaybahn.com/en/where-is-my-train</loc>
+    <changefreq>weekly</changefreq>
+    <xhtml:link rel="alternate" hreflang="de" href="https://delaybahn.com/wo-ist-mein-zug"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://delaybahn.com/en/where-is-my-train"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://delaybahn.com/wo-ist-mein-zug"/>
+  </url>
+  <url>
     <loc>https://delaybahn.com/entschaedigung</loc>
     <changefreq>monthly</changefreq>
     <xhtml:link rel="alternate" hreflang="de" href="https://delaybahn.com/entschaedigung"/>

@@ -371,6 +371,26 @@ def _today() -> str:
     return _now()[:10]
 
 
+def train_reports(train: str, day: str) -> list[dict]:
+    """What was reported on one train's run: per code, how many accounts
+    tapped it. The run is the train name (case and spaces ignored) on the
+    day it departed; a report without a departure falls back to the day it
+    was sent. Counts only - who reported stays private."""
+    key = train.replace(" ", "").upper()
+    if not key:
+        return []
+    with closing(connect()) as conn:
+        rows = conn.execute(
+            "SELECT code, COUNT(*) AS n FROM problem_reports"
+            " WHERE REPLACE(UPPER(train), ' ', '') = ?"
+            " AND (CASE WHEN departure != '' THEN substr(departure, 1, 10) ELSE day END) = ?"
+            " GROUP BY code",
+            (key, day),
+        ).fetchall()
+    return sorted(({"code": r["code"], "n": r["n"]} for r in rows if r["code"] in _PROBLEM_RANK),
+                  key=lambda r: _PROBLEM_RANK[r["code"]])
+
+
 def my_reports(uid: str) -> list[str]:
     """The codes this account has tapped today, in board order, so the tiles
     can show which counters already carry the viewer's one."""
