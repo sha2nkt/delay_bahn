@@ -1920,3 +1920,8 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Once the toggle became an outlined button, the stacked phone layout's 4 px `.search-actions` gap left the two boxes nearly touching. The gap is now 12 px, the card's own gap. Desktop is unchanged.
 - Verified: headless Chrome at 390 px (iframe frame, since headless Chrome will not size a window below 500 px), before and after.
 - Busters: `style.css` v129 -> **v130** (all six pages and the sw.js PRECACHE), `SHELL_VERSION` v97 -> **v98**. Live, every branch and every worktree read first; none past 129/v97.
+
+## 2026-09-28 — "Neu" pill off the Delay leaderboard link
+
+- The leaderboard is no longer new; the red "Neu"/"New" pill after "Verspätungs-Rangliste" in the site nav is gone from all six pages. Its leftovers went with it: the `.site-nav-new` rule in style.css, the `navNew` strings and relabel line in login.js, and the Neu->New swap in `app/main.py`'s English rewrite.
+- Busters: `style.css` v130 -> **v131** (six pages and the sw.js PRECACHE), `login.js` v18 -> **v21** (a branch already holds 20), `SHELL_VERSION` v98 -> **v99**. Live, every branch and every worktree read first.

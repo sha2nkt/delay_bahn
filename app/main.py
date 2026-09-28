@@ -1008,7 +1008,6 @@ def _site_nav(html: str, lang: str, active: str | None = None) -> str:
     if lang == "en":
         html = html.replace('<nav class="site-nav" aria-label="Bereiche">',
                             '<nav class="site-nav" aria-label="Sections">')
-        html = html.replace('<span class="site-nav-new">Neu</span>', '<span class="site-nav-new">New</span>')
     return html
 
 OG_LOCALE = {"de": "de_DE", "en": "en_US"}

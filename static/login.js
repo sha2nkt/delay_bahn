@@ -25,7 +25,6 @@ const I18N = {
     navLeaderboard: "Verspätungs-Rangliste",
     navStories: "Delay Geschichten",
     navRefund: "Entschädigung beantragen",
-    navNew: "Neu",
     tagline: "Ein Name für alle deine Geschichten",
     chooseHeading: "Anmelden oder registrieren",
     chooseLead: "Mit einem Konto kannst du Geschichten schreiben, kommentieren und abstimmen.",
@@ -102,7 +101,6 @@ const I18N = {
     navLeaderboard: "Delay leaderboard",
     navStories: "Delay Stories",
     navRefund: "Claim compensation",
-    navNew: "New",
     tagline: "One name for all your stories",
     chooseHeading: "Log in or sign up",
     chooseLead: "With an account you can write stories, comment and vote.",
@@ -288,7 +286,6 @@ function applyStatic() {
     a.href = navPaths[a.dataset.nav];
     a.querySelector(".site-nav-label").textContent = t(navKeys[a.dataset.nav]);
   });
-  document.querySelectorAll(".site-nav-new").forEach((el) => { el.textContent = t("navNew"); });
   if (REASON === "report") $("choose-lead").textContent = t("reportLead");
   if (REASON === "trips") $("choose-lead").textContent = t("tripsLead");
   if (REASON === "page") $("choose-lead").textContent = t("pageLead");
