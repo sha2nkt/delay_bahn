@@ -22,6 +22,7 @@ const I18N = {
   de: {
     docTitle: "Anmelden – DelayBahn",
     navHome: "Verbindungssuche",
+    navTrain: "Wo ist mein Zug?",
     navLeaderboard: "Verspätungs-Rangliste",
     navStories: "Delay Geschichten",
     navRefund: "Entschädigung beantragen",
@@ -32,6 +33,9 @@ const I18N = {
     tripsLead: "Mit einem Konto merkt sich DelayBahn die Fahrten, die du dir merkst oder auf bahn.de buchst.",
     pageLead: "Mit einem Konto blätterst du ohne Limit durch frühere und spätere Verbindungen.",
     requestLead: "Mit einem Konto kannst du auf der Rangliste weitere Daten und Auswertungen anfragen.",
+    trainLead: "Nach der Anmeldung geht es mit deinem Zug genau dort weiter, wo du warst.",
+    backTrain: "← Zurück zu deinem Zug",
+    backAny: "← Zurück",
     withGoogle: "Weiter mit Google",
     withApple: "Weiter mit Apple",
     withPhone: "Weiter mit Telefonnummer",
@@ -98,6 +102,7 @@ const I18N = {
   en: {
     docTitle: "Login – DelayBahn",
     navHome: "Connection search",
+    navTrain: "Where is my train?",
     navLeaderboard: "Delay leaderboard",
     navStories: "Delay Stories",
     navRefund: "Claim compensation",
@@ -108,6 +113,9 @@ const I18N = {
     tripsLead: "With an account DelayBahn remembers the trips you bookmark or book on bahn.de.",
     pageLead: "With an account you browse earlier and later connections without limit.",
     requestLead: "With an account you can request more data and analysis on the leaderboard.",
+    trainLead: "After logging in you're right back with your train, where you left off.",
+    backTrain: "← Back to your train",
+    backAny: "← Back",
     withGoogle: "Continue with Google",
     withApple: "Continue with Apple",
     withPhone: "Continue with phone",
@@ -175,6 +183,8 @@ const I18N = {
 
 let lang = "de";
 try { if (localStorage.getItem("lang") === "en") lang = "en"; } catch (e) {}
+// a detour from an English page stays in English, whatever was stored
+if (/^\/en\//.test(new URLSearchParams(location.search).get("next") || "")) lang = "en";
 const t = (key) => (I18N[lang][key] != null ? I18N[lang][key] : I18N.de[key]);
 // no-op when the Umami script is blocked or unavailable; never the address
 const track = (name, data) => window.umami?.track(name, data);
@@ -277,11 +287,12 @@ function applyStatic() {
   });
   const navPaths = {
     home: lang === "en" ? "/en/" : "/",
+    train: lang === "en" ? "/en/where-is-my-train" : "/wo-ist-mein-zug",
     leaderboard: lang === "en" ? "/leaderboard" : "/rangliste",
     stories: storiesPath(),
     refund: lang === "en" ? "/en/compensation" : "/entschaedigung",
   };
-  const navKeys = { home: "navHome", leaderboard: "navLeaderboard", stories: "navStories", refund: "navRefund" };
+  const navKeys = { home: "navHome", train: "navTrain", leaderboard: "navLeaderboard", stories: "navStories", refund: "navRefund" };
   document.querySelectorAll(".site-nav-link").forEach((a) => {
     a.href = navPaths[a.dataset.nav];
     a.querySelector(".site-nav-label").textContent = t(navKeys[a.dataset.nav]);
@@ -290,6 +301,13 @@ function applyStatic() {
   if (REASON === "trips") $("choose-lead").textContent = t("tripsLead");
   if (REASON === "page") $("choose-lead").textContent = t("pageLead");
   if (REASON === "request") $("choose-lead").textContent = t("requestLead");
+  if (REASON === "train") $("choose-lead").textContent = t("trainLead");
+  // the login is a detour: the way back without an account stays in sight
+  if (NEXT) {
+    $("login-back").href = NEXT;
+    $("login-back").textContent = t(REASON === "train" ? "backTrain" : "backAny");
+    $("login-back-row").hidden = false;
+  }
   document.querySelectorAll(".lang-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.lang === lang);
   });

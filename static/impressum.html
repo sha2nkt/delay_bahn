@@ -19,6 +19,7 @@
 <nav class="site-nav" aria-label="Bereiche">
   <div class="site-nav-inner">
     <a class="site-nav-link" data-nav="home" href="/"><span class="site-nav-label">Verbindungssuche</span><svg class="site-nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-6h4v6"/></svg></a>
+    <a class="site-nav-link" data-nav="train" href="/wo-ist-mein-zug"><span class="site-nav-label">Wo ist mein Zug?</span><span class="site-nav-new">Neu</span></a>
     <a class="site-nav-link" data-nav="refund" href="/entschaedigung"><span class="site-nav-label">Entschädigung beantragen</span></a>
     <a class="site-nav-link" data-nav="leaderboard" href="/rangliste"><span class="site-nav-label">Verspätungs-Rangliste</span></a>
     <a class="site-nav-link" data-nav="stories" href="/geschichten"><span class="site-nav-label">Delay Geschichten</span></a>
@@ -205,12 +206,39 @@
     Statistiken erhalten. Für den Versand nutzen wir Brevo (Sendinblue GmbH, Köpenicker Str. 126,
     10179 Berlin) als Auftragsverarbeiter nach Art. 28 DSGVO; die Verarbeitung erfolgt in der
     Europäischen Union.</p>
+    <h2 id="datenschutz-teilen">Zugfahrt live teilen</h2>
+    <p>Auf der Seite „Wo ist mein Zug?“ können Sie einen verfolgten Zug über „Live teilen“ per Link
+    mit anderen teilen. Dafür speichern wir auf unserem Server: den Zug (Zugnummer bzw.
+    Fahrt-Kennung, Tag, Startbahnhof und Abfahrtszeit), den gewählten Ausstiegshalt, den optional
+    eingegebenen Namen, die gewählte Sprache und Dauer, Erstellungs- und Ablaufzeitpunkt sowie
+    einen zufälligen Schlüssel zum Beenden der Freigabe. Eine Anmeldung ist nicht nötig, und Ihr
+    Gerätestandort (GPS) wird nicht erfasst – die Position des Zuges berechnen wir aus Fahrplan- und
+    Verspätungsdaten. Aus Zug und Ausstiegshalt lässt sich aber ablesen, wo Sie sich während der
+    Freigabe ungefähr aufhalten; teilen Sie den Link daher nur mit Personen, denen Sie diese
+    Information geben möchten. Der Name ist freiwillig; geben Sie keine Namen Dritter ein.</p>
+    <p>Empfänger sind alle Personen, die den Link erhalten – auch wenn er weitergeleitet wird. Sie
+    sehen bis zum Ende der Freigabe den Zug, den Namen und den Ausstiegshalt; Name, Zug und
+    Ausstiegshalt erscheinen auch in der Link-Vorschau, die Messenger wie WhatsApp beim Versenden
+    abrufen und dort nach deren eigenen Regeln speichern. Der Link enthält eine zufällige,
+    nicht erratbare Kennung; die Seite dahinter wird nicht in Suchmaschinen aufgenommen. Ihre
+    IP-Adresse wird nur kurzzeitig im Arbeitsspeicher zur Begrenzung der Anfragen verwendet und
+    nicht gespeichert. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der von Ihnen
+    angeforderten Funktion).</p>
+    <p>Die Freigabe endet, wenn Sie sie über „Teilen beenden“ beenden, nach der gewählten Zeit
+    (30 Minuten oder 1 Stunde) oder bei „Bis zur Ankunft“ mit der Ankunft am Ausstiegshalt; auf dem
+    Server läuft sie in diesem Fall spätestens drei Stunden nach der planmäßigen Ankunft ab
+    (höchstens 24 Stunden nach dem Erstellen). Mit dem Ende der Freigabe löschen wir Name und
+    Ausstiegshalt, spätestens nach fünf Minuten; wer den Link danach öffnet, sieht nur noch, dass
+    die Freigabe beendet ist. Die übrigen Angaben (Zug, Zeiten) löschen wir eine Woche nach dem
+    Ende der Freigabe.</p>
 
     <h2>Lokale Speicherung im Browser</h2>
     <p>Im localStorage Ihres Browsers werden gespeichert: die gewählte Sprache (Deutsch/Englisch),
     die zuletzt von Ihnen gesuchten sowie die von Ihnen mit einem Stern markierten Bahnhöfe zur
     schnelleren Eingabe, der Hinweis, dass Sie die Einblendung zum Installieren der App
-    weggeklickt haben, sowie nach einer Anmeldung ein Hinweis, dass ein Konto vorhanden ist;
+    weggeklickt haben, die Links zu Zugfahrten, die Sie live teilen, samt Schlüssel zum Beenden
+    (bis zum Ablauf der Freigabe) und der dabei zuletzt eingegebene Name, sowie nach einer
+    Anmeldung ein Hinweis, dass ein Konto vorhanden ist;
     bestellen Sie einen Verspätungs-Report oder merken Sie sich eine Fahrt vor der Anmeldung, wird
     die gewählte Verbindung bis zur Rückkehr von der Anmeldeseite im sessionStorage
     zwischengespeichert. Diese

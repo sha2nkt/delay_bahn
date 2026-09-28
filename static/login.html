@@ -25,6 +25,7 @@
 <nav class="site-nav" aria-label="Bereiche">
   <div class="site-nav-inner">
     <a class="site-nav-link" data-nav="home" href="/"><span class="site-nav-label">Verbindungssuche</span><svg class="site-nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-6h4v6"/></svg></a>
+    <a class="site-nav-link" data-nav="train" href="/wo-ist-mein-zug"><span class="site-nav-label">Wo ist mein Zug?</span><span class="site-nav-new">Neu</span></a>
     <a class="site-nav-link" data-nav="refund" href="/entschaedigung"><span class="site-nav-label">Entschädigung beantragen</span></a>
     <a class="site-nav-link" data-nav="leaderboard" href="/rangliste"><span class="site-nav-label">Verspätungs-Rangliste</span></a>
     <a class="site-nav-link" data-nav="stories" href="/geschichten"><span class="site-nav-label">Delay Geschichten</span></a>
@@ -58,6 +59,7 @@
       <button type="submit" class="search-btn auth-primary" data-i18n="continue">Weiter</button>
     </form>
     <p id="choose-status" class="auth-status" role="status"></p>
+    <p id="login-back-row" class="auth-switch" hidden><a id="login-back" class="link-btn"></a></p>
   </section>
 
   <!-- 2. the emailed six-digit code: the default way in for an address -->
@@ -182,6 +184,6 @@
   <a id="footer-stories" href="/geschichten" data-i18n="footerStories">← Zu den Delay Geschichten</a> ·
   <a href="/impressum.html" data-i18n="footerLegal">Impressum &amp; Datenschutz</a>
 </footer>
-<script type="module" src="/login.js?v=21"></script>
+<script type="module" src="/login.js?v=22"></script>
 </body>
 </html>

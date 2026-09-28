@@ -208,6 +208,51 @@ def station_search(query: str, limit: int = 8) -> list[dict]:
     return [{"id": s["id"], "extId": s["extId"], "name": s["name"]} for *_, s in scored[:limit]]
 
 
+def train_history(number: str, category: str | None = None) -> list[list[dict]]:
+    """The latest recorded run of a train number, stops in travel order: where and
+    at what time of day the train usually sets off. A number is shared across
+    operators and countries (ICE 123, a bus 123, an Italian regional 123), so
+    there is one run per train type, the likeliest first: the type asked for,
+    then long-distance trains, then the most German stops, then the longest."""
+    rows = cursor().execute(
+        """
+        SELECT train_type, eva, station_name, arrival_planned_time, departure_planned_time
+        FROM delays
+        WHERE train_no = ?
+          AND coalesce(departure_planned_time, arrival_planned_time) >= (
+            SELECT max(coalesce(departure_planned_time, arrival_planned_time)) - INTERVAL 14 DAY
+            FROM delays WHERE train_no = ?)
+        """,
+        [number, number],
+    ).fetchall()
+    runs: dict[tuple[str, date], list[dict]] = {}
+    for train_type, eva, name, arrival, departure in rows:
+        when = departure or arrival
+        if not when or not eva:
+            continue
+        runs.setdefault((train_type or "", when.date()), []).append(
+            {"eva": eva, "name": name, "arrival": arrival, "departure": departure, "when": when})
+    latest: dict[str, tuple[date, list[dict]]] = {}
+    for (train_type, day), stops in runs.items():
+        if train_type not in latest or day > latest[train_type][0]:
+            latest[train_type] = (day, stops)
+    wanted = (category or "").upper()
+    # a bare number most likely means the long-distance train that carries it
+    long_distance = {"ICE", "IC", "EC", "ECE", "RJ", "RJX", "NJ", "EN", "TGV", "FLX"}
+    ranked = sorted(
+        latest.items(),
+        key=lambda item: (item[0].upper() != wanted,
+                          item[0].upper() not in long_distance,
+                          -sum(s["eva"].startswith("080") for s in item[1][1]),
+                          -len(item[1][1])),
+    )
+    runs = [sorted(stops, key=lambda s: s["when"]) for _, (_, stops) in ranked]
+    # a number shared with a foreign train (a third of German RE/RB numbers are,
+    # nine in ten ICE numbers): the German run is the one meant, when there is one
+    german = [run for run in runs if any(s["eva"].startswith("080") for s in run)]
+    return german or runs
+
+
 def pad_eva(stop_id: str) -> str:
     return stop_id.rjust(8, "0")
 

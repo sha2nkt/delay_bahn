@@ -230,7 +230,7 @@ async def notify(
     else:
         headers = {
             "Title": f"DelayBahn feedback ({vote}, {lang}, {context})",
-            "Tags": "+1" if vote == "up" else "-1",
+            "Tags": {"up": "+1", "down": "-1"}.get(vote, "speech_balloon"),
         }
     try:
         if text:

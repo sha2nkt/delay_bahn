@@ -63,6 +63,8 @@ self.addEventListener("fetch", (event) => {
   // analytics assets, and the service worker script itself.
   if (req.method !== "GET" || url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/stats/") || url.pathname === "/sw.js") return;
+  // an alarm's state must never come from a cache
+  if (url.pathname.startsWith("/api/alarm")) return;
 
   if (url.pathname.startsWith("/api/")) {
     event.respondWith(networkFirstApi(req));
@@ -148,3 +150,56 @@ function offlinePage(home = "/") {
     { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } }
   );
 }
+
+/* Destination alarms from the live train map. The server pushes "set" once, then "ring"
+   every 30 s until one is answered; a ring stays on screen until touched and
+   re-alerts each time. Any touch - the button, the notification, swiping it
+   away - answers the alarm and stops the pushes. An open page is told too, so
+   it can sound its own, louder alarm. */
+self.addEventListener("push", (event) => {
+  let data = null;
+  try { data = event.data && event.data.json(); } catch (e) { /* not ours */ }
+  if (!data || !data.id) return;
+  const ring = data.kind === "ring";
+  event.waitUntil((async () => {
+    await self.registration.showNotification(data.title, {
+      body: data.body,
+      tag: "alarm-" + data.id,
+      renotify: ring,
+      requireInteraction: ring,
+      silent: data.kind === "set",
+      vibrate: ring ? [800, 300, 800, 300, 800, 300, 1200] : undefined,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      actions: ring ? [{ action: "ack", title: data.ack }] : [],
+      data,
+    });
+    const pages = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const page of pages) page.postMessage({ alarm: data });
+  })());
+});
+
+function answerAlarm(data) {
+  if (!data || data.kind !== "ring") return Promise.resolve();
+  return fetch("/api/alarm/" + encodeURIComponent(data.id), { method: "DELETE" }).catch(() => {})
+    .then(() => self.clients.matchAll({ type: "window", includeUncontrolled: true }))
+    .then((pages) => { for (const page of pages) page.postMessage({ alarmAnswered: data.id }); });
+}
+
+self.addEventListener("notificationclick", (event) => {
+  const data = event.notification.data;
+  event.notification.close();
+  if (!data || !data.id) return;
+  event.waitUntil((async () => {
+    await answerAlarm(data);
+    if (event.action === "ack") return;
+    const pages = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const open = pages.find((p) => new URL(p.url).pathname === new URL(data.url, self.location.origin).pathname);
+    if (open) await open.focus();
+    else await self.clients.openWindow(data.url);
+  })());
+});
+
+self.addEventListener("notificationclose", (event) => {
+  event.waitUntil(answerAlarm(event.notification.data));
+});

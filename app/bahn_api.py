@@ -2,9 +2,10 @@ import asyncio
 import logging
 import os
 import random
+import re
 import time
 from collections import Counter, OrderedDict, deque
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from email.utils import parsedate_to_datetime
 from types import SimpleNamespace
 from typing import Awaitable, Callable
@@ -38,6 +39,10 @@ PROFILES = ["firefox135", "safari17_0", "chrome"]
 # limits are global. With multiple workers each process would keep its own.
 JOURNEYS_TTL = env_int("BAHN_CACHE_TTL_SECONDS", 300)
 LOCATIONS_TTL = 600
+# a departure board only serves to find a train's journey id, which holds all day
+DEPARTURES_TTL = 600
+# the live train page polls every 30s; every viewer of one train shares one fetch
+TRAIN_RUN_TTL = env_int("BAHN_TRAIN_RUN_TTL_SECONDS", 30)
 CACHE_MAX = 512
 
 # how long to stop calling bahn.de after every profile has been blocked
@@ -284,13 +289,21 @@ class CircuitBreaker:
         }
 
 
-_breaker = CircuitBreaker(
-    threshold=CIRCUIT_FAILURE_THRESHOLD,
-    window=CIRCUIT_FAILURE_WINDOW,
-    base_cooldown=RATE_BASE_COOLDOWN,
-    max_cooldown=RATE_MAX_COOLDOWN,
-    probes=HALF_OPEN_PROBES,
-)
+def _new_breaker() -> CircuitBreaker:
+    return CircuitBreaker(
+        threshold=CIRCUIT_FAILURE_THRESHOLD,
+        window=CIRCUIT_FAILURE_WINDOW,
+        base_cooldown=RATE_BASE_COOLDOWN,
+        max_cooldown=RATE_MAX_COOLDOWN,
+        probes=HALF_OPEN_PROBES,
+    )
+
+
+_breaker = _new_breaker()
+# The live train map has its own circuit: its calls are optional, and a run of
+# 429s on them must never pause the connection searches users are waiting on.
+# A wholesale 403 block is different - it hits every path - so it opens both.
+_train_breaker = _new_breaker()
 
 # key -> (expires_at, task). The task is shared, so concurrent callers asking
 # for the same thing during a traffic spike ride one upstream request.
@@ -469,28 +482,31 @@ def _retry_after_seconds(resp) -> float | None:
     return max(0.0, (dt - datetime.now(timezone.utc)).total_seconds())
 
 
-async def _request(method: str, path: str, *, source: str, **kwargs) -> dict:
-    """One upstream call under the circuit breaker: fails fast while the
-    circuit is open, otherwise issues the request and feeds the outcome back.
-    `source` is what asked for it — see _note_upstream."""
-    probe = _breaker.acquire()
+async def _request(method: str, path: str, *, source: str,
+                   breaker: CircuitBreaker | None = None, **kwargs) -> dict:
+    """One upstream call under a circuit breaker (the searches' by default):
+    fails fast while the circuit is open, otherwise issues the request and feeds
+    the outcome back. `source` is what asked for it — see _note_upstream."""
+    breaker = breaker or _breaker
+    probe = breaker.acquire()
     try:
         data = await _issue(method, path, source, **kwargs)
     except UpstreamRateLimited as e:
-        _breaker.record_failure(probe, cooldown_floor=e.retry_after)
+        breaker.record_failure(probe, cooldown_floor=e.retry_after)
         raise
     except UpstreamBlocked:
         # wholesale Akamai block: not a rolling-window signal, pause outright
         _breaker.force_open(BLOCK_COOLDOWN)
+        _train_breaker.force_open(BLOCK_COOLDOWN)
         raise
     except (UpstreamUnavailable, UpstreamProtocolError):
-        _breaker.record_failure(probe)
+        breaker.record_failure(probe)
         raise
     except BaseException:
         # cancellation or an unexpected bug: no upstream evidence either way
-        _breaker.release(probe)
+        breaker.release(probe)
         raise
-    _breaker.record_success(probe)
+    breaker.record_success(probe)
     return data
 
 
@@ -632,6 +648,96 @@ async def locations(query: str) -> list[dict]:
         LOCATIONS_TTL,
         lambda: _request("get", "/reiseloesung/orte", source="locations",
                          params={"suchbegriff": query, "typ": "ALL", "limit": 8}),
+    ))
+
+
+async def departures(ext_id: str, day: str, clock: str) -> list[dict]:
+    """The departure board of one station from `clock` (HH:MM:SS) on `day`
+    (YYYY-MM-DD): about an hour of trains, each with the journey id that
+    train_run() takes."""
+    data = await asyncio.shield(_cached(
+        ("departures", ext_id, day, clock),
+        DEPARTURES_TTL,
+        lambda: _request("get", "/reiseloesung/abfahrten", source="departures",
+                         breaker=_train_breaker,
+                         params={"ortExtId": ext_id, "datum": day, "zeit": clock}),
+    ))
+    return data.get("entries") or []
+
+
+def entry_number(entry: dict) -> str | None:
+    """A board entry's train number: bahn.de's own field, else an all-digit
+    name - a regional's entry is `name: "80761"` with the line in mittelText
+    ("RB40") - else the digits the name ends in ("ICE 1081")."""
+    vm = entry.get("verkehrmittel") or {}
+    for field in ("nummer", "name"):
+        if str(vm.get(field) or "").strip().isdigit():
+            return str(int(vm[field]))
+    m = re.search(r"(\d+)\s*$", (vm.get("mittelText") or vm.get("name") or "").strip())
+    return str(int(m.group(1))) if m else None
+
+
+def entry_category(entry: dict) -> str | None:
+    """A board entry's product letters: kurzText ("RB"), else the letters the
+    line or name starts with ("RB40", "ICE 1081")."""
+    vm = entry.get("verkehrmittel") or {}
+    for field in ("kurzText", "linienNummer", "mittelText", "name"):
+        m = re.match(r"^\s*([A-Za-z\u00c4\u00d6\u00dc\u00e4\u00f6\u00fc]+)", str(vm.get(field) or ""))
+        if m:
+            return m.group(1).upper()
+    return None
+
+
+_JID_FIELD = re.compile(r"#([A-Z0-9]{2})#([^#]*)")
+
+
+def _jid_time(value: str | None) -> tuple[int, int] | None:
+    """"2045" -> (0, 20*60+45); "10003" -> (1, 3): a leading day count for a
+    time past midnight, the way GTFS writes 24:03."""
+    if not value or not value.isdigit():
+        return None
+    n = int(value)
+    return n // 10000, (n % 10000) // 100 * 60 + n % 100
+
+
+def parse_journey_id(journey_id: str) -> dict:
+    """What a bahn.de journey id says about its train. `2|#VN#1#...#DA#240926
+    #1S#8000261#1T#2045#LS#8000105#LT#10003#...#CA#ICE#ZE#520#...` names the
+    departure day, the first and last station (EVA, padded to 8 digits here)
+    with their planned times as (day offset, minute of day), the category and
+    the train number - so a board entry can be matched to a timetable trip by
+    where and when it starts, with no number text to parse."""
+    fields = dict(_JID_FIELD.findall(journey_id or ""))
+    day = None
+    da = fields.get("DA", "")
+    if re.fullmatch(r"\d{6}", da):
+        try:
+            day = date(2000 + int(da[4:6]), int(da[2:4]), int(da[0:2]))
+        except ValueError:
+            day = None
+    number = fields.get("ZE", "").strip()
+    origin, dest = fields.get("1S", "").strip(), fields.get("LS", "").strip()
+    return {
+        "day": day,
+        "category": fields.get("CA", "").strip().upper() or None,
+        "number": str(int(number)) if number.isdigit() else None,
+        "origin": origin.rjust(8, "0") if origin.isdigit() else None,
+        "departure": _jid_time(fields.get("1T")),
+        "destination": dest.rjust(8, "0") if dest.isdigit() else None,
+        "arrival": _jid_time(fields.get("LT")),
+    }
+
+
+async def train_run(journey_id: str, poly: bool = True) -> dict:
+    """One train's whole run: every stop with planned and live times and, with
+    `poly`, the route as a polyline - nine tenths of the response, and the same
+    on every fetch, so callers that already hold it leave it out."""
+    return await asyncio.shield(_cached(
+        ("train_run", journey_id, poly),
+        TRAIN_RUN_TTL,
+        lambda: _request("get", "/reiseloesung/fahrt", source="train_run",
+                         breaker=_train_breaker,
+                         params={"journeyId": journey_id, "poly": "true" if poly else "false"}),
     ))
 
 
@@ -809,4 +915,5 @@ def healthy() -> bool:
 
 def status() -> dict:
     """Circuit state and pipeline counters for /health."""
-    return {"circuit": _breaker.snapshot(), "counters": dict(metrics)}
+    return {"circuit": _breaker.snapshot(), "trainCircuit": _train_breaker.snapshot(),
+            "counters": dict(metrics)}
