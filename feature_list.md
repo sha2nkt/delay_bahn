@@ -75,6 +75,7 @@ Status: done = implemented and verified end-to-end; partial = works with caveats
 |---|---|---|
 | Deep-link to bahn.de booking | done | pre-filled origin/destination/time, opens in new tab |
 | Bookmark a journey | done | 2026-09-05; beside the booking button, files it under Meine Fahrten (see below) |
+| Track live | done | 2026-09-29; a card whose train is on the live map right now gets "Live verfolgen" before the (now "Buchen") booking button, linking to `/wo-ist-mein-zug?zug=…`; also on upcoming Meine Fahrten trips. Not for S-Bahn, buses, trams or round-trip cards; regional trains only within 30 min of leaving (the map lists them by line) |
 | Real in-app booking | not possible | no public booking API exists |
 
 ## Compensation checker (past journeys, 2026-07-23)

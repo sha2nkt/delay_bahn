@@ -283,6 +283,7 @@ def _snapshot_view(snapshot: str) -> dict:
         row = {
             "walking": bool(leg.get("walking")),
             "line": line.get("name"),
+            "fahrtNr": line.get("fahrtNr"),
             "product": line.get("product"),
             "origin": (leg.get("origin") or {}).get("name"),
             "destination": (leg.get("destination") or {}).get("name"),

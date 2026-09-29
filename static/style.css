@@ -770,6 +770,18 @@ body.past-mode .trip-steps { display: none; }
 /* journey report: bell next to the booking button + modal (reuses the .claim-modal shell) */
 .book-row { display: flex; gap: 8px; }
 .book-row .book-btn { flex: 1; text-align: center; }
+/* a train under way: "Track live" to the train map, beside the booking button */
+.track-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--brand-red); color: #fff; border: 2px solid var(--brand-red);
+  border-radius: 4px; padding: 7px 12px; font-size: 14px; font-weight: 700;
+  text-decoration: none; white-space: nowrap;
+}
+.track-btn:hover { background: var(--brand-red-dark); border-color: var(--brand-red-dark); }
+.track-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.track-btn .live-dot { animation: live-blink 1.6s ease-in-out infinite; }
+@keyframes live-blink { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .track-btn .live-dot { animation: none; } }
 /* the bell (report) and the bookmark (Meine Fahrten) share one look beside the booking button */
 .bell-btn, .trip-btn {
   flex: none; display: inline-flex; align-items: center; justify-content: center;
@@ -1159,6 +1171,7 @@ body.nudge-on #donate-footer-item { display: none; }
   }
   /* inside the flex row the button's grid-column is inert; the row spans instead */
   .book-row { grid-column: 1 / -1; }
+  .book-row .track-btn { flex: 1; padding: 11px 12px; }
   .journey-head .claim-none { grid-column: 1 / -1; }
 }
 
@@ -2121,6 +2134,8 @@ body.past-mode .stories-banner { display: none; }
   .trips-tiles { grid-template-columns: repeat(2, 1fr); gap: 10px 8px; }
   .trips-tile-value { font-size: 19px; }
   .trip-actions .book-btn { flex: 1; text-align: center; }
+  /* its own full-width row above the statistics button, whose label would wrap beside it */
+  .trip-actions .track-btn { flex: 1 1 100%; padding: 11px 12px; }
   /* the barely-readable clipped name becomes a circled account icon */
   .header-account .auth-name {
     display: inline-flex; align-items: center; justify-content: center;

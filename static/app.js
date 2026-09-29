@@ -211,7 +211,10 @@ const I18N = {
     transportNone: "Mindestens ein Verkehrsmittel auswählen.",
     transportReset: "Zurücksetzen",
     transportAccept: "Übernehmen",
-    book: "Auf bahn.de buchen",
+    book: "Buchen",
+    bookOnBahn: "Auf bahn.de buchen",
+    trackLive: "Live verfolgen",
+    trackLiveTitle: (name) => `${name} live auf der Karte verfolgen`,
     cancelNote: (win, n) => `⚠ In den letzten ${win} Tagen ${n}× (teil-)ausgefallen`,
     tightTitle: "Knapper Umstieg:",
     unlikelyTitle: "Unwahrscheinlicher Umstieg:",
@@ -503,7 +506,10 @@ const I18N = {
     transportNone: "Select at least one mode of transport.",
     transportReset: "Reset",
     transportAccept: "Accept",
-    book: "Book on bahn.de",
+    book: "Book",
+    bookOnBahn: "Book on bahn.de",
+    trackLive: "Track live",
+    trackLiveTitle: (name) => `Follow ${name} live on the map`,
     cancelNote: (win, n) => `⚠ (Partially) cancelled ${n}× in the last ${win} days`,
     tightTitle: "Tight transfer:",
     unlikelyTitle: "Unlikely transfer:",
@@ -3169,6 +3175,70 @@ const BELL_SVG =
   + '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>'
   + '<path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
 
+// a journey whose train is already under way (or about to be) gets a "Track
+// live" button to the train map; the map's own list of trains running now
+// decides, fetched once a minute at most and only where the map is served
+const LIVE_LEAD_MS = 30 * 60000;
+let liveNamesAt = 0;
+let liveNamesReq = null;
+
+function liveNames() {
+  if (!liveNamesReq || Date.now() - liveNamesAt > 60000) {
+    liveNamesAt = Date.now();
+    liveNamesReq = fetch("/api/fleet/names")
+      .then((r) => (r.ok ? r.json() : { trains: [] }))
+      .then((d) => new Set((d.trains || []).map((x) => x.name)))
+      .catch(() => new Set());
+  }
+  return liveNamesReq;
+}
+
+// the first leg whose train runs now, as the map's search query ("ICE 578",
+// "RE 4711"): its number on the map today, or - since the map lists regional
+// trains by line ("RE 1") - its line on the map and the leg about to leave.
+// S-Bahn legs carry a line label, not a train number, and are skipped
+function liveLegQuery(journey, names) {
+  // leg stamps are Berlin wall-clock ("2026-09-29T15:37:00"), compared as strings
+  const berlin = (ms) => new Date(ms).toLocaleString("sv-SE", { timeZone: "Europe/Berlin" }).replace(" ", "T");
+  const now = berlin(Date.now()), soon = berlin(Date.now() + LIVE_LEAD_MS);
+  for (const leg of journey.legs || []) {
+    if (leg.walking || UNTRACKED_PRODUCTS.has(leg.line?.product)) continue;
+    const dep = String(leg.departure || leg.plannedDeparture || "").slice(0, 19);
+    const arr = String(leg.arrival || leg.plannedArrival || "").slice(0, 19);
+    if (!dep || arr < now || dep.slice(0, 10) !== now.slice(0, 10)) continue;
+    const name = (leg.line?.name || "").replace(/\s+/g, " ").trim();
+    const cat = /^[A-Za-z]+/.exec(name)?.[0].toUpperCase();
+    const nr = String(leg.line?.fahrtNr ?? "").trim();
+    if (!cat || !/^\d+$/.test(nr)) continue;
+    const query = `${cat} ${nr}`;
+    if (names.has(query) || (names.has(name) && dep <= soon)) return query;
+  }
+  return null;
+}
+
+const LIVE_SVG =
+  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"'
+  + ' stroke-width="2" stroke-linecap="round" aria-hidden="true">'
+  + '<circle class="live-dot" cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>'
+  + '<path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4"/>'
+  + '<path d="M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/></svg>';
+
+function addTrackLive(row, bookBtn, journey) {
+  liveNames().then((names) => {
+    const q = liveLegQuery(journey, names);
+    if (!q) return;
+    const a = document.createElement("a");
+    a.className = "track-btn";
+    const base = state.lang === "en" ? "/en/where-is-my-train" : "/wo-ist-mein-zug";
+    a.href = `${base}?zug=${encodeURIComponent(q)}`;
+    a.title = t("trackLiveTitle", q);
+    a.innerHTML = LIVE_SVG;
+    a.append(document.createTextNode(t("trackLive")));
+    a.addEventListener("click", () => track("track-live", { train: q }));
+    row.insertBefore(a, bookBtn);
+  });
+}
+
 function paintBell(bell, on) {
   bell.classList.toggle("on", on);
   bell.setAttribute("aria-pressed", String(on));
@@ -3956,6 +4026,7 @@ function render() {
           bookSlot.appendChild(bell);
         }
         bookSlot.appendChild(tripButton([{ kind: "oneway", journey }], action.href));
+        addTrackLive(bookSlot, action, journey);
       }
 
       // badges, price and booking button wrap together as one right-aligned block

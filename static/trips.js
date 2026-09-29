@@ -10,7 +10,7 @@ const I18N = {
     docTitle: "Meine Fahrten – DelayBahn",
     headerTitle: "Meine Fahrten",
     tagline: "Deine Buchungen auf einen Blick",
-    intro: "Verbindungen, die du dir mit dem Lesezeichen gemerkt oder über „Auf bahn.de buchen“ geöffnet hast. Nicht gebucht? Einfach entfernen.",
+    intro: "Verbindungen, die du dir mit dem Lesezeichen gemerkt oder über „Buchen“ geöffnet hast. Nicht gebucht? Einfach entfernen.",
     loginTitle: "Anmelden, um deine Fahrten zu sehen",
     loginLead: "Angemeldet merkt sich DelayBahn jede Verbindung, die du dir merkst oder auf bahn.de buchst – und zeigt dir, wie viel Zeit dich Verspätungen und Ausfälle wirklich gekostet haben.",
     loginBtn: "Anmelden",
@@ -89,6 +89,8 @@ const I18N = {
     tightBadgeTooltip: (stations) => `Die typische Verspätung lässt wenig Umstiegszeit (${stations})`,
     asShown: "Verspätungsstatistik zum Zeitpunkt des Merkens",
     planBtn: "Verspätungsstatistik anzeigen",
+    trackLive: "Live verfolgen",
+    trackLiveTitle: (name) => `${name} live auf der Karte verfolgen`,
     changes: (n) => n === 0 ? "ohne Umstieg" : n === 1 ? "1 Umstieg" : `${n} Umstiege`,
     navLogin: "Anmelden",
     navLogout: "Abmelden",
@@ -102,7 +104,7 @@ const I18N = {
     docTitle: "My Trips – DelayBahn",
     headerTitle: "My Trips",
     tagline: "Your bookings at a glance",
-    intro: "Connections you bookmarked or opened with “Book on bahn.de”. Didn't book one? Just remove it.",
+    intro: "Connections you bookmarked or opened with “Book”. Didn't book one? Just remove it.",
     loginTitle: "Log in to see your trips",
     loginLead: "Logged in, DelayBahn remembers every connection you bookmark or book on bahn.de – and shows you how much time delays and cancellations have really cost you.",
     loginBtn: "Log in",
@@ -181,6 +183,8 @@ const I18N = {
     tightBadgeTooltip: (stations) => `Typical delay leaves little time to change trains (${stations})`,
     asShown: "Delay statistics as of when you saved the trip",
     planBtn: "Show delay statistics",
+    trackLive: "Track live",
+    trackLiveTitle: (name) => `Follow ${name} live on the map`,
     changes: (n) => n === 0 ? "no change" : n === 1 ? "1 change" : `${n} changes`,
     navLogin: "Login",
     navLogout: "Logout",
@@ -704,6 +708,62 @@ async function togglePick(trip, card, kind) {
   syncActions(card, panel);
 }
 
+// an upcoming trip whose train is under way gets the search's "Track live"
+// button to the train map: its number on the map today, or - since the map
+// lists regional trains by line - its line on the map and the leg about to leave
+const LIVE_LEAD_MS = 30 * 60000;
+let liveNamesReq = null;
+
+function liveNames() {
+  liveNamesReq = liveNamesReq || fetch("/api/fleet/names")
+    .then((r) => (r.ok ? r.json() : { trains: [] }))
+    .then((d) => new Set((d.trains || []).map((x) => x.name)))
+    .catch(() => new Set());
+  return liveNamesReq;
+}
+
+function liveLegQuery(trip, names) {
+  // leg stamps are Berlin wall-clock ("2026-09-29T15:37:00"), compared as strings
+  const berlin = (ms) => new Date(ms).toLocaleString("sv-SE", { timeZone: "Europe/Berlin" }).replace(" ", "T");
+  const now = berlin(Date.now()), soon = berlin(Date.now() + LIVE_LEAD_MS);
+  for (const leg of trip.legs || []) {
+    if (leg.walking || UNTRACKED.has(leg.product)) continue;
+    const dep = String(leg.departure || leg.plannedDeparture || "").slice(0, 19);
+    const arr = String(leg.arrival || leg.plannedArrival || "").slice(0, 19);
+    if (!dep || arr < now || dep.slice(0, 10) !== now.slice(0, 10)) continue;
+    const name = (leg.line || "").replace(/\s+/g, " ").trim();
+    const cat = /^[A-Za-z]+/.exec(name)?.[0].toUpperCase();
+    const nr = String(leg.fahrtNr ?? "").trim();
+    if (!cat || !/^\d+$/.test(nr)) continue;
+    const query = `${cat} ${nr}`;
+    if (names.has(query) || (names.has(name) && dep <= soon)) return query;
+  }
+  return null;
+}
+
+const LIVE_SVG =
+  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"'
+  + ' stroke-width="2" stroke-linecap="round" aria-hidden="true">'
+  + '<circle class="live-dot" cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>'
+  + '<path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4"/>'
+  + '<path d="M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/></svg>';
+
+function addTrackLive(actions, trip) {
+  liveNames().then((names) => {
+    const q = liveLegQuery(trip, names);
+    if (!q) return;
+    const a = document.createElement("a");
+    a.className = "track-btn";
+    const base = lang === "en" ? "/en/where-is-my-train" : "/wo-ist-mein-zug";
+    a.href = `${base}?zug=${encodeURIComponent(q)}`;
+    a.title = t("trackLiveTitle", q);
+    a.innerHTML = LIVE_SVG;
+    a.append(document.createTextNode(t("trackLive")));
+    a.addEventListener("click", () => track("track-live", { train: q, from: "trips" }));
+    actions.prepend(a);
+  });
+}
+
 function tripCard(trip, past) {
   const card = document.createElement("article");
   card.className = "trip" + (past ? " past" : "");
@@ -793,6 +853,7 @@ function tripCard(trip, past) {
     show.setAttribute("aria-expanded", "false");
     show.addEventListener("click", () => { togglePanel(panel, show); track("trip-plan"); });
     actions.appendChild(show);
+    addTrackLive(actions, trip);
     card.append(head, row, meta, actions, panel);
     return card;
   }
