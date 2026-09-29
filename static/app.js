@@ -329,6 +329,17 @@ const I18N = {
     iosSheetDone: "Verstanden",
     iosSheetClose: "Schließen",
     installDismiss: "Schließen",
+    launchBadge: "Neu",
+    launchTitle: "Wo ist mein Zug?",
+    launchLead: "Live-Zugverfolgung auf DelayBahn",
+    launchF1: "Alle Züge live auf der Karte, mit Streckenverkehr",
+    launchF2: "Jeden Zug verfolgen und sehen, wo er gerade ist",
+    launchF3: "Fahrt teilen: Freunde und Familie fahren live mit",
+    launchF4: "Ankunftswecker, bevor dein Halt kommt",
+    launchF5: "Störungen im Zug für Mitreisende melden",
+    launchCta: "Zur Live-Karte",
+    launchLater: "Später",
+    launchClose: "Schließen",
     reportBellTitle: "Verspätungs-Report nach der Fahrt erhalten",
     reportBellOnTitle: "Report bestellt – zum Abbestellen klicken",
     reportModalTitle: "Statistik vs. Realität – dein Verspätungs-Report",
@@ -623,6 +634,17 @@ const I18N = {
     iosSheetDone: "Got it",
     iosSheetClose: "Close",
     installDismiss: "Dismiss",
+    launchBadge: "New",
+    launchTitle: "Where is my train?",
+    launchLead: "Live train tracking on DelayBahn",
+    launchF1: "Every train live on a map, with rail traffic",
+    launchF2: "Track any train and see where it is right now",
+    launchF3: "Share your journey so friends and family can follow",
+    launchF4: "Arrival alarm before your stop comes up",
+    launchF5: "Report problems on board for other passengers",
+    launchCta: "Open the live map",
+    launchLater: "Not now",
+    launchClose: "Close",
     reportBellTitle: "Get a delay report after your journey",
     reportBellOnTitle: "Report ordered – click to cancel",
     reportModalTitle: "History vs. reality – your delay report",
@@ -4299,6 +4321,35 @@ function renderSummary() {
     banner.classList.add("hidden");
     track("stories-banner", { step: "dismiss" });
   });
+})();
+
+// --- launch announcement: the live train map ---
+// Shown once per browser: closing it any way (✕, "Not now", Esc, backdrop, or
+// following the link) retires it for good.
+
+(function initLaunchModal() {
+  const modal = document.getElementById("launch-modal");
+  if (!modal?.showModal || window.langRedirect) return;
+  const SEEN_KEY = "launchTrainMapSeen";
+  try { if (localStorage.getItem(SEEN_KEY)) return; } catch (e) { return; }
+
+  let how = "dismiss";
+  const close = (step) => { how = step; modal.close(); };
+  modal.addEventListener("close", () => {
+    try { localStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
+    track("launch-train-map", { step: how });
+  });
+  document.getElementById("launch-close").addEventListener("click", () => close("close"));
+  document.getElementById("launch-later").addEventListener("click", () => close("later"));
+  // the dialog box itself has no padding, so a click landing on it is the backdrop
+  modal.addEventListener("click", (e) => { if (e.target === modal) close("backdrop"); });
+  modal.querySelectorAll(".launch-go").forEach((a) => {
+    a.href = state.lang === "en" ? "/en/where-is-my-train" : "/wo-ist-mein-zug";
+    a.addEventListener("click", () => close("open"));
+  });
+
+  modal.showModal();
+  track("launch-train-map", { step: "shown" });
 })();
 
 // --- install prompt (PWA awareness) ---

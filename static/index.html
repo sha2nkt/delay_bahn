@@ -15,7 +15,8 @@
 // the redirect only ever moves a human who already made the choice.
 try {
   var altUrl = {"/": "/en/", "/entschaedigung": "/en/compensation"}[location.pathname];
-  if (altUrl && localStorage.getItem("lang") === "en") location.replace(altUrl + location.search);
+  // the page keeps parsing (and app.js runs) until the navigation commits
+  if (altUrl && localStorage.getItem("lang") === "en") { window.langRedirect = true; location.replace(altUrl + location.search); }
 } catch (e) {}
 </script>
 <meta property="og:type" content="website">
@@ -65,7 +66,7 @@ try {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DelayBahn">
-<link rel="stylesheet" href="/style.css?v=133">
+<link rel="stylesheet" href="/style.css?v=134">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -429,6 +430,26 @@ try {
   </div>
   <p id="past-disclaimer" class="past-disclaimer hidden" data-i18n="pastDisclaimer">Entschädigung nach EU-Fahrgastrechten: 25 % des Ticketpreises ab 60 min, 50 % ab 120 min Verspätung am Ziel. Auszahlung ab 4 €. Angezeigte Verspätungen basieren auf unseren aufgezeichneten Daten – maßgeblich ist die tatsächliche Ankunft.</p>
 </main>
+<!-- one-time launch announcement for the live train map; closing it in any way retires it -->
+<dialog id="launch-modal" class="claim-modal launch-modal" aria-labelledby="launch-title">
+  <button id="launch-close" class="claim-modal-close launch-close" type="button" data-i18n-aria="launchClose" data-i18n-title="launchClose" aria-label="Schließen">✕</button>
+  <a class="launch-shot launch-go" href="/wo-ist-mein-zug"><img src="/launch-train-map.webp" width="1200" height="464" alt="" loading="lazy"></a>
+  <div class="launch-body">
+    <span class="launch-badge" data-i18n="launchBadge">Neu</span>
+    <h2 id="launch-title" class="launch-title" data-i18n="launchTitle">Wo ist mein Zug?</h2>
+    <p class="launch-lead" data-i18n="launchLead">Live-Zugverfolgung auf DelayBahn</p>
+    <ul class="launch-list">
+      <li data-i18n="launchF1">Alle Züge live auf der Karte, mit Streckenverkehr</li>
+      <li data-i18n="launchF2">Jeden Zug verfolgen und sehen, wo er gerade ist</li>
+      <li data-i18n="launchF3">Fahrt teilen: Freunde und Familie fahren live mit</li>
+      <li data-i18n="launchF4">Ankunftswecker, bevor dein Halt kommt</li>
+      <li data-i18n="launchF5">Störungen im Zug für Mitreisende melden</li>
+    </ul>
+    <a class="claim-modal-go launch-cta launch-go" href="/wo-ist-mein-zug" data-i18n="launchCta">Zur Live-Karte</a>
+    <button id="launch-later" class="launch-later" type="button" data-i18n="launchLater">Später</button>
+  </div>
+</dialog>
+
 <dialog id="claim-modal" class="claim-modal">
   <div class="claim-modal-inner">
     <button id="claim-modal-close" class="claim-modal-close" type="button" aria-label="Schließen">✕</button>
@@ -751,7 +772,7 @@ try {
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
   <p class="footer-copyright">Copyright © 2026 Shashank Tripathi</p>
 </footer>
-<script src="/app.js?v=143"></script>
+<script src="/app.js?v=144"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
