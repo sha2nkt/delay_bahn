@@ -10,7 +10,7 @@ import re
 import pytest
 from fastapi.testclient import TestClient
 
-from app import auth, mailer, main, stories
+from app import auth, bounces, mailer, main, stories
 
 LIMITERS = (
     auth.register_limiter, auth.suggest_limiter, auth.email_limiter,
@@ -46,6 +46,8 @@ def wiring(firebase, monkeypatch):
         return True
 
     monkeypatch.setattr(auth, "issue_email_code", spy_issue)
+    # the bounce webhook is off unless a test turns it on
+    monkeypatch.delenv("BREVO_WEBHOOK_SECRET", raising=False)
     monkeypatch.setattr(mailer, "send_login_code", fake_send)
     firebase.issued, firebase.mails = issued, mails
     # every request in a test shares one client IP, so the real per-IP
@@ -173,6 +175,112 @@ def test_a_refused_send_is_a_503_and_refunds_the_budget(client, wiring, monkeypa
                         lambda email, code, lang, kind: wiring.mails.append({"code": code}) or True)
     assert ask_code(client).status_code == 202      # the refund made room for this
     assert submit_code(client, wiring.issued[-1]["code"]).status_code == 200
+
+
+# --- bounces, through Brevo's webhook -------------------------------------------
+
+@pytest.fixture
+def webhook(monkeypatch):
+    monkeypatch.setenv("BREVO_WEBHOOK_SECRET", "s3cret")
+    for store in (bounces._tickets, bounces._state, bounces._refusals):
+        store.clear()
+    monkeypatch.setattr(bounces, "_last_page", None)
+    pages = []
+    monkeypatch.setattr(bounces, "_alert", lambda text, priority="default": pages.append(text))
+    return pages
+
+
+def brevo(client, event, email="jonas@example.org", reason="", token="s3cret", tag="login-code"):
+    return client.post(f"/api/mail/brevo-events?token={token}",
+                       json={"event": event, "email": email, "reason": reason, "tags": [tag]})
+
+
+def status(client, ticket):
+    return client.get(f"/api/auth/email-code/status?ticket={ticket}").json()
+
+
+def test_no_ticket_without_the_webhook(client):
+    assert "ticket" not in ask_code(client).json()
+
+
+def test_the_webhook_refuses_a_wrong_or_missing_secret(client, webhook):
+    assert brevo(client, "delivered", token="nope").status_code == 404
+    assert client.post("/api/mail/brevo-events", json={}).status_code == 404
+    assert brevo(client, "delivered").status_code == 204
+
+
+def test_a_delivered_mail_ends_the_wait(client, webhook):
+    ticket = ask_code(client).json()["ticket"]
+    assert status(client, ticket) == {"state": "pending", "reason": None}
+    brevo(client, "delivered")
+    assert status(client, ticket)["state"] == "delivered"
+
+
+@pytest.mark.parametrize("event, reason, verdict", [
+    ("hard_bounce", "550 5.1.1 user unknown", "invalid"),
+    ("invalid_email", "", "invalid"),
+    ("blocked", "", "invalid"),
+    ("soft_bounce", "552 5.2.2 Recipient address rejected: Address does not exist", "invalid"),
+    ("soft_bounce", "452-4.2.2 The recipient's inbox is out of storage space", "full"),
+    ("soft_bounce", "554 Reject due to policy restrictions", "rejected"),
+])
+def test_a_bounce_tells_the_page_why(client, webhook, event, reason, verdict):
+    ticket = ask_code(client).json()["ticket"]
+    brevo(client, event, reason=reason)
+    assert status(client, ticket) == {"state": "bounced", "reason": verdict}
+
+
+def test_a_new_send_clears_the_old_verdict_but_a_throttled_one_does_not(client, webhook, monkeypatch):
+    first = ask_code(client).json()["ticket"]
+    brevo(client, "soft_bounce", reason="554 policy")
+    # still inside the resend cooldown: no new mail, so the bounce stands
+    assert status(client, ask_code(client).json()["ticket"])["state"] == "bounced"
+    monkeypatch.setattr(auth, "RESEND_COOLDOWN_SECONDS", 0)
+    fresh = ask_code(client).json()["ticket"]
+    assert status(client, fresh)["state"] == "pending"
+    assert status(client, first)["state"] == "pending"   # same address, same mail now
+
+
+def test_tickets_are_per_address_and_unknown_ones_say_so(client, webhook):
+    jonas = ask_code(client, "jonas@example.org").json()["ticket"]
+    meike = ask_code(client, "meike@example.org").json()["ticket"]
+    brevo(client, "hard_bounce", email="meike@example.org")
+    assert status(client, jonas)["state"] == "pending"
+    assert status(client, meike)["state"] == "bounced"
+    assert status(client, "made-up")["state"] == "unknown"
+
+
+def test_one_policy_refusal_pages_once_for_the_whole_incident(client, webhook):
+    reason = "554 Reject due to policy restrictions for <jonas@web.de>"
+    brevo(client, "soft_bounce", email="jonas@web.de", reason=reason)
+    brevo(client, "soft_bounce", email="meike@gmx.de", reason=reason)
+    assert len(webhook) == 1
+    assert "web.de" in webhook[0] and "jonas@" not in webhook[0]   # no recipient in the push
+
+
+def test_plain_refusals_page_only_as_a_pattern(client, webhook):
+    for i in range(bounces.BOUNCE_ALERT_THRESHOLD - 1):
+        brevo(client, "soft_bounce", email=f"u{i}@gmx.de", reason="421 try later")
+    assert webhook == []
+    brevo(client, "soft_bounce", email="last@gmx.de", reason="421 try later")
+    assert len(webhook) == 1 and "gmx.de" in webhook[0]
+
+
+def test_typos_and_full_mailboxes_never_page(client, webhook):
+    for i in range(5):
+        brevo(client, "hard_bounce", email=f"u{i}@gmx.de", reason="user unknown")
+        brevo(client, "soft_bounce", email=f"f{i}@gmx.de", reason="mailbox full")
+    assert webhook == []
+
+
+def test_a_spam_complaint_always_pages(client, webhook):
+    brevo(client, "spam", tag="report")
+    assert len(webhook) == 1 and "report" in webhook[0]
+
+
+def test_odd_payloads_do_not_break_the_webhook(client, webhook):
+    assert client.post("/api/mail/brevo-events?token=s3cret", json=[{"event": "opened"}, "x"]).status_code == 204
+    assert client.post("/api/mail/brevo-events?token=s3cret", content=b"not json").status_code == 400
 
 
 def test_an_existing_account_gets_a_login_wording_not_a_welcome(client, wiring):

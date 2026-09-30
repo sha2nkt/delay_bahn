@@ -21,7 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, StringConstraints
 
 from app import (
-    auth, bahn_api, delays, feedback, leaderboard, live_delays, mailer, ratelimit, reports,
+    auth, bahn_api, bounces, delays, feedback, leaderboard, live_delays, mailer, ratelimit, reports,
     stories, translate, trips,
 )
 from app.config import env_int
@@ -933,7 +933,7 @@ async def health():
         "upstream": bahn_api.status(),
         **(delaybahn_map.status() if delaybahn_map else {}),
         "auth": auth.status(),
-        "mail": mailer.status(),
+        "mail": {**mailer.status(), "bounces": bounces.status()},
     }
 
 
@@ -1949,7 +1949,39 @@ async def auth_email_code(body: EmailCodeIn, request: Request) -> dict:
             # so the retry we just asked for is not swallowed by it
             await anyio.to_thread.run_sync(auth.refund_code, body.email)
             raise HTTPException(503, "email could not be sent; please try again later")
-    return {"resend_after": auth.RESEND_COOLDOWN_SECONDS}
+    out = {"resend_after": auth.RESEND_COOLDOWN_SECONDS}
+    # a throttled request gets a ticket too: it then follows the mail already
+    # on its way, which is the one the visitor is waiting for
+    if bounces.enabled():
+        out["ticket"] = bounces.issue_ticket(body.email, fresh=issued is not None)
+    return out
+
+
+@app.get("/api/auth/email-code/status")
+async def auth_email_code_status(ticket: str = Query(..., max_length=64)) -> dict:
+    """What became of the code mail behind this ticket: pending, delivered,
+    bounced (with why: invalid / full / rejected), or unknown once expired.
+    The page polls it for a minute after each send, so a refused mail is
+    explained instead of waited for."""
+    return bounces.ticket_status(ticket)
+
+
+@app.post("/api/mail/brevo-events", status_code=204)
+async def brevo_events(request: Request, token: str = Query("", max_length=128)) -> Response:
+    """Brevo's transactional webhook (delivered/bounce/blocked/spam events),
+    authenticated by the shared secret in the URL it was registered with.
+    404 when unconfigured or wrong, so the endpoint does not advertise itself."""
+    if not bounces.authorized(token):
+        raise HTTPException(404)
+    try:
+        payload = await request.json()
+    except ValueError:
+        raise HTTPException(400, "json expected")
+    # Brevo posts one event per call; a list is accepted for batched setups
+    for event in payload if isinstance(payload, list) else [payload]:
+        if isinstance(event, dict):
+            await anyio.to_thread.run_sync(bounces.handle_event, event)
+    return Response(status_code=204)
 
 
 @app.post("/api/auth/email-code/verify")

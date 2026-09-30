@@ -51,6 +51,10 @@ const I18N = {
     resendBtn: "E-Mail erneut senden",
     resendWait: "Erneut senden in {s} s",
     resent: "Neue E-Mail ist unterwegs – sie enthält einen neuen Code.",
+    bounceInvalid: "Diese Adresse nimmt keine E-Mails an – vielleicht ein Tippfehler? Prüf sie über „Andere E-Mail-Adresse“.",
+    bounceFull: "Dein Postfach ist voll, unsere E-Mail kam nicht an. Schaff Platz und sende sie erneut.",
+    bounceRejected: "Dein E-Mail-Anbieter hat unsere E-Mail abgelehnt. Versuch es später erneut oder nimm eine andere Adresse.",
+    bounceRejectedGoogle: "Dein E-Mail-Anbieter hat unsere E-Mail abgelehnt. Melde dich mit Google an oder nimm eine andere Adresse.",
     passwordHeading: "Passwort eingeben",
     editEmail: "Ändern",
     password: "Passwort",
@@ -131,6 +135,10 @@ const I18N = {
     resendBtn: "Resend email",
     resendWait: "Resend in {s} s",
     resent: "A new email is on its way – it carries a new code.",
+    bounceInvalid: "This address doesn't accept email – maybe a typo? Check it via “Use a different email”.",
+    bounceFull: "Your mailbox is full, so our email didn't arrive. Free up space and resend it.",
+    bounceRejected: "Your email provider rejected our email. Try again later or use a different address.",
+    bounceRejectedGoogle: "Your email provider rejected our email. Continue with Google or use a different address.",
     passwordHeading: "Enter your password",
     editEmail: "Edit",
     password: "Password",
@@ -488,12 +496,57 @@ async function requestCode(resend) {
     throw err;
   }
   let after = RESEND_FALLBACK_SECONDS;
+  let ticket = null;
   try {
-    const n = Number((await resp.json()).resend_after);
+    const body = await resp.json();
+    const n = Number(body.resend_after);
     if (Number.isFinite(n) && n >= 0) after = n;
+    ticket = body.ticket || null;
   } catch (e) { /* an older server, or no body at all */ }
   startCooldown(mailResend, after);
   track(resend ? "login-resend" : "login-code-request");
+  watchDelivery(ticket);
+}
+
+/* A bounce comes back through Brevo's webhook seconds after the send, so
+   for a while after each request the page asks what became of the mail and
+   explains a refusal instead of leaving the visitor at an empty inbox. The
+   server hands out a ticket only when it listens to that webhook. */
+const WATCH_MS = 90 * 1000;
+const WATCH_EVERY_MS = 3000;
+let watchTimer = null;
+
+function stopWatch() {
+  clearInterval(watchTimer);
+  watchTimer = null;
+}
+
+function bounceKey(reason) {
+  if (reason === "invalid") return "bounceInvalid";
+  if (reason === "full") return "bounceFull";
+  return providers.google ? "bounceRejectedGoogle" : "bounceRejected";
+}
+
+function watchDelivery(ticket) {
+  stopWatch();
+  if (!ticket) return;
+  const started = Date.now();
+  watchTimer = setInterval(async () => {
+    if (view !== "emailCode" || Date.now() - started > WATCH_MS) return stopWatch();
+    let s;
+    try {
+      const resp = await fetch("/api/auth/email-code/status?ticket=" + encodeURIComponent(ticket));
+      if (!resp.ok) return;
+      s = await resp.json();
+    } catch (e) { return; }  // a dropped poll; the next one tries again
+    if (s.state === "bounced") {
+      stopWatch();
+      say("email-code-status", bounceKey(s.reason));
+      track("login-code-bounced", { reason: s.reason });
+    } else if (s.state !== "pending") {
+      stopWatch();
+    }
+  }, WATCH_EVERY_MS);
 }
 
 $("email-form").addEventListener("submit", (ev) => {

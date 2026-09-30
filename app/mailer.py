@@ -244,6 +244,8 @@ def send_login_code(email: str, code: str, lang: str, kind: str) -> bool:
     msg = EmailMessage()
     msg["To"] = email
     msg["Subject"] = _SUBJECT[(kind, lang)].format(code=code)
+    # Brevo echoes the tag in its webhook, so a bounce names which mail it was
+    msg["X-Mailin-Tag"] = "login-code"
     msg.set_content(_text_body(parts))
     msg.add_alternative(_html_body(parts, lang), subtype="html")
     return _deliver(msg, "login-code")
@@ -259,6 +261,7 @@ def send_report(
     msg = EmailMessage()
     msg["To"] = formataddr((name, email)) if name else email
     msg["Subject"] = subject
+    msg["X-Mailin-Tag"] = "report"
     for field, value in (headers or {}).items():
         msg[field] = value
     msg.set_content(text)
