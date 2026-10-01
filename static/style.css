@@ -48,6 +48,10 @@ main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
   padding: 10px 12px; font-size: 15px; min-width: 200px;
   background: #fff; color: var(--text);
 }
+.field select {
+  -webkit-appearance: none; appearance: none; padding-right: 34px; cursor: pointer; line-height: 19px;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23555' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center;
+}
 /* iOS Safari gives date/time controls an intrinsic width that overflows width:100%;
    stripping the native appearance makes them size like regular inputs */
 .field-date input, .field-time input {
@@ -85,15 +89,20 @@ main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
 .traveller-fields.multi .traveller-row { flex-basis: 100%; }
 .traveller-remove.hidden, .traveller-add.hidden { display: none; }
 
+/* the swap button, the text/date/time boxes and the dropdowns all share one height */
+#from, #to, #date, #time, .field select, .transport-btn { height: 42px; box-sizing: border-box; }
 #swap {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 42px; box-sizing: border-box; padding: 0 11px;
   background: #fff; border: 1px solid var(--gray-border); border-radius: 4px;
-  padding: 9px 10px; font-size: 16px; cursor: pointer;
+  color: var(--text); cursor: pointer;
 }
 
 .search-btn {
   background: var(--brand-red); color: #fff; border: none; border-radius: 4px;
   padding: 11px 28px; font-size: 15px; font-weight: 600; cursor: pointer;
 }
+.search-actions .search-btn { padding-block: 0; height: 42px; box-sizing: border-box; }
 .search-btn:hover { background: var(--brand-red-dark); }
 .search-btn:disabled { opacity: .6; cursor: wait; }
 
@@ -106,7 +115,7 @@ main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
    shape while the toggle still reads as clickable beside Suchen */
 .advanced-toggle {
   background: #fff; border: 1px solid var(--gray-border); border-radius: 4px;
-  cursor: pointer; padding: 10px 14px;
+  cursor: pointer; padding: 0 14px; height: 42px; box-sizing: border-box;
   font-size: 14px; font-weight: 600; color: var(--text);
   font-family: inherit; display: flex; align-items: center; gap: 6px;
 }
@@ -122,11 +131,11 @@ main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
 .advanced-panel.hidden { display: none; }
 
 /* the two switches read as one choice, so they sit on a line together in the
-   card's main row; the padding matches the inputs' so they align with the
-   fields and the search button beside them */
+   card's main row; a box as tall as the inputs centres them on the fields and
+   the search button beside them */
 .dticket-toggles {
   display: flex; align-items: center; flex-wrap: wrap;
-  gap: 8px 18px; padding: 10px 0;
+  gap: 8px 18px; min-height: 42px; box-sizing: border-box;
 }
 .dticket-toggle {
   display: flex; align-items: center; gap: 8px;
@@ -151,9 +160,8 @@ main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
   align-self: flex-end;
   background: #fff; border: 1px dashed var(--gray-border); border-radius: 4px;
   color: var(--brand-red); font-family: inherit; font-size: 13px; font-weight: 600;
-  /* 13px text sits in a shorter line box than the 15px selects these buttons
-     stand beside, so the line-height is pinned to leave every box 41px tall */
-  padding: 11px 14px; line-height: 17px; cursor: pointer; white-space: nowrap;
+  /* as tall as the inputs and selects they stand beside */
+  height: 42px; box-sizing: border-box; padding: 0 14px; cursor: pointer; white-space: nowrap;
 }
 .return-add:hover, .stopover-add:hover, .traveller-add:hover { border-color: var(--brand-red); background: color-mix(in srgb, var(--brand-red) 4%, #fff); }
 .return-add.hidden, .stopover-add.hidden { display: none; }
@@ -1156,7 +1164,9 @@ body.nudge-on #donate-footer-item { display: none; }
   .field-count { flex: 0 0 76px; }
   .field-age { flex: 1 1 0; }
   .field-discount { flex: 1 1 100%; }
+  /* stacked, from sits above to, so the arrows turn to point up and down */
   #swap { align-self: center; }
+  #swap svg { transform: rotate(90deg); }
   /* stacked, the transfer/transport pair already fills the line, so the stopover
      block goes back under them whatever it currently holds */
   .advanced-row > .stopover-fields { flex-basis: 100%; }
@@ -1952,7 +1962,7 @@ body.past-mode .stories-banner { display: none; }
 }
 .transport-btn:hover { border-color: var(--text-muted); }
 .transport-btn:focus-visible { outline: 2px solid var(--brand-red); outline-offset: -1px; }
-.transport-caret { flex: none; color: var(--text); }
+.transport-caret { flex: none; color: #555; }
 /* the count stands in for a select's value, so a narrowed search reads at a glance */
 .transport-value.transport-filtered { color: var(--brand-red); font-weight: 600; }
 

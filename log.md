@@ -1988,3 +1988,13 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - The user found "Sa., 3. Okt." before the card times too wide. Off-day cards in the non-departure sorts now show the date alone ("3. Okt." / "3 Oct"); the departure-order dividers keep the weekday, on their own line.
 - Verified: headless Chrome with the same Hamburg Hbf -> Westerland (Sylt) fixture, sorted by delay.
 - Busters: `app.js` v145 -> **v146** (index.html and the sw.js PRECACHE), `SHELL_VERSION` v103 -> **v104**. Live and every branch read first; none past 145/v103.
+
+## 2026-10-01 — Search form: one control height, one chevron
+
+- Why: the search form's boxes had grown different natural heights (inputs 39px, date 42, time ~44, swap 44, selects 41, search button 39); the card aligns rows on the bottom edge, so labels and box tops staggered, worst in Safari. The selects showed the browser's chevron jammed against the edge, and the Verkehrsmittel picker drew a smaller caret of its own.
+- Every control in the card is now 42px: `#from`, `#to`, `#date`, `#time`, every `.field select`, `.transport-btn`, `#swap`, the dashed return/stopover/traveller add buttons, `.advanced-toggle` and the homepage search button (`.search-actions .search-btn` only; login and stories keep theirs). The D-Ticket switches sit in a 42px min-height box so they centre on the row and still wrap on phones.
+- `.field select` drops the native appearance for one SVG chevron 12px from the right edge (34px right padding); the Verkehrsmittel caret is the same SVG and colour.
+- The swap button shows a left-right arrow pair (SVG, was the "⇅" glyph); under 700px, where From sits above To, the same icon is rotated to point up and down.
+- Verified: headless Chrome against the static `index.html` (launch popup closed), element rects measured per row before/after — rows 190-232, 262-304 (switches centred at 283), 316-358; advanced panel and the 400px stacked form checked by screenshot, same page scroll width as before. Safari not tested here.
+- Busters: `style.css` v135 -> **v136** (six pages and the sw.js PRECACHE), `SHELL_VERSION` v104 -> **v105**. Live pins and every branch/worktree read first; none past 135/v104.
+- Not done: the live-map page still loads `style.css?v=132` from the delaybahn-map repo; its traffic-kind select got the same chevron there (train.css v53).

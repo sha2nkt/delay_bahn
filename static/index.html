@@ -66,7 +66,7 @@ try {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DelayBahn">
-<link rel="stylesheet" href="/style.css?v=135">
+<link rel="stylesheet" href="/style.css?v=136">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -133,7 +133,7 @@ try {
       <button class="input-clear" type="button" tabindex="-1" title="Eingabe löschen" data-i18n-title="clearInput" data-i18n-aria="clearInput">✕</button>
       <div class="dropdown" id="from-dropdown"></div>
     </div>
-    <button id="swap" type="button" title="Richtung tauschen" data-i18n-title="swapTitle">⇅</button>
+    <button id="swap" type="button" title="Richtung tauschen" data-i18n-title="swapTitle"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h12M12 3l3 3-3 3M15 12H3M6 9l-3 3 3 3"/></svg></button>
     <div class="field autocomplete-wrap">
       <label for="to" data-i18n="to">Nach</label>
       <input id="to" type="text" placeholder="z.B. München Hbf" data-i18n-placeholder="toPlaceholder" autocomplete="off">
@@ -238,8 +238,8 @@ try {
           <label for="transport-btn" data-i18n="transportTitle">Verkehrsmittel</label>
           <button id="transport-btn" class="transport-btn" type="button" data-i18n-title="transportTooltip">
             <span id="transport-value" class="transport-value">Alle</span>
-            <svg class="transport-caret" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"
-                 fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.75 L6 8 L9 4.75"/></svg>
+            <svg class="transport-caret" width="12" height="8" viewBox="0 0 12 8" aria-hidden="true"
+                 fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 1.5l5 5 5-5"/></svg>
           </button>
         </div>
         <div id="stopover-fields" class="stopover-fields">
