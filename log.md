@@ -1982,3 +1982,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Verified: headless Chrome against the static page with a real delaybahn.com response for Hamburg Hbf -> Westerland (Sylt), Fri 2026-10-02 21:30 (one 23:56 overnight, four Saturday departures), before/after in departure order and sorted by delay. German desktop width only.
 - Busters: `style.css` v134 -> **v135** (six pages and the sw.js PRECACHE), `app.js` v144 -> **v145**, `SHELL_VERSION` v102 -> **v103**. Live and every branch read first; none past 134/144/v102.
 - Not changed: per-leg times inside a card (an overnight leg's own arrival carries no "+1"); the Meine Fahrten and report-mail views.
+
+## 2026-10-01 — Day markers: date only on the card
+
+- The user found "Sa., 3. Okt." before the card times too wide. Off-day cards in the non-departure sorts now show the date alone ("3. Okt." / "3 Oct"); the departure-order dividers keep the weekday, on their own line.
+- Verified: headless Chrome with the same Hamburg Hbf -> Westerland (Sylt) fixture, sorted by delay.
+- Busters: `app.js` v145 -> **v146** (index.html and the sw.js PRECACHE), `SHELL_VERSION` v103 -> **v104**. Live and every branch read first; none past 145/v103.

@@ -3953,7 +3953,9 @@ function render() {
     }
     if (!byDeparture && depDay && searchDay && depDay !== searchDay) {
       times.prepend(Object.assign(document.createElement("span"), {
-        className: "journey-day", textContent: fmtTripDay(depDay),
+        className: "journey-day",
+        textContent: new Date(`${depDay}T12:00:00`).toLocaleDateString(
+          state.lang === "de" ? "de-DE" : "en-GB", { day: "numeric", month: "short" }),
       }));
     }
     const laterDays = first.plannedDeparture && last.plannedArrival
