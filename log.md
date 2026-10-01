@@ -1973,3 +1973,12 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Verified: 312 tests (new: webhook auth, verdict table incl. the real bounce texts, ticket reset/follow, per-address isolation, alert pattern + scrubbing, odd payloads); headless Chrome against a stubbed server, DE and EN, bounce message shown within one poll, no page errors.
 - Deploy extras: `BREVO_WEBHOOK_SECRET` in the hetzner3 `.env`, webhook registered through the Brevo API (events delivered, hardBounce, softBounce, blocked, spam, invalid).
 - Not done: report mails' bounces only feed alerts, not the report pipeline; a single uvicorn worker is assumed for the in-memory state.
+
+## 2026-10-01 — Day markers on search results
+
+- Why: a user searched after 20:00 and got trains around 06:00 with no way to tell they were the next morning. bahn.de fills a late-evening result page with next-day departures, and the cards showed only `HH:MM`.
+- Departure order (default): a divider ("Sa., 3. Okt." / "Sat 3 Oct") above the first journey of each day that differs from the searched day. Other sorts (delay, price, risk, transfers) mix days, so there the off-day cards carry the weekday/date before their times instead of dividers.
+- Every card whose planned arrival falls on a later calendar day than its planned departure gets a superscript "+N" (tooltip "Ankunft am Folgetag" / "Arrives the next day"). Day gaps are computed on the naive Berlin dates at noon, so DST and the visitor's zone don't matter.
+- Verified: headless Chrome against the static page with a real delaybahn.com response for Hamburg Hbf -> Westerland (Sylt), Fri 2026-10-02 21:30 (one 23:56 overnight, four Saturday departures), before/after in departure order and sorted by delay. German desktop width only.
+- Busters: `style.css` v134 -> **v135** (six pages and the sw.js PRECACHE), `app.js` v144 -> **v145**, `SHELL_VERSION` v102 -> **v103**. Live and every branch read first; none past 134/144/v102.
+- Not changed: per-leg times inside a card (an overnight leg's own arrival carries no "+1"); the Meine Fahrten and report-mail views.

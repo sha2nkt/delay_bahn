@@ -394,6 +394,12 @@ body.past-mode .hero-chart { display: none; }
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
 .journey-times { font-size: 20px; font-weight: 700; }
+.journey-day { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-right: 8px; }
+.day-plus { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-left: 2px; }
+.day-divider {
+  font-size: 13px; font-weight: 700; color: var(--text-muted);
+  margin: 20px 4px 8px; padding-bottom: 4px; border-bottom: 1px solid var(--gray-border);
+}
 .journey-meta { font-size: 13px; color: var(--text-muted); }
 .journey-head .spacer { flex: 1; }
 .journey-cta {

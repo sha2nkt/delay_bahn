@@ -28,6 +28,7 @@ Accounts (Firebase Auth, 2026-08-26; since 2026-09-13 the SDK's authDomain is de
 
 - 2026-09-29: search cards and upcoming Meine Fahrten trips show "Live verfolgen" to the train map when the train is under way; the search booking button reads "Buchen" / "Book".
 - 2026-09-29: a one-time launch popup for "Wo ist mein Zug?" opens on the homepage and /entschaedigung (map image, five feature lines, button to the map); any close retires it via `launchTrainMapSeen`, and it skips the English-redirect flash.
+- 2026-10-01: result cards mark the day: a day divider per new day in departure order, the weekday/date on off-day cards in the other sorts, and "+1" on arrivals after the departure day.
 
 ## Verified
 

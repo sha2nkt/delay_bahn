@@ -155,6 +155,7 @@ const I18N = {
     chartMedianNote: "Die Zahl im Badge ist der Median dieser Tage, nicht der Durchschnitt – einzelne Ausreißer verschieben sie kaum.",
     direct: "direkt",
     transfers: (n) => `${n} Umstieg${n > 1 ? "e" : ""}`,
+    laterDayTooltip: (n) => n === 1 ? "Ankunft am Folgetag" : `Ankunft ${n} Tage später`,
     walk: "Fußweg",
     walkMinutes: (n) => `${n} min`,
     train: "Zug",
@@ -461,6 +462,7 @@ const I18N = {
     chartMedianNote: "The number in the badge is the median of these days, not the average – a single outlier barely moves it.",
     direct: "direct",
     transfers: (n) => `${n} transfer${n > 1 ? "s" : ""}`,
+    laterDayTooltip: (n) => n === 1 ? "Arrives the next day" : `Arrives ${n} days later`,
     walk: "Walk",
     walkMinutes: (n) => `${n} min`,
     train: "Train",
@@ -2570,6 +2572,12 @@ function fmtTime(iso) {
   return iso ? iso.slice(11, 16) : "–";
 }
 
+// calendar days between two Berlin-local naive stamps (noon dodges DST edges)
+function dayGap(fromIso, toIso) {
+  const noon = (iso) => Date.parse(`${iso.slice(0, 10)}T12:00:00`);
+  return Math.round((noon(toIso) - noon(fromIso)) / 86400000);
+}
+
 // planned walk duration in whole minutes; both stamps are Berlin-local naive, so
 // parsing them in the browser's zone cancels out
 function walkMinutes(leg) {
@@ -3897,10 +3905,23 @@ function render() {
   // step 3 replaces the result list with the trip as a whole
   if (state.leg === "summary") return renderSummary();
   resultsEl.innerHTML = "";
+  // bahn.de fills a late-evening page with next-morning trains; times alone
+  // can't tell those apart, so departure order gets a divider per new day and
+  // the other sorts a date on each card off the searched day
+  const searchDay = searchLeg().departure?.slice(0, 10);
+  const byDeparture = state.sort === "departure";
+  let shownDay = searchDay;
   for (const journey of sortedJourneys()) {
     const legs = journey.legs || [];
     if (!legs.length) continue;
     const first = legs[0], last = legs[legs.length - 1];
+    const depDay = first.plannedDeparture?.slice(0, 10);
+    if (byDeparture && depDay && depDay !== shownDay) {
+      resultsEl.appendChild(Object.assign(document.createElement("div"), {
+        className: "day-divider", textContent: fmtTripDay(depDay),
+      }));
+      shownDay = depDay;
+    }
     const trainLegs = legs.filter((l) => !l.walking);
     const transfers = journey.transfers ?? Math.max(0, trainLegs.length - 1);
 
@@ -3929,6 +3950,18 @@ function render() {
         document.createTextNode(" → "),
         timeNode(last.plannedArrival, last.arrival),
       );
+    }
+    if (!byDeparture && depDay && searchDay && depDay !== searchDay) {
+      times.prepend(Object.assign(document.createElement("span"), {
+        className: "journey-day", textContent: fmtTripDay(depDay),
+      }));
+    }
+    const laterDays = first.plannedDeparture && last.plannedArrival
+      ? dayGap(first.plannedDeparture, last.plannedArrival) : 0;
+    if (laterDays > 0) {
+      times.append(Object.assign(document.createElement("sup"), {
+        className: "day-plus", textContent: `+${laterDays}`, title: t("laterDayTooltip", laterDays),
+      }));
     }
 
     const meta = document.createElement("span");
