@@ -2015,3 +2015,10 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - The bookmark dwell nudge sent `track("trip-pulse")` every time it pulsed; the visitor does not trigger it, so the user found the event noise in Umami. The tracking call is gone; the pulse itself is unchanged.
 - Busters: `app.js` v147 -> **v148** (index.html and the sw.js PRECACHE), `SHELL_VERSION` v106 -> **v107**. Live pins and every remote branch read first; none past 147/v106.
 - Not done: past `trip-pulse` events stay in Umami until deleted there.
+
+## 2026-10-03 — Grey-map alert in the watchdog
+
+- On 2026-10-03 most German dots on the all-trains map were grey for hours and nobody was alerted: a gtfs.de timetable release renumbered its trips, and `/health` fleet `rtTrips` fell from ~3,900 to ~300 while the site stayed 200 (fixed in delaybahn-map 2f09407).
+- `scripts/delaybahn-watchdog.sh` check 3 sends an ntfy alert (priority high) after `GREY_WINDOWS` (3) consecutive windows of `rtTrips` < `GREY_MIN_TRIPS` (1500) or a realtime read older than 600 s, 07-22 Berlin only, plus one recovery notice. State is kept in `~/.local/state/delaybahn-watchdog-grey.json`. A build without the map (no `fleet` key) is skipped.
+- Verified: DRY_RUN with canned bodies taken from live `/health` alerts on the 3rd low-trips window and on the 3rd stale window, recovers on a good body, and stays silent without `fleet`. Installed on ps083 (`~/.local/bin`).
+- Not verified: the threshold is based on one Saturday-afternoon count, with no reading at 07:00 or 21:00.

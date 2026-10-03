@@ -4,7 +4,7 @@
 # Runs on ps083, outside the Hetzner box, so it catches server, tunnel and app
 # failures alike. curl -4 because ps083 advertises broken IPv6.
 #
-# Two independent checks:
+# Three independent checks:
 #   1. DOWN: /health unreachable / non-200 (as before).
 #   2. UPSTREAM BLOCKED: bahn.de (Akamai) hard-blocking the server IP, detected
 #      from /health's own counters: upstream_403 rising while upstream_200 stays
@@ -14,6 +14,14 @@
 #      A block is not self-healing (it needs an IP move), so unlike check 1 it
 #      keeps re-paging every BLOCK_REMIND_SECONDS until 200s return, carrying
 #      the elapsed duration so the reminders read as one ongoing incident.
+#   3. GREY MAP: the all-trains map's German dots turn grey (timetable only)
+#      when the realtime feed stops matching our trips. /health fleet.rtTrips is
+#      ~3,900 by day; on 2026-10-03 a gtfs.de timetable release with renumbered
+#      trips dropped it to ~300 for hours, unnoticed. Alerts after
+#      GREY_WINDOWS consecutive windows of rtTrips < GREY_MIN_TRIPS or a feed
+#      read older than 10 min, 07-22 Berlin only (few trains run at night), and
+#      once more on recovery. A restart's rebuild (rtTrips 0 for ~5 min) stays
+#      under the window count.
 #
 # Testing: DRY_RUN=1 prints alerts instead of sending; HEALTH_FILE=<path>
 # feeds the detector a canned /health body instead of hitting the network;
@@ -34,6 +42,9 @@
 TOPIC=${NTFY_TOPIC:-$(cat "${HOME}/.config/delaybahn/ntfy-topic" 2>/dev/null)}
 STATE="${HOME}/.local/state/delaybahn-watchdog"
 UPSTATE="${HOME}/.local/state/delaybahn-watchdog-upstream.json"
+GREYSTATE="${HOME}/.local/state/delaybahn-watchdog-grey.json"
+GREY_MIN_TRIPS=${GREY_MIN_TRIPS:-1500}
+GREY_WINDOWS=${GREY_WINDOWS:-3}
 # how often an unresolved block re-pages; rounds up to the 5-min cron period
 BLOCK_REMIND_SECONDS=${BLOCK_REMIND_SECONDS:-600}
 # ssh alias, resolved in ~/.ssh/config — the origin IP is deliberately not
@@ -155,4 +166,49 @@ case "$verdict" in
   RECOVERED*)
     notify "bahn.de unblocked delaybahn" default white_check_mark \
       "Upstream 200s are flowing again (${verdict#RECOVERED } in the last window). The Akamai block has lifted." ;;
+esac
+
+# ------------------------------------------------------- check 3: grey map
+grey=$(HEALTH_BODY="$body" MIN="$GREY_MIN_TRIPS" WINDOWS="$GREY_WINDOWS" python3 - "$GREYSTATE" <<'PY'
+import json, os, sys
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+state_path = sys.argv[1]
+try:
+    f = json.loads(os.environ["HEALTH_BODY"]).get("fleet")
+except Exception:
+    sys.exit(0)
+if not f:
+    sys.exit(0)                     # map not installed on this build
+st = {}
+if os.path.exists(state_path):
+    try: st = json.load(open(state_path))
+    except Exception: st = {}
+streak, alerted = st.get("streak", 0), st.get("alerted", False)
+trips, age = f.get("rtTrips", 0), f.get("liveAgeSeconds")
+hour = datetime.now(ZoneInfo("Europe/Berlin")).hour
+bad = trips < int(os.environ["MIN"]) or age is None or age > 600
+if alerted and not bad:
+    alerted, streak = False, 0
+    print(f"RECOVERED {trips}")
+elif 7 <= hour < 22:
+    streak = streak + 1 if bad else 0
+    if streak >= int(os.environ["WINDOWS"]) and not alerted:
+        alerted = True
+        print(f"GREY {trips} {age if age is not None else 'none'} {f.get('feedAgeHours')}")
+else:
+    streak = 0
+json.dump({"streak": streak, "alerted": alerted}, open(state_path, "w"))
+PY
+)
+
+case "$grey" in
+  GREY*)
+    read -r trips age feedh <<<"${grey#GREY }"
+    notify "delaybahn map dots grey" high "world_map,warning" \
+      "$trips German trips match the realtime feed (alert below $GREY_MIN_TRIPS, normal ~3,900 by day); last feed read ${age}s ago, timetable ${feedh}h old. Likely a gtfs.de timetable release not yet loaded, or the realtime feed down. Check: curl -s https://delaybahn.com/health | python3 -m json.tool (fleet)" ;;
+  RECOVERED*)
+    notify "delaybahn map live again" default white_check_mark \
+      "${grey#RECOVERED } German trips match the realtime feed again." ;;
 esac
