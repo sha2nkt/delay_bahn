@@ -1998,3 +1998,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Verified: headless Chrome against the static `index.html` (launch popup closed), element rects measured per row before/after — rows 190-232, 262-304 (switches centred at 283), 316-358; advanced panel and the 400px stacked form checked by screenshot, same page scroll width as before. Safari not tested here.
 - Busters: `style.css` v135 -> **v136** (six pages and the sw.js PRECACHE), `SHELL_VERSION` v104 -> **v105**. Live pins and every branch/worktree read first; none past 135/v104.
 - Not done: the live-map page still loads `style.css?v=132` from the delaybahn-map repo; its traffic-kind select got the same chevron there (train.css v53).
+
+## 2026-10-03 — Automated monthly graph refresh (August–September 2026)
+
+- pipeline/update_monthly_graphs.py (cron): homepage scatter + violin SVGs regenerated from data-2026-08 and data-2026-09 parquets; 40,908 qualifying trains.
+- Month strings and train count patched in app.js, index.html fallbacks; SVG busters, app.js?v=147 and sw.js SHELL_VERSION bumped.
+- Deployed to delaybahn.com and /health verified by the same run.
