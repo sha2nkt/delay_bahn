@@ -3565,7 +3565,6 @@ function pulseTripBtn() {
   best.dataset.pulsed = "1";
   best.classList.add("pulse");
   best.addEventListener("animationend", () => best.classList.remove("pulse"), { once: true });
-  track("trip-pulse");
 }
 
 window.addEventListener("scroll", armTripPulse, { passive: true });

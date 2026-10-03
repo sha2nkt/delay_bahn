@@ -2009,3 +2009,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 
 - The first real `--push` run (above) committed, pushed, pulled on hetzner3 and restarted fine, but its final health curl failed with seven 502s: the app took 30 s from restart to "Application startup complete" (07:31:08 -> 07:31:38), longer than the ~20 s `--retry 6 --retry-delay 3` window. The previous entry's "/health verified" line is the script's template; the check actually failed, and `/health` answered `"ok":true` when probed by hand afterwards.
 - `commit_and_deploy()` now retries 20 times (~60 s). `scripts/deploy.sh` still uses the 6x3 s window and can report the same false 502.
+
+## 2026-10-03 — Drop the trip-pulse Umami event
+
+- The bookmark dwell nudge sent `track("trip-pulse")` every time it pulsed; the visitor does not trigger it, so the user found the event noise in Umami. The tracking call is gone; the pulse itself is unchanged.
+- Busters: `app.js` v147 -> **v148** (index.html and the sw.js PRECACHE), `SHELL_VERSION` v106 -> **v107**. Live pins and every remote branch read first; none past 147/v106.
+- Not done: past `trip-pulse` events stay in Umami until deleted there.
