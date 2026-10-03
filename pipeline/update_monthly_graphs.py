@@ -203,8 +203,8 @@ def commit_and_deploy(n_trains, app_v):
                "systemctl restart delaybahn && systemctl is-active delaybahn"])
     if "active" not in out:
         raise RuntimeError(f"delaybahn service not active after restart: {out.strip()}")
-    # --retry rides out the restart race (502 until uvicorn binds), as scripts/deploy.sh does
-    health = run(["curl", "-4", "-sS", "-f", "--retry", "6", "--retry-delay", "3", "--max-time", "20",
+    # --retry rides out the restart race: 502 until startup completes, which takes ~30 s
+    health = run(["curl", "-4", "-sS", "-f", "--retry", "20", "--retry-delay", "3", "--max-time", "20",
                   "https://delaybahn.com/health"])
     if '"ok":true' not in health.replace(" ", ""):
         raise RuntimeError(f"health check failed: {health.strip()}")

@@ -2004,3 +2004,8 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - pipeline/update_monthly_graphs.py (cron): homepage scatter + violin SVGs regenerated from data-2026-08 and data-2026-09 parquets; 40,908 qualifying trains.
 - Month strings and train count patched in app.js, index.html fallbacks; SVG busters, app.js?v=147 and sw.js SHELL_VERSION bumped.
 - Deployed to delaybahn.com and /health verified by the same run.
+
+## 2026-10-03 — Monthly graph refresh: longer post-deploy health wait
+
+- The first real `--push` run (above) committed, pushed, pulled on hetzner3 and restarted fine, but its final health curl failed with seven 502s: the app took 30 s from restart to "Application startup complete" (07:31:08 -> 07:31:38), longer than the ~20 s `--retry 6 --retry-delay 3` window. The previous entry's "/health verified" line is the script's template; the check actually failed, and `/health` answered `"ok":true` when probed by hand afterwards.
+- `commit_and_deploy()` now retries 20 times (~60 s). `scripts/deploy.sh` still uses the 6x3 s window and can report the same false 502.
