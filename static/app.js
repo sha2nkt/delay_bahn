@@ -2669,8 +2669,9 @@ function delayValueBadge(v, title) {
   return el;
 }
 
-// past mode: the actual delay of one leg on the searched day
-function exactDelayBadge(d) {
+// past mode: the actual delay of one leg on the searched day; `open` = the day's
+// data has not settled yet (live day, or the newest day still filling in)
+function exactDelayBadge(d, open = state.liveDay) {
   const reason = reasonText(d?.reason);
   if (d && !d.canceled) {
     return delayValueBadge(d.delayMin, t("thatDayTooltip") + (reason ? ` – ${reason}` : ""));
@@ -2679,10 +2680,10 @@ function exactDelayBadge(d) {
   el.className = "badge";
   if (!d) {
     el.classList.add("gray");
-    // on a live day the arrival simply hasn't been reported yet, which is not
-    // the same as having no data for this train at all
-    el.textContent = state.liveDay ? t("notYetBadge") : t("noData");
-    if (state.liveDay) el.title = t("notYetTooltip");
+    // on an unsettled day the arrival simply hasn't been reported yet, which is
+    // not the same as having no data for this train at all
+    el.textContent = open ? t("notYetBadge") : t("noData");
+    if (open) el.title = t("notYetTooltip");
   } else {
     el.classList.add("red");
     el.textContent = t("chartCanceled");
@@ -2692,7 +2693,7 @@ function exactDelayBadge(d) {
 }
 
 // one leg row (train or walk); struck = leg was missed in the simulated journey
-function buildLegRow(leg, past, struck) {
+function buildLegRow(leg, past, struck, open = state.liveDay) {
   const row = document.createElement("div");
   row.className = "leg";
   if (leg.walking) {
@@ -2734,7 +2735,7 @@ function buildLegRow(leg, past, struck) {
   } else if (UNTRACKED_PRODUCTS.has(leg.line?.product)) {
     badge = notTrackedBadge();
   } else {
-    badge = past ? exactDelayBadge(leg.delayOnDate) : delayBadge(leg.delayStats, false);
+    badge = past ? exactDelayBadge(leg.delayOnDate, open) : delayBadge(leg.delayStats, false);
   }
   row.append(train, desc, badge);
   return row;
@@ -3978,6 +3979,8 @@ function render() {
     spacer.className = "spacer";
 
     const past = state.mode === "past";
+    // the day's data has not settled: live day, or the newest day still filling in
+    const open = state.liveDay || journey.settled === false;
     const finalLeg = trainLegs.length ? trainLegs[trainLegs.length - 1] : null;
     const missed = past && (journey.missedTransfers || []).length > 0;
     let badge;
@@ -3995,7 +3998,7 @@ function render() {
       } else if (UNTRACKED_PRODUCTS.has(finalLeg?.line?.product)) {
         badge = notTrackedBadge();
       } else {
-        badge = exactDelayBadge(finalLeg?.delayOnDate);
+        badge = exactDelayBadge(finalLeg?.delayOnDate, open);
       }
     } else {
       const badges = journeyBadges(journey, finalLeg);
@@ -4118,7 +4121,7 @@ function render() {
     };
     legs.forEach((leg, i) => {
       const struck = missedAt != null && i >= missedAt;
-      const row = buildLegRow(leg, past, struck);
+      const row = buildLegRow(leg, past, struck, open);
       if (i === 0) row.classList.add("rail-first");
       if (i === legs.length - 1) row.classList.add("rail-last");
       if (struck) row.classList.add("leg-missed");
@@ -4176,7 +4179,7 @@ function render() {
         contHead.textContent = t("simContinuation");
         legsEl.appendChild(contHead);
         sim.legs.forEach((leg, i) => {
-          const row = buildLegRow(leg, true, false);
+          const row = buildLegRow(leg, true, false, open);
           if (i === 0) row.classList.add("rail-first");
           if (i === sim.legs.length - 1) row.classList.add("rail-last");
           legsEl.appendChild(row);

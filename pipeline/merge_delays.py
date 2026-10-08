@@ -117,9 +117,12 @@ def main():
     args = parser.parse_args()
 
     out = args.out or args.data_dir / "delays.parquet"
-    # cut at last midnight, like the DE build's own window end: interior days keep
-    # their cross-midnight tails, but no source may push the stats window anchor
-    # (max arrival_planned_time) past what all countries have data for
+    # cut at last midnight by the *planned* time, like the DE build's own window
+    # end: a stop belongs to the day it was scheduled on, however late it actually
+    # ran. Cutting by the changed time dropped every stop of the newest day whose
+    # delay carried it past midnight - exactly the trains compensation claims are
+    # about - until the next build. No source may push the stats window anchor
+    # (max arrival_planned_time) past what all countries have data for.
     now = datetime.now(ZoneInfo("Europe/Berlin"))
     window_end = now.strftime("%Y-%m-%d 00:00:00")
     # symmetric lower cut: CH/FR retain more days on disk than the app's stats
@@ -141,11 +144,11 @@ def main():
         selects.append(
             f"SELECT {COLUMNS}, {optional} FROM read_parquet('{args.data_dir / pattern}')"
             f" WHERE eva LIKE '{prefix}'"
-            f" AND time >= TIMESTAMP '{window_start}' AND time < TIMESTAMP '{window_end}'"
-            # arrival_planned_time drives the app's window anchors (_min_day/_max_day);
-            # bound it on both sides so coverage is exactly the servable window
-            f" AND (arrival_planned_time IS NULL OR (arrival_planned_time >= TIMESTAMP '{window_start}'"
-            f" AND arrival_planned_time < TIMESTAMP '{window_end}'))"
+            # arrival_planned_time drives the app's window anchors (_min_day/_max_day)
+            # and every lookup; bound the planned time (departure for a first stop)
+            # on both sides so coverage is exactly the servable window
+            f" AND COALESCE(arrival_planned_time, departure_planned_time) >= TIMESTAMP '{window_start}'"
+            f" AND COALESCE(arrival_planned_time, departure_planned_time) < TIMESTAMP '{window_end}'"
         )
     if not selects:
         sys.exit("No source data found - nothing to merge")

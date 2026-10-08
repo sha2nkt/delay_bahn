@@ -669,18 +669,21 @@ def compensation_pct(arrival_delay: int | None) -> int | None:
     return 50 if arrival_delay >= 120 else 25 if arrival_delay >= 60 else 0
 
 
-async def _past_verdict(legs: list[dict], window: int, live: bool) -> dict:
+async def _past_verdict(legs: list[dict], window: int, live: bool, settled: bool = True) -> dict:
     """What a journey's actual day adds to it once every leg carries its
     delayOnDate: the arrival delay at the destination (ridden through missed
     connections and their replacements by _simulate_walk), the compensation
-    it amounts to, and on a live day whether some leg is still unreported.
+    it amounts to, and on a day that is not settled whether some leg is still
+    unreported. `settled` is false on the newest day of the data as well as on
+    a live one: that day lands partial at 05:30 (stops that ran past midnight,
+    late raw dumps) and only fills in with the next build.
     Shared by the past-mode search and the trips page's in-place check."""
     train_legs = [leg for leg in legs if not leg["walking"]]
     final_d = train_legs[-1].get("delayOnDate")
     sim = await _simulate_walk(legs, window, MAX_REPLANS, live)
     out = {}
-    if live:
-        # on a live day a missing observation means "not reported yet",
+    if live or not settled:
+        # on an unsettled day a missing observation means "not reported yet",
         # which is a different message than "we have no data for this train";
         # untracked products (tram, bus, ...) never report, so they must not
         # hold the journey pending forever
@@ -865,7 +868,13 @@ async def journeys(
         if ez_duration and ez_duration != journey["durationSeconds"]:
             journey["ezDurationSeconds"] = ez_duration
         if past:
-            journey.update(await _past_verdict(legs, window, live))
+            # the arrival day decides whether the data has settled: the newest
+            # parquet day is still filling in, so a missing stop there is
+            # "pending", not "no data" (same rule as _trip_verdict's `final`)
+            arrival_day = (train_legs[-1].get("plannedArrival") or departure)[:10]
+            settled = parquet_max is not None and arrival_day < parquet_max.isoformat()
+            journey["settled"] = settled
+            journey.update(await _past_verdict(legs, window, live, settled))
         else:
             final_stats = train_legs[-1].get("delayStats")
             leg_medians = [
@@ -2553,7 +2562,7 @@ async def _trip_verdict(uid: str, trip_id: int) -> dict | None:
     if live:
         await live_delays.warm(_leg_stops(legs))
     await anyio.to_thread.run_sync(_attach_day_delays, legs, live)
-    verdict = {"legs": legs, "liveDay": live, "final": final, **await _past_verdict(legs, 7, live)}
+    verdict = {"legs": legs, "liveDay": live, "final": final, **await _past_verdict(legs, 7, live, settled=final)}
     if final:
         await anyio.to_thread.run_sync(trips.store_verdict, uid, trip_id, verdict)
     return verdict

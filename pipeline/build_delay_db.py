@@ -168,9 +168,12 @@ def merge_parsed(plan_files: list[Path], fchg_files: list[Path], output_file: Pa
                     CAST(reason_code AS INTEGER) AS reason_code
                 FROM merged
             )
+            -- cut by the planned time: a stop belongs to the day it was scheduled
+            -- on, however late it ran. Cutting by `time` (the changed time) dropped
+            -- every stop of the newest day that arrived after midnight.
             SELECT * FROM transformed
-            WHERE time >= TIMESTAMP '{window_start} 00:00:00'
-                AND time < TIMESTAMP '{window_end} 00:00:00'
+            WHERE COALESCE(arrival_planned_time, departure_planned_time) >= TIMESTAMP '{window_start} 00:00:00'
+                AND COALESCE(arrival_planned_time, departure_planned_time) < TIMESTAMP '{window_end} 00:00:00'
         ) TO '{tmp_output}' (FORMAT PARQUET)
     """)
     con.close()

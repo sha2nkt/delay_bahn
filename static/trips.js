@@ -393,13 +393,15 @@ function buildCheck(data) {
   const sim = data.simulation;
   const missedTransfers = data.missedTransfers || [];
   const missed = missedTransfers.length > 0;
+  // open = the day has not settled (live, or the newest data day still filling in)
+  const open = data.liveDay || data.final === false;
 
   // the arrival at the destination, as the search's card head shows it
   let head;
   if (sim && data.arrivalDelay != null) head = delayBadge(data.arrivalDelay, t("simBadgeTooltip"));
   else if (missed) head = badge("red", t("missedBadge"), missedTransfers.map((mt) => mt.station).join(", "));
   else if (UNTRACKED.has(finalLeg?.line?.product)) head = badge("gray", t("notTracked"), t("notTrackedTooltip"));
-  else head = dayBadge(finalLeg?.delayOnDate, data.liveDay);
+  else head = dayBadge(finalLeg?.delayOnDate, open);
 
   const pct = data.compensationPct;
   // with a completed simulation pct reflects the realistic arrival; the
@@ -437,13 +439,13 @@ function buildCheck(data) {
     if (i === list.length - 1) row.classList.add("rail-last");
     legsEl.appendChild(row);
   });
-  addRows(legs, data.liveDay);
+  addRows(legs, open);
   if (sim?.legs?.length) {
     const cont = document.createElement("div");
     cont.className = "leg-continuation";
     cont.textContent = t("simContinuation");
     legsEl.appendChild(cont);
-    addRows(sim.legs, data.liveDay);
+    addRows(sim.legs, open);
   }
   if (sim?.incomplete) {
     const note = document.createElement("div");
