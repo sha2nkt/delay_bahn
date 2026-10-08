@@ -313,6 +313,8 @@ const I18N = {
     simContinuation: "↳ Tatsächliche Weiterfahrt mit der nächsten möglichen Verbindung:",
     simBadgeTooltip: "Simulierte Verspätung am Ziel – verpasste Anschlüsse und tatsächliche Weiterfahrt berücksichtigt",
     simIncomplete: "Keine Ersatzverbindung in den Daten gefunden – tatsächliche Ankunft unbekannt",
+    simNoData: "Für die Ankunft der Weiterfahrt liegen keine Verspätungsdaten vor – tatsächliche Ankunft unbekannt",
+    simEndedEarly: (train, station, time) => `${train} endete vorzeitig in ${station} (an ${time})`,
     pastDisclaimer: "Entschädigung nach EU-Fahrgastrechten: 25 % des Ticketpreises ab 60 min, 50 % ab 120 min Verspätung am Ziel. Auszahlung ab 4 €. Angezeigte Verspätungen basieren auf unseren aufgezeichneten Daten – maßgeblich ist die tatsächliche Ankunft.",
     installTitle: "DelayBahn als App installieren",
     installLead: "Schneller Zugriff vom Startbildschirm.",
@@ -619,6 +621,8 @@ const I18N = {
     simContinuation: "↳ Actual onward journey with the next possible connection:",
     simBadgeTooltip: "Simulated delay at destination – missed connections and the actual onward journey taken into account",
     simIncomplete: "No replacement connection found in the data – actual arrival unknown",
+    simNoData: "No delay data for the onward journey's arrival – actual arrival unknown",
+    simEndedEarly: (train, station, time) => `${train} ended early at ${station} (arr. ${time})`,
     pastDisclaimer: "Compensation under EU passenger rights: 25% of the ticket price from 60 min, 50% from 120 min delay at your destination. Paid out from €4. Shown delays are based on our recorded data – the actual arrival is authoritative.",
     installTitle: "Install DelayBahn as an app",
     installLead: "Quick access from your home screen.",
@@ -3989,6 +3993,9 @@ function render() {
       if (sim && journey.arrivalDelay != null) {
         // simulated delay at the destination, replacement connections included
         badge = delayValueBadge(journey.arrivalDelay, t("simBadgeTooltip"));
+      } else if (sim?.noData) {
+        badge = exactDelayBadge(null, false);
+        badge.title = t("simNoData");
       } else if (missed) {
         // connection missed and no replacement found: arrival unknown
         badge = document.createElement("span");
@@ -4173,6 +4180,13 @@ function render() {
       }
     });
     if (sim) {
+      const ended = (journey.missedTransfers || []).find((mt) => mt.endedEarly);
+      if (ended) {
+        const note = document.createElement("div");
+        note.className = "sim-note";
+        note.textContent = t("simEndedEarly", ended.trainName, ended.station, fmtTime(ended.endedArrival));
+        legsEl.appendChild(note);
+      }
       if (sim.legs?.length) {
         const contHead = document.createElement("div");
         contHead.className = "leg-continuation";
@@ -4185,10 +4199,10 @@ function render() {
           legsEl.appendChild(row);
         });
       }
-      if (sim.incomplete) {
+      if (sim.incomplete || sim.noData) {
         const note = document.createElement("div");
         note.className = "sim-note";
-        note.textContent = t("simIncomplete");
+        note.textContent = t(sim.incomplete ? "simIncomplete" : "simNoData");
         legsEl.appendChild(note);
       }
     }

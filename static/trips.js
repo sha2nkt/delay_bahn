@@ -71,6 +71,8 @@ const I18N = {
     simBadgeTooltip: "Simulierte Verspätung am Ziel – verpasste Anschlüsse und tatsächliche Weiterfahrt berücksichtigt",
     simContinuation: "↳ Tatsächliche Weiterfahrt mit der nächsten möglichen Verbindung:",
     simIncomplete: "Keine Ersatzverbindung in den Daten gefunden – tatsächliche Ankunft unbekannt",
+    simNoData: "Für die Ankunft der Weiterfahrt liegen keine Verspätungsdaten vor – tatsächliche Ankunft unbekannt",
+    simEndedEarly: (train, station, time) => `${train} endete vorzeitig in ${station} (an ${time})`,
     missedBadge: "⛔ Anschluss verpasst",
     claimPct: (pct) => `${pct} % zurückholen →`,
     claimNone: "Keine Entschädigung (unter 60 min)",
@@ -165,6 +167,8 @@ const I18N = {
     simBadgeTooltip: "Simulated delay at destination – missed connections and the actual onward journey taken into account",
     simContinuation: "↳ Actual onward journey with the next possible connection:",
     simIncomplete: "No replacement connection found in the data – actual arrival unknown",
+    simNoData: "No delay data for the onward journey's arrival – actual arrival unknown",
+    simEndedEarly: (train, station, time) => `${train} ended early at ${station} (arr. ${time})`,
     missedBadge: "⛔ Missed connection",
     claimPct: (pct) => `Get ${pct}% back →`,
     claimNone: "No compensation (under 60 min)",
@@ -399,6 +403,7 @@ function buildCheck(data) {
   // the arrival at the destination, as the search's card head shows it
   let head;
   if (sim && data.arrivalDelay != null) head = delayBadge(data.arrivalDelay, t("simBadgeTooltip"));
+  else if (sim?.noData) head = badge("gray", t("noData"), t("simNoData"));
   else if (missed) head = badge("red", t("missedBadge"), missedTransfers.map((mt) => mt.station).join(", "));
   else if (UNTRACKED.has(finalLeg?.line?.product)) head = badge("gray", t("notTracked"), t("notTrackedTooltip"));
   else head = dayBadge(finalLeg?.delayOnDate, open);
@@ -440,6 +445,13 @@ function buildCheck(data) {
     legsEl.appendChild(row);
   });
   addRows(legs, open);
+  const ended = missedTransfers.find((mt) => mt.endedEarly);
+  if (sim && ended) {
+    const note = document.createElement("div");
+    note.className = "sim-note";
+    note.textContent = t("simEndedEarly", ended.trainName, ended.station, fmtTime(ended.endedArrival));
+    legsEl.appendChild(note);
+  }
   if (sim?.legs?.length) {
     const cont = document.createElement("div");
     cont.className = "leg-continuation";
@@ -447,10 +459,10 @@ function buildCheck(data) {
     legsEl.appendChild(cont);
     addRows(sim.legs, open);
   }
-  if (sim?.incomplete) {
+  if (sim?.incomplete || sim?.noData) {
     const note = document.createElement("div");
     note.className = "sim-note";
-    note.textContent = t("simIncomplete");
+    note.textContent = t(sim.incomplete ? "simIncomplete" : "simNoData");
     legsEl.appendChild(note);
   }
   panel.append(top, hint, legsEl);

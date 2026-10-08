@@ -22,6 +22,7 @@ _min_day: date | None = None
 _cache: "OrderedDict[tuple[str, str, int], dict | None]" = OrderedDict()
 _date_cache: "OrderedDict[tuple[str, str, date], dict | None]" = OrderedDict()
 _dep_date_cache: "OrderedDict[tuple[str, str, date], dict | None]" = OrderedDict()
+_ended_cache: "OrderedDict[tuple, dict | None]" = OrderedDict()
 _stations: list[dict] = []
 
 
@@ -417,3 +418,57 @@ def leg_departure_on_date(
             "canceled": bool(canceled),
         }
     return _remember(_dep_date_cache, cache_key, result)
+
+
+def last_served_stop(
+    train_number: str, origin_eva_padded: str,
+    planned_departure_local: datetime, planned_arrival_local: datetime,
+) -> dict | None:
+    """Where a train that left the origin but was cancelled at the passenger's
+    destination actually stopped: the last uncancelled stop of the same run
+    between the two, with its arrival delay. None if the origin departure is not
+    on record, was cancelled, or no stop in between was served."""
+    if _max_day is None:
+        return None
+    train_number = train_number.lstrip("0")
+    cache_key = (train_number, origin_eva_padded, planned_departure_local, planned_arrival_local)
+    if cache_key in _ended_cache:
+        return _ended_cache[cache_key]
+
+    # the run id alone is not unique (IRIS reuses it on every day the train runs),
+    # so the stops are also bounded by the leg's own planned times
+    row = _conn.execute(
+        """
+        WITH run AS (
+            SELECT train_line_ride_id
+            FROM delays
+            WHERE train_no = ? AND eva = ?
+              AND abs(date_diff('minute', departure_planned_time, ?)) <= 2
+              AND NOT is_canceled
+            LIMIT 1
+        )
+        SELECT d.eva, d.station_name, d.arrival_planned_time,
+               date_diff('minute', d.arrival_planned_time, d.arrival_change_time)
+        FROM delays d JOIN run USING (train_line_ride_id)
+        WHERE d.train_no = ?
+          AND d.arrival_planned_time > ? AND d.arrival_planned_time < ?
+          AND NOT d.is_canceled
+        ORDER BY d.arrival_planned_time DESC
+        LIMIT 1
+        """,
+        [train_number, origin_eva_padded, planned_departure_local,
+         train_number, planned_departure_local, planned_arrival_local],
+    ).fetchone()
+
+    if row is None:
+        result = None
+    else:
+        eva, name, planned, arr_delay = row
+        result = {
+            "eva": eva,
+            "name": name,
+            "plannedArrival": planned,
+            # no change message recorded means no delay was reported: on time
+            "delayMin": int(arr_delay or 0),
+        }
+    return _remember(_ended_cache, cache_key, result)

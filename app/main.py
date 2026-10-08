@@ -424,6 +424,26 @@ def _actual_arrival(leg: dict):
     return arr
 
 
+def _ended_early(leg: dict, live: bool = False) -> dict | None:
+    """For a leg cancelled at its destination: where the train that did leave the
+    origin actually stopped running, as the station to re-plan from and the time
+    the passenger got there. Parquet only, so a live day keeps the full-cancel
+    reading."""
+    nr = leg["line"]["fahrtNr"]
+    dep = _planned_dt(leg, "plannedDeparture")
+    arr = _planned_dt(leg, "plannedArrival")
+    if live or not nr or dep is None or arr is None or not leg["origin"]["id"]:
+        return None
+    stop = delays.last_served_stop(
+        str(nr).replace(" ", ""), delays.pad_eva(str(leg["origin"]["id"])), dep, arr)
+    if stop is None:
+        return None
+    return {
+        "station": {"id": stop["eva"].lstrip("0"), "name": stop["name"]},
+        "arrival": stop["plannedArrival"] + timedelta(minutes=stop["delayMin"]),
+    }
+
+
 def _departure_info(leg: dict, live: bool = False) -> dict | None:
     """That day's actual departure delay/cancellation of a train leg at its origin."""
     nr = leg["line"]["fahrtNr"]
@@ -579,17 +599,23 @@ async def _simulate_walk(legs: list[dict], window: int, replans_left: int, live:
     when the next train's actual departure (its own delay included) leaves more than
     TRANSFER_TOLERANCE_MIN minutes after the passenger arrives. On a miss or a
     cancellation, re-plan from that station to the final destination via bahn.de and
-    continue over the replacement legs the same way.
+    continue over the replacement legs the same way. A train that left but was
+    cancelled at the destination is ridden to the last stop it served, and the
+    re-plan starts there.
+
+    A tracked train ridden without an observed arrival leaves the arrival unknown
+    (noData) rather than assuming it ran on time; a later observed train restores it.
 
     Returns: extra (replacement legs actually ridden, flagged "replacement"), missed
     (first miss event at this level), missedAtLegIndex (first index in `legs` not
-    ridden), arrival (actual final arrival datetime), incomplete, uncertain."""
+    ridden), arrival (actual final arrival datetime), incomplete, uncertain, noData."""
     train_idx = [i for i, l in enumerate(legs) if not l["walking"]]
     dest = legs[train_idx[-1]]["destination"]
     uncertain = False
     prev_arrival = None          # actual arrival of the previously ridden train leg
     prev_planned_arrival = None
     prev_delay = None
+    arrival_known = True
 
     for pos, i in enumerate(train_idx):
         leg = legs[i]
@@ -597,6 +623,10 @@ async def _simulate_walk(legs: list[dict], window: int, replans_left: int, live:
         dep_planned = _planned_dt(leg, "plannedDeparture")
         dep_info = _departure_info(leg, live) if pos > 0 else None
         canceled = bool(d and d["canceled"]) or bool(dep_info and dep_info["canceled"])
+        ended = None
+        if d and d["canceled"] and not (dep_info and dep_info["canceled"]):
+            ended = _ended_early(leg, live)
+            canceled = ended is None
 
         missed_event = None
         ready = dep_planned
@@ -631,21 +661,42 @@ async def _simulate_walk(legs: list[dict], window: int, replans_left: int, live:
                         "delayThatDay": prev_delay,
                     }
 
+        replan_from = leg["origin"]
+        if missed_event is None and ended is not None:
+            # the train was boarded and ran short: the passenger is stranded where
+            # it stopped, and everything from this leg's destination on is replaced
+            replan_from = ended["station"]
+            ready = ended["arrival"]
+            missed_event = {
+                "legIndex": i, "station": ended["station"]["name"],
+                "trainName": leg["line"]["name"], "canceled": True,
+                "transferMinutes": None, "delayThatDay": None,
+                "endedEarly": True, "endedArrival": ended["arrival"].isoformat(),
+            }
+            first_unridden = i + 1
+        else:
+            first_unridden = i
+
         if missed_event is None:
+            tracked = leg["line"]["product"] not in UNTRACKED_PRODUCTS
             if d is None or (d["delayMin"] is None and not d["canceled"]):
                 uncertain = True
-            prev_arrival = _actual_arrival(leg)
+            if tracked:
+                arrival_known = bool(d and d["delayMin"] is not None)
+            prev_arrival = _actual_arrival(leg) if arrival_known else None
             prev_planned_arrival = _planned_dt(leg, "plannedArrival")
             prev_delay = d["delayMin"] if d else None
             continue
 
         # missed: re-plan from this station to the final destination
-        base = {"missedAtLegIndex": i, "missed": missed_event}
-        if replans_left <= 0 or ready is None or not leg["origin"]["id"] or not dest["id"]:
-            return {**base, "extra": [], "arrival": None, "incomplete": True, "uncertain": uncertain}
-        cand_legs = await _next_connection(leg["origin"], dest, ready, window, live)
+        base = {"missedAtLegIndex": first_unridden, "missed": missed_event}
+        if replans_left <= 0 or ready is None or not replan_from["id"] or not dest["id"]:
+            return {**base, "extra": [], "arrival": None, "incomplete": True,
+                    "uncertain": uncertain, "noData": False}
+        cand_legs = await _next_connection(replan_from, dest, ready, window, live)
         if cand_legs is None:
-            return {**base, "extra": [], "arrival": None, "incomplete": True, "uncertain": uncertain}
+            return {**base, "extra": [], "arrival": None, "incomplete": True,
+                    "uncertain": uncertain, "noData": False}
         sub = await _simulate_walk(cand_legs, window, replans_left - 1, live)
         kept = cand_legs if sub["missedAtLegIndex"] is None else cand_legs[: sub["missedAtLegIndex"]]
         for l in kept:
@@ -656,10 +707,12 @@ async def _simulate_walk(legs: list[dict], window: int, replans_left: int, live:
             "arrival": sub["arrival"],
             "incomplete": sub["incomplete"],
             "uncertain": uncertain or sub["uncertain"],
+            "noData": sub["noData"],
         }
 
     return {"extra": [], "missedAtLegIndex": None, "missed": None,
-            "arrival": prev_arrival, "incomplete": False, "uncertain": uncertain}
+            "arrival": prev_arrival, "incomplete": False, "uncertain": uncertain,
+            "noData": not arrival_known}
 
 
 # DB Fahrgastrechte: 25% of the fare back from 60 min arrival delay, 50% from 120 min
@@ -710,6 +763,8 @@ async def _past_verdict(legs: list[dict], window: int, live: bool, settled: bool
                 "actualArrival": sim["arrival"].isoformat() if sim["arrival"] else None,
                 "incomplete": sim["incomplete"],
                 "uncertain": sim["uncertain"],
+                # a replacement train's arrival was never observed: delay unknown
+                "noData": sim["noData"],
             },
         })
     else:
