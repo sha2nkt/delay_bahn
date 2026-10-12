@@ -33,6 +33,7 @@ Accounts (Firebase Auth, 2026-08-26; since 2026-09-13 the SDK's authDomain is de
 
 ## Verified
 
+- Empty Umstiegszeit (2026-10-12): a search sent with `transfer=` (some browser leaves the select unselected, ~7 % of searches since 2026-08-26) is served as Normal instead of a 422; validation errors read as text, not "[object Object]". Which browser empties the select is still unknown (not Chromium/Firefox; Safari untested).
 - Platform chips (2026-09-27): each search-result leg shows the current boarding/alighting platform (bahn.de `ezGleis`, else `gleis`), checked live on Hamburg -> München (8A-F, 22) and in headless Chrome on Tübingen -> Berlin at 1280 px and 390 px.
 
 - Upstream cancellations (2026-09-23): connections bahn.de greys out as "Reise nicht möglich" (connection-level `text.realtime.connection.cancelled` RIS note, or a train leg with `originCancelled`/`destinationCancelled`) are dropped from the search and from if-missed alternatives; past-mode lookups keep them for the verdict. Checked live on Stuttgart Hbf -> Tübingen Hbf 2026-09-24: the cancelled RE6 rows drop, bus/MEX/S1 stay.

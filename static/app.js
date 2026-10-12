@@ -1105,7 +1105,8 @@ document.getElementById("window").addEventListener("change", () => {
 // interchange time. Hidden in past mode, where a leftover value must not filter.
 function transferMinutes() {
   if (state.mode === "past") return "0";
-  return document.getElementById("transfer").value;
+  // some browsers report the select with nothing selected: that is Normal too
+  return document.getElementById("transfer").value || "0";
 }
 
 document.getElementById("transfer").addEventListener("change", () => {
@@ -1958,7 +1959,9 @@ async function fetchJourneys(pagingRef, opts = {}) {
     const wait = Math.max(1, Math.min(retryAfterSeconds(resp), RETRY_MAX_WAIT_S));
     if (!RETRYABLE.has(resp.status) || waited + wait > maxTotal) {
       const body = await resp.json().catch(() => ({}));
-      const err = new Error(body.detail || `HTTP ${resp.status}`);
+      // FastAPI's own validation errors send detail as a list of {msg} objects
+      const detail = Array.isArray(body.detail) ? body.detail.map((d) => d.msg).join("; ") : body.detail;
+      const err = new Error(detail || `HTTP ${resp.status}`);
       err.overloaded = RETRYABLE.has(resp.status);
       throw err;
     }

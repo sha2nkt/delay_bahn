@@ -829,7 +829,7 @@ async def journeys(
     dticket: str = Query("0"),
     age: str = Query("adult"),
     travellers_raw: str | None = Query(None, alias="travellers"),
-    transfer: int = Query(0),
+    transfer: str = Query("0"),
     via1: str | None = Query(None),
     via1_stay: int = Query(0, alias="via1Stay", ge=0, le=1439),
     via2: str | None = Query(None),
@@ -838,8 +838,12 @@ async def journeys(
 ):
     if window not in (7, 15, 30):
         raise HTTPException(422, "window must be 7, 15 or 30")
-    if transfer not in (0, 10, 15, 20, 25, 30, 35, 40, 45):
+    # some browsers send "transfer=" with nothing selected in the Umstiegszeit
+    # select (seen since 2026-08-26, ~7% of searches): that is the default, Normal
+    transfer = str(transfer) or "0"
+    if transfer not in ("0", "10", "15", "20", "25", "30", "35", "40", "45"):
         raise HTTPException(422, "transfer must be 0 or 10-45 in steps of 5")
+    transfer = int(transfer)
     if mode not in ("future", "past"):
         raise HTTPException(422, "mode must be future or past")
     if age not in bahn_api.TRAVELLER_TYPES:
