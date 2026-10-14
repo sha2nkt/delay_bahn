@@ -375,21 +375,22 @@ def _today() -> str:
 
 def train_reports(train: str, day: str) -> list[dict]:
     """What was reported on one train's run: per code, how many accounts
-    tapped it. The run is the train name (case and spaces ignored) on the
-    day it departed; a report without a departure falls back to the day it
-    was sent. Counts only - who reported stays private."""
+    tapped it and when the newest tap came in (UTC ISO). The run is the
+    train name (case and spaces ignored) on the day it departed; a report
+    without a departure falls back to the day it was sent. Counts only -
+    who reported stays private."""
     key = train.replace(" ", "").upper()
     if not key:
         return []
     with closing(connect()) as conn:
         rows = conn.execute(
-            "SELECT code, COUNT(*) AS n FROM problem_reports"
+            "SELECT code, COUNT(*) AS n, MAX(ts) AS last FROM problem_reports"
             " WHERE REPLACE(UPPER(train), ' ', '') = ?"
             " AND (CASE WHEN departure != '' THEN substr(departure, 1, 10) ELSE day END) = ?"
             " GROUP BY code",
             (key, day),
         ).fetchall()
-    return sorted(({"code": r["code"], "n": r["n"]} for r in rows if r["code"] in _PROBLEM_RANK),
+    return sorted(({"code": r["code"], "n": r["n"], "last": r["last"]} for r in rows if r["code"] in _PROBLEM_RANK),
                   key=lambda r: _PROBLEM_RANK[r["code"]])
 
 

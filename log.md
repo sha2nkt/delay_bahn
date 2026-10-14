@@ -2059,3 +2059,8 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - User request: the train map's report sheet ("Störung melden" while following a train) offered "Anschluss verpasst", which cannot happen on the train being followed. The map (private delaybahn-map repo) swaps that tile for "Fahrkartenkontrolle" / "Ticket inspection", so the shared report endpoint must accept the code.
 - `stories.PROBLEMS` and `main.ProblemCode` gain `ticket` (last in the order). The Delay Stories board, its compose chips and the trips page keep their fixed code lists, so the board looks the same; a ticket report is stored in `problem_reports` like any tap and only the map shows it.
 - Verified: tests/test_stories.py (43) incl. the ProblemCode/PROBLEMS pin. Ships together with or before the map change, or the map's ticket reports get a 404.
+
+## 2026-10-14 — Newest report time per code on a train's run
+
+- `stories.train_reports` (behind the map's `/api/stories/problems/train`) returns `last`, the newest report's UTC timestamp per code, next to the count. The map uses it to show a ticket inspection only for 4 h (long-distance) / 2 h (regional) after the newest report and to say "12 min ago" in its tooltips.
+- Verified: tests/test_stories.py (43); the map's freshness window and labels checked in headless Chrome with stubbed reports.
