@@ -2053,3 +2053,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Busters: `app.js` v150 -> **v151** (index.html + sw.js PRECACHE), `SHELL_VERSION` v109 -> **v110**. Live pins, every remote branch and the open worktrees read first; none past 150/v109.
 - Verified: live `curl ... &transfer=` returned 422 before the change; TestClient on the patched endpoint returns 200 for empty/missing/0/15 and 422 for 7/abc; test_degradation + test_bahn_api pass (55); headless Chromium against a local server with `#transfer.selectedIndex = -1` forced: live site shows "Fehler: [object Object]", patched copy lists the Wien Hbf -> München Hbf connections.
 - Not done: 503s from bahn.de itself (138 in the 4 days before, incl. Wien Hbf -> München Hbf on 2026-10-09) are upstream and untouched.
+
+## 2026-10-14 — Ticket inspection reports from the train map
+
+- User request: the train map's report sheet ("Störung melden" while following a train) offered "Anschluss verpasst", which cannot happen on the train being followed. The map (private delaybahn-map repo) swaps that tile for "Fahrkartenkontrolle" / "Ticket inspection", so the shared report endpoint must accept the code.
+- `stories.PROBLEMS` and `main.ProblemCode` gain `ticket` (last in the order). The Delay Stories board, its compose chips and the trips page keep their fixed code lists, so the board looks the same; a ticket report is stored in `problem_reports` like any tap and only the map shows it.
+- Verified: tests/test_stories.py (43) incl. the ProblemCode/PROBLEMS pin. Ships together with or before the map change, or the map's ticket reports get a 404.

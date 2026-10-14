@@ -1844,7 +1844,7 @@ _DepartureField = Annotated[
 # unknown code is a 422 at the edge instead of a row nothing can label; it
 # mirrors stories.PROBLEMS, and test_stories.py pins the two together.
 ProblemCode = Literal[
-    "delay", "cancelled", "missed", "ac", "wc", "crowding", "wifi", "other"
+    "delay", "cancelled", "missed", "ac", "wc", "crowding", "wifi", "other", "ticket"
 ]
 
 

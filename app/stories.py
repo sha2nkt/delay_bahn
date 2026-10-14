@@ -143,8 +143,10 @@ _STORY_COLS = (
 
 # The order the compose form offers them in, which is also the order they read
 # back in - GROUP_CONCAT has no order of its own, and alphabetical would put
-# "ac" before "delay", burying the one that matters most.
-PROBLEMS = ("delay", "cancelled", "missed", "ac", "wc", "crowding", "wifi", "other")
+# "ac" before "delay", burying the one that matters most. "ticket" (a ticket
+# check on board) comes from the train map's report sheet only; the board and
+# the compose form leave it out.
+PROBLEMS = ("delay", "cancelled", "missed", "ac", "wc", "crowding", "wifi", "other", "ticket")
 _PROBLEM_RANK = {code: i for i, code in enumerate(PROBLEMS)}
 
 
