@@ -2064,3 +2064,7 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 
 - `stories.train_reports` (behind the map's `/api/stories/problems/train`) returns `last`, the newest report's UTC timestamp per code, next to the count. The map uses it to show a ticket inspection only for 4 h (long-distance) / 2 h (regional) after the newest report and to say "12 min ago" in its tooltips.
 - Verified: tests/test_stories.py (43); the map's freshness window and labels checked in headless Chrome with stubbed reports.
+
+## 2026-10-14 — Train map: reports can be taken back
+
+- The private map's report sheet now withdraws a rider's report on a second tap of a ticked tile, through the existing `POST /api/stories/problems/<code>` with `vote: false` (the stories board's toggle); no server change. The deleted `problem_reports` row also leaves the stories board's count. Details in the delaybahn-map log.
