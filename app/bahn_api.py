@@ -809,7 +809,8 @@ async def journeys(from_id: str, to_id: str, departure_iso: str, paging_ref: str
 
     vias are the search mask's stopovers, ((location_id, stay_minutes), ...) in
     visiting order, at most two — bahn.de then only returns connections passing
-    through them with at least that much dwell.
+    through them with at least that much dwell. A stay of 0 is sent without the
+    field, as bahn.de's "< 1 min": an explicit 0 makes it return no connections.
 
     products narrows the search to a subset of ALL_PRODUCTS (the bahn.de
     "Verkehrsmittel" toggles); None searches everything.
@@ -853,7 +854,8 @@ async def journeys(from_id: str, to_id: str, departure_iso: str, paging_ref: str
         body["minUmstiegszeit"] = transfer
     if vias:
         body["zwischenhalte"] = [
-            {"id": via_id, "aufenthaltsdauer": stay} for via_id, stay in vias]
+            {"id": via_id, "aufenthaltsdauer": stay} if stay else {"id": via_id}
+            for via_id, stay in vias]
     if paging_ref:
         body["pagingReference"] = paging_ref
     key = ("journeys", from_id, to_id, departure_iso, paging_ref, dticket, travellers, transfer, vias, products)

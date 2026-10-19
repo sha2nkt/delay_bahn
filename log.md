@@ -2068,3 +2068,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 ## 2026-10-14 — Train map: reports can be taken back
 
 - The private map's report sheet now withdraws a rider's report on a second tap of a ticked tile, through the existing `POST /api/stories/problems/<code>` with `vote: false` (the stories board's toggle); no server change. The deleted `problem_reports` row also leaves the stories board's count. Details in the delaybahn-map log.
+
+## 2026-10-19 — Stopovers with a 00:00 stay find connections again
+
+- User report (Iphofen → Zwischenhalt Bad Friedrichshall Hbf → Kaiserslautern, no results): a stopover with the stay left at 00:00 reached bahn.de as `{"id": …, "aufenthaltsdauer": 0}`, and `/angebote/fahrplan` answers an explicit 0 with no connections (0 vs 5 with stay 1 or no field, probed from hetzner3). bahn.de's own mask shows that stay as "< 1min" and drops the field: its `SucheStateToAngebotsanfrageMapper` maps `aufenthaltsdauer: e.aufenthaltsdauerInMinutes || void 0`.
+- `bahn_api.journeys` now sends a 0 stay as `{"id": …}` only. The cache key keeps the stay, so nothing else changes; backend only, no busters.
+- Verified on hetzner3 with the patched module against a request built the way bahn.de's mapper builds it, stay 0, 20.10. 08:00: Iphofen → Bad Friedrichshall → Kaiserslautern 5/5 identical (first 08:51 → 13:24, RE10 / RE8 / RE10a / RE1), Würzburg → Frankfurt(Main)Hbf → Köln 5/5 identical.
