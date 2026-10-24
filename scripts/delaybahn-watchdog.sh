@@ -22,9 +22,18 @@
 #      read older than 10 min, 07-22 Berlin only (few trains run at night), and
 #      once more on recovery. A restart's rebuild (rtTrips 0 for ~5 min) stays
 #      under the window count.
+#   4. COUNTRY MISSING: a country with zero trains on the live map. /health
+#      stays green when the map breaks: on 2026-10-23/24 every /api/fleet
+#      answered 500 for ~10 h and again for an hour, unnoticed. Asks /api/fleet
+#      for all of Europe, as the page does, counts trains per country (the
+#      countries come from /health's fleet block), and alerts per country after
+#      EMPTY_WINDOWS consecutive windows at zero - an /api/fleet error counts as
+#      zero everywhere - and once more on recovery. Around the clock; the window
+#      count covers a restart's rebuild (Austria took 11 min on 2026-10-24).
 #
 # Testing: DRY_RUN=1 prints alerts instead of sending; HEALTH_FILE=<path>
-# feeds the detector a canned /health body instead of hitting the network;
+# feeds the detector a canned /health body instead of hitting the network
+# (FLEET_FILE likewise for /api/fleet);
 # BLOCK_REMIND_SECONDS=0 makes every window re-page so the reminder path can
 # be exercised without waiting.
 #
@@ -45,6 +54,8 @@ UPSTATE="${HOME}/.local/state/delaybahn-watchdog-upstream.json"
 GREYSTATE="${HOME}/.local/state/delaybahn-watchdog-grey.json"
 GREY_MIN_TRIPS=${GREY_MIN_TRIPS:-1500}
 GREY_WINDOWS=${GREY_WINDOWS:-3}
+EMPTYSTATE="${HOME}/.local/state/delaybahn-watchdog-empty.json"
+EMPTY_WINDOWS=${EMPTY_WINDOWS:-4}
 # how often an unresolved block re-pages; rounds up to the 5-min cron period
 BLOCK_REMIND_SECONDS=${BLOCK_REMIND_SECONDS:-600}
 # ssh alias, resolved in ~/.ssh/config — the origin IP is deliberately not
@@ -212,3 +223,75 @@ case "$grey" in
     notify "delaybahn map live again" default white_check_mark \
       "${grey#RECOVERED } German trips match the realtime feed again." ;;
 esac
+
+# ------------------------------------------------- check 4: country missing
+# the snapshot (~1 MB by day) goes over as a file: past 128 KB an environment
+# variable fails exec with "Argument list too long"
+if [ -n "$FLEET_FILE" ]; then
+  fleet_file=$FLEET_FILE; fcode=200
+else
+  ts=$(date +%s)
+  fleet_file=$(mktemp)
+  trap 'rm -f "$fleet_file"' EXIT
+  fcode=$(curl -4 -s -o "$fleet_file" -w '%{http_code}' --max-time 90 \
+    "https://delaybahn.com/api/fleet?bbox=-5,36,25,60&from=$((ts - 30))&to=$((ts + 180))&simple=1&regional=1")
+fi
+empty=$(HEALTH_BODY="$body" FCODE="$fcode" WINDOWS="$EMPTY_WINDOWS" python3 - "$EMPTYSTATE" "$fleet_file" <<'PY'
+import json, os, sys
+from collections import Counter
+
+state_path = sys.argv[1]
+try:
+    f = json.loads(os.environ["HEALTH_BODY"]).get("fleet")
+except Exception:
+    sys.exit(0)
+if not f:
+    sys.exit(0)                     # map not installed on this build
+countries = ["de"] + [k for k, v in f.items() if isinstance(v, dict) and "liveAgeSeconds" in v]
+counts, err = Counter(), None
+if os.environ["FCODE"] != "200":
+    err = f"/api/fleet HTTP {os.environ['FCODE']}"
+else:
+    try:
+        counts = Counter(t.get("cc") or "de" for t in json.load(open(sys.argv[2]))["trains"])
+    except Exception:
+        err = "/api/fleet unreadable"
+st = {}
+if os.path.exists(state_path):
+    try: st = json.load(open(state_path))
+    except Exception: st = {}
+# one alert per check, naming every country that crossed: a broken /api/fleet
+# empties all of them at once
+gone, back = [], []
+for cc in countries:
+    c = st.get(cc, {"streak": 0, "alerted": False})
+    n = counts.get(cc, 0)
+    if n:
+        if c["alerted"]:
+            back.append(f"{cc.upper()} {n}")
+        c = {"streak": 0, "alerted": False}
+    else:
+        c["streak"] += 1
+        if c["streak"] >= int(os.environ["WINDOWS"]) and not c["alerted"]:
+            c["alerted"] = True
+            gone.append(cc.upper())
+    st[cc] = c
+json.dump(st, open(state_path, "w"))
+if gone:
+    print(f"EMPTY {','.join(gone)} {err or 'zero trains in the response'}")
+if back:
+    print(f"RECOVERED {', '.join(back)}")
+PY
+)
+
+while read -r kind rest; do
+  case "$kind" in
+    EMPTY)
+      read -r names why <<<"$rest"
+      notify "delaybahn map: no ${names//,/, } trains" high "world_map,warning" \
+        "The live map has shown zero trains for ${names//,/, } in $EMPTY_WINDOWS checks in a row (~$((EMPTY_WINDOWS * 5)) min): $why. Check: ssh $SERVER 'journalctl -u delaybahn --since -20min | grep -E \"Error|Traceback\"' and curl -s https://delaybahn.com/health | python3 -m json.tool (fleet)" ;;
+    RECOVERED)
+      notify "delaybahn map: trains back" default white_check_mark \
+        "On the live map again: $rest trains." ;;
+  esac
+done <<<"$empty"
