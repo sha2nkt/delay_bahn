@@ -2100,3 +2100,8 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Busters: app.js 153, SHELL_VERSION v112 (live was 152 / v111).
 - Verified: tests (312); before/after screenshots in headless Chrome against a local harness with stubbed bahn.de payload (RE8 live +47; RE10b live +20 leaving 4 min) and the reported trip copied from hetzner3 with a stubbed login.
 - Not done: saved trips do not show live or actual times next to the plan; the day's outcome stays in the past-trip check.
+
+## 2026-10-26 — Revert the past-date block on the forecast page
+
+- Reverted 62f18f1 at the user's request: the forecast page (`/`, `/en/`) searches past dates again, and the past-date callout, its CSS and the `past-date-blocked` / `past-date-hint` tracking are gone. The live-time transfer change (532b4b0) stays.
+- Busters moved forward, not back, so no edge-cached file mismatches: app.js 154, style.css 138 (index, impressum, leaderboard, login, stories, trips), SHELL_VERSION v113.
