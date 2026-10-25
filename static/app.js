@@ -282,6 +282,9 @@ const I18N = {
     pastLead: "Gib deine Reise ein, um zu sehen, wie sie tatsächlich verlief – mit Verspätungen, verpassten Anschlüssen und deinem Entschädigungsanspruch.",
     pastCoverageLabel: "Daten verfügbar:",
     pastExit: "← Zur Verbindungssuche",
+    pastDateHintTitle: "Dieses Datum liegt in der Vergangenheit",
+    pastDateHint: "Die Verbindungssuche zeigt Prognosen für kommende Fahrten. Wie eine vergangene Fahrt tatsächlich lief – mit Verspätungen und Entschädigungsanspruch – zeigt der Verspätungs-Check für die letzten 30 Tage.",
+    pastDateHintLink: "Zum Verspätungs-Check →",
     searchPast: "Entschädigung prüfen",
     dateOutOfRange: (a, b) => `Verspätungsdaten sind nur für Reisen vom ${a} bis ${b} verfügbar.`,
     dateNotYet: (d) => `Verspätungsdaten für dieses Datum sind noch nicht verfügbar. Neue Daten kommen jeden Morgen dazu – schau ab dem ${d} wieder vorbei.`,
@@ -590,6 +593,9 @@ const I18N = {
     pastLead: "Enter your journey to see the trip you actually took – including delays, missed connections and what you can claim back.",
     pastCoverageLabel: "Data available:",
     pastExit: "← Back to connection search",
+    pastDateHintTitle: "This date is in the past",
+    pastDateHint: "The connection search forecasts upcoming journeys. To see how a past journey actually went – with delays and what you can claim back – use the delay check, which covers the last 30 days.",
+    pastDateHintLink: "Open the delay check →",
     searchPast: "Check compensation",
     dateOutOfRange: (a, b) => `Delay data is only available for journeys from ${a} to ${b}.`,
     dateNotYet: (d) => `Delay data for this date isn't available yet. New data arrives every morning – check back on ${d}.`,
@@ -1077,7 +1083,8 @@ function scrollResultsIntoView() {
 
 searchBtn.addEventListener("click", async () => {
   await search();
-  scrollResultsIntoView();
+  // a blocked past-date search has no outcome below; its hint sits under the button
+  if (pastDateHintEl.hidden) scrollResultsIntoView();
 });
 earlierBtn.addEventListener("click", () => loadPage("earlier"));
 laterBtn.addEventListener("click", () => loadPage("later"));
@@ -1442,6 +1449,31 @@ document.getElementById("return-remove").addEventListener("click", () => {
 dateEl.addEventListener("change", () => {
   returnDateEl.min = dateEl.value;
   if (returnDateEl.value && returnDateEl.value < dateEl.value) returnDateEl.value = dateEl.value;
+  syncPastDateHint();
+});
+
+// forecasts for a day that is already over answer nothing anyone asks: the
+// forecast page does not search one and points at the compensation check instead
+const pastDateHintEl = document.getElementById("past-date-hint");
+function isPastForecastDate() {
+  const todayIso = new Date().toLocaleDateString("sv-SE");  // local YYYY-MM-DD
+  return !PAST_PAGE && !!dateEl.value && dateEl.value < todayIso;
+}
+function syncPastDateHint() {
+  pastDateHintEl.hidden = !isPastForecastDate();
+}
+
+// href built at click time so the stations picked by then carry over
+document.getElementById("past-date-hint-link").addEventListener("click", (e) => {
+  const params = new URLSearchParams();
+  if (state.from && state.to) {
+    params.set("fromId", state.from.id); params.set("from", state.from.name);
+    params.set("toId", state.to.id); params.set("to", state.to.name);
+    params.set("date", dateEl.value);
+    params.set("time", document.getElementById("time").value);
+  }
+  e.currentTarget.href = `${pagePath("past")}${params.size ? `?${params}` : ""}`;
+  track("past-date-hint");
 });
 
 // --- stopovers (the last row of the advanced-options panel) ---
@@ -2063,6 +2095,17 @@ function syncUrl() {
 }
 
 async function search() {
+  if (isPastForecastDate()) {
+    syncPastDateHint();
+    setStatus(null);
+    statusEl.classList.remove("error");
+    // re-run the attention pulse on a hint that was already showing
+    pastDateHintEl.classList.remove("pulse");
+    void pastDateHintEl.offsetWidth;
+    pastDateHintEl.classList.add("pulse");
+    track("past-date-blocked");
+    return;
+  }
   // stopover fields count like from/to, but only where their direction is live
   const viaKeys = state.mode === "past" ? []
     : [...VIA_KEYS.outbound, ...(state.returnTrip ? VIA_KEYS.return : [])]
@@ -4548,6 +4591,7 @@ const qp = new URLSearchParams(location.search);
     document.getElementById("to").value = state.to.name;
     // date after initPastPage so a restored past date wins over the coverage clamp
     if (qp.get("date")) document.getElementById("date").value = qp.get("date");
+    syncPastDateHint();
     if (qp.get("time")) document.getElementById("time").value = qp.get("time");
     if (["7", "15", "30"].includes(qp.get("window"))) document.getElementById("window").value = qp.get("window");
     // "1" is the legacy value from before the "all trains" mode existed

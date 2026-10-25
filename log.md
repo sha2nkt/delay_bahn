@@ -2082,3 +2082,11 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - The snapshot (~1 MB by day) goes to python as a file: as an environment variable it failed exec with "Argument list too long" on the first live dry run, which the small canned tests had not caught.
 - Verified: DRY_RUN with canned /health + /api/fleet bodies (one country missing, broken API, recoveries), and a sandboxed DRY_RUN against the live site (silent, all four countries at streak 0). Installed to ~/.local/bin on ps083 (5-min cron, unchanged).
 - Not done: quiet hours. If Swiss or Austrian traffic really reaches zero at night, this pages; add per-country hours if it does.
+
+## 2026-10-25 — Forecast page stops past-date searches and points to the delay check
+
+- Feedback #1607 (2026-10-24, thumbs down, forecast page): "Ich suche die Verbindung vom 01.09.2026". The forecast page searched any past date and showed that day's connections with forecast stats (last 7/15/30 days), which read as what happened on that day. The compensation check only covers the last 30 days (24.09 at the time), so 01.09 was out of reach on either page.
+- The forecast page (`/`, `/en/`) no longer searches a date before today (local date; earlier trains today still search). A callout under the search button explains that the search forecasts upcoming journeys and links to the delay check (`/entschaedigung`, `/en/compensation`), carrying stations, date and time over. It appears as soon as a past date is picked or restored from a URL; pressing search pulses it and skips the scroll-to-results. Tracking: `past-date-blocked`, `past-date-hint`.
+- Busters: app.js 152, style.css 137 (index, impressum, leaderboard, login, stories, trips), SHELL_VERSION v111.
+- Verified: headless Chrome against the static files, DE and EN, desktop and phone width: callout shown and no request made for 01.09.2026, nothing shown for today.
+- Not done: the delay check's 30-day range is unchanged (older months exist as monthly parquets but are not served). Old results stay on screen below the callout when the date is changed to a past one after a search, like the form's other errors.
