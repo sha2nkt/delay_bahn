@@ -19,7 +19,7 @@ from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from app import delays, reports
+from app import delays, reports, transfers
 from app.ratelimit import SlidingWindowLimiter
 
 # own subdirectory: the pipeline rebuilds and prunes files directly under data/
@@ -268,7 +268,7 @@ _TIGHT_KEYS = ("legIndex", "station", "transferMinutes", "medianDelay", "unlikel
 def _snapshot_view(snapshot: str) -> dict:
     """What the page draws of a stored journey: its legs with the delay
     statistics they showed at the time (per-day detail dropped), the tight
-    transfers the search flagged, and the window the statistics covered."""
+    transfers on the timetable, and the window the statistics covered."""
     try:
         data = json.loads(snapshot)
         journey, search = data["journey"], data.get("search") or {}
@@ -295,10 +295,13 @@ def _snapshot_view(snapshot: str) -> dict:
             stats = leg["delayStats"]
             row["delayStats"] = {k: stats.get(k) for k in _STATS_KEYS} if isinstance(stats, dict) else None
         out.append(row)
-    tight = [
-        {k: tt.get(k) for k in _TIGHT_KEYS}
-        for tt in (journey.get("tightTransfers") or []) if isinstance(tt, dict)
-    ]
+    # the search's own flags may rest on live times of the moment it was saved,
+    # which the page neither shows nor updates: judged again on the timetable
+    try:
+        planned = [{**leg, "arrival": None, "departure": None} for leg in legs if isinstance(leg, dict)]
+        tight = [{k: tt.get(k) for k in _TIGHT_KEYS} for tt in transfers.tight_transfers(planned)]
+    except (KeyError, TypeError, ValueError):
+        tight = []
     window = search.get("window")
     return {
         "legs": out,

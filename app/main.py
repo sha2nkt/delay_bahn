@@ -25,6 +25,10 @@ from app import (
     stories, translate, trips,
 )
 from app.config import env_int
+from app.transfers import (
+    TRANSFER_TOLERANCE_MIN, tight_transfers,
+    transfer_margin as _transfer_margin, transfer_pairs as _transfer_pairs, walk_minutes as _walk_minutes,
+)
 
 # the live train map is a separate, private package; the site runs without it,
 # minus the map, so a public clone starts as before
@@ -307,61 +311,6 @@ async def _warm_live(data: dict | None) -> None:
     await live_delays.warm(stops)
 
 
-# minutes of slack that must remain after the median delay for a transfer to count as safe
-TRANSFER_TOLERANCE_MIN = 2
-# median delay exceeding the transfer time by more than this makes the transfer unlikely
-UNLIKELY_EXCESS_MIN = 30
-
-
-def _walk_minutes(legs: list[dict], a: int, b: int) -> float:
-    """Total walking time between train legs a and b."""
-    return sum(
-        (
-            delays.to_berlin_naive(w["plannedArrival"])
-            - delays.to_berlin_naive(w["plannedDeparture"])
-        ).total_seconds() / 60
-        for w in legs[a + 1 : b]
-        if w["plannedArrival"] and w["plannedDeparture"]
-    )
-
-
-def _transfer_pairs(legs: list[dict]):
-    """Yield (arriving_leg_idx, departing_leg_idx, transfer_min) for each train-to-train
-    transfer; walking legs in between eat into the buffer. Live (echtzeit) times win over
-    the schedule: on today's connections bahn.de plans with them, and a transfer that
-    looks impossible on paper can be fine because the next train is itself delayed."""
-    train_idx = [i for i, leg in enumerate(legs) if not leg["walking"]]
-    for a, b in zip(train_idx, train_idx[1:]):
-        prev, nxt = legs[a], legs[b]
-        if not prev["plannedArrival"] or not nxt["plannedDeparture"]:
-            continue
-        gap_min = (
-            delays.to_berlin_naive(nxt.get("departure") or nxt["plannedDeparture"])
-            - delays.to_berlin_naive(prev.get("arrival") or prev["plannedArrival"])
-        ).total_seconds() / 60
-        yield a, b, gap_min - _walk_minutes(legs, a, b)
-
-
-def tight_transfers(legs: list[dict]) -> list[dict]:
-    """Transfers where the arriving leg's median delay leaves <= TRANSFER_TOLERANCE_MIN
-    minutes to reach the next train."""
-    out = []
-    for a, b, transfer_min in _transfer_pairs(legs):
-        stats = legs[a].get("delayStats")
-        if not stats or stats["medianDelay"] is None:
-            continue
-        if transfer_min - stats["medianDelay"] <= TRANSFER_TOLERANCE_MIN:
-            out.append({
-                "station": legs[a]["destination"]["name"],
-                "legIndex": a,  # index of the arriving leg in `legs`
-                "depLegIndex": b,  # index of the departing leg that would be missed
-                "transferMinutes": max(0, round(transfer_min)),
-                "medianDelay": stats["medianDelay"],
-                "unlikely": stats["medianDelay"] - transfer_min > UNLIKELY_EXCESS_MIN,
-            })
-    return out
-
-
 # how often a past journey may be re-planned after missed connections
 MAX_REPLANS = 3
 
@@ -552,7 +501,9 @@ async def _if_missed_connection(legs: list[dict], tt: dict, window: int,
     dest = [l for l in legs if not l["walking"]][-1]["destination"]
     if arr is None or not origin["id"] or not dest["id"]:
         return None
-    ready = arr + timedelta(minutes=_walk_minutes(legs, a, b) + tt["medianDelay"])
+    # the live delay where bahn.de has one, else the typical one
+    late = tt["liveDelay"] if "liveDelay" in tt else tt["medianDelay"]
+    ready = arr + timedelta(minutes=_walk_minutes(legs, a, b) + late)
     # `window` belongs in the key: it decides the span leg_delay_stats summarises
     key = (origin["id"], dest["id"], ready.strftime("%Y-%m-%dT%H:%M"), window, dticket, products)
     if key in _if_missed_cache:
@@ -945,8 +896,8 @@ async def journeys(
             # riskiest one ranks the journey in the risk sort - covers all
             # transfers, not just tight ones, so no-risk journeys rank too
             transfer_margins = [
-                transfer_min - stats["medianDelay"]
-                for a, _b, transfer_min in _transfer_pairs(legs)
+                _transfer_margin(planned_min, live_min, stats["medianDelay"])
+                for a, _b, planned_min, live_min in _transfer_pairs(legs)
                 if (stats := legs[a].get("delayStats")) and stats["medianDelay"] is not None
             ]
             journey.update({

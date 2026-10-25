@@ -2090,3 +2090,13 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Busters: app.js 152, style.css 137 (index, impressum, leaderboard, login, stories, trips), SHELL_VERSION v111.
 - Verified: headless Chrome against the static files, DE and EN, desktop and phone width: callout shown and no request made for 01.09.2026, nothing shown for today.
 - Not done: the delay check's 30-day range is unchanged (older months exist as monthly parquets but are not served). Old results stay on screen below the callout when the date is changed to a past one after a search, like the form's other errors.
+
+## 2026-10-25 — Transfer warnings on live times say so, and saved trips judge the timetable
+
+- User report (saved trip 21.10., Iphofen → Kaiserslautern): "0 min Umstiegszeit – dieser Zug kommt typischerweise +1 min verspätet" at Bad Friedrichshall, where the planned change is 16 min. The trip was saved at 16:16 while the RE8 ran live +47 (17:47 vs 17:16 departure): the live gap of -31 min was clamped to 0 and, minus the +1 median, flagged unlikely. The banner mixed that live gap with the historical median, and the saved-trips page froze it while showing only planned times. Not the stopover: the search had none.
+- Transfer logic moved to `app/transfers.py`. `transfer_pairs` yields the planned and the live gap separately. With a live time (only set where bahn.de deviates from the schedule) the live gap alone decides: <= 2 min tight, < 0 unlikely; the median delay is no longer subtracted on top (it double-counted today's delay). Without one: planned gap minus median, unchanged. `transferMinutes` is always the planned gap; live entries carry `liveMinutes` and `liveDelay`. The risk sort's `minTransferMargin` and the if-missed replan (now from the live delay) follow.
+- Search page: live warnings get their own wording and badge tooltips (DE/EN), e.g. "this train is currently running +47 min late – the 16 min connection will be missed".
+- Saved trips (`trips._snapshot_view`): tight transfers are recomputed from planned times and the stored stats, ignoring the flags saved with the search. The reported trip now shows no warning (16 min vs +1).
+- Busters: app.js 153, SHELL_VERSION v112 (live was 152 / v111).
+- Verified: tests (312); before/after screenshots in headless Chrome against a local harness with stubbed bahn.de payload (RE8 live +47; RE10b live +20 leaving 4 min) and the reported trip copied from hetzner3 with a stubbed login.
+- Not done: saved trips do not show live or actual times next to the plan; the day's outcome stays in the past-trip check.

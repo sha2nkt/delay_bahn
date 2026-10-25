@@ -224,6 +224,10 @@ const I18N = {
     tightBadge: "⚠ Knapper Umstieg",
     tightBadgeTooltip: (stations) => `Die typische Verspätung lässt wenig Umstiegszeit (${stations})`,
     tightDetail: (transfer, delay) => `${transfer} min Umstiegszeit – dieser Zug kommt typischerweise +${delay} min verspätet an`,
+    unlikelyLiveTooltip: (stations) => `Mit der aktuellen Verspätung wird der Anschluss verpasst (${stations})`,
+    tightLiveTooltip: (stations) => `Die aktuelle Verspätung lässt wenig Umstiegszeit (${stations})`,
+    liveMissedDetail: (late, transfer) => `dieser Zug ist aktuell +${late} min verspätet – der Anschluss mit ${transfer} min Umstiegszeit wird verpasst`,
+    liveTightDetail: (late, transfer, left) => `dieser Zug ist aktuell +${late} min verspätet – von ${transfer} min Umstiegszeit bleiben nur ${left} min`,
     ifMissedBtn: (time) => `Falls verpasst: Ankunft ${time}`,
     ifMissedLead: "↳ Nächste realistische Verbindung:",
     footerStories: "Delay Geschichten",
@@ -536,6 +540,10 @@ const I18N = {
     tightBadge: "⚠ Tight transfer",
     tightBadgeTooltip: (stations) => `Typical delay leaves little time to change trains (${stations})`,
     tightDetail: (transfer, delay) => `${transfer} min to change trains – this train typically arrives +${delay} min late`,
+    unlikelyLiveTooltip: (stations) => `At its current delay the connection will be missed (${stations})`,
+    tightLiveTooltip: (stations) => `The current delay leaves little time to change trains (${stations})`,
+    liveMissedDetail: (late, transfer) => `this train is currently running +${late} min late – the ${transfer} min connection will be missed`,
+    liveTightDetail: (late, transfer, left) => `this train is currently running +${late} min late – only ${left} of the ${transfer} min to change trains remain`,
     ifMissedBtn: (time) => `If missed: arrival ${time}`,
     ifMissedLead: "↳ Next realistic connection:",
     footerStories: "Delay Stories",
@@ -3932,7 +3940,8 @@ function journeyBadges(journey, finalLeg) {
     const badge = document.createElement("span");
     badge.className = "badge red";
     badge.textContent = t("unlikelyBadge");
-    badge.title = t("unlikelyBadgeTooltip", unlikelyTts.map((tt) => tt.station).join(", "));
+    const live = unlikelyTts.every((tt) => tt.liveMinutes != null);
+    badge.title = t(live ? "unlikelyLiveTooltip" : "unlikelyBadgeTooltip", unlikelyTts.map((tt) => tt.station).join(", "));
     return { badge, tightBadge: null, stats: null };
   }
   if (UNTRACKED_PRODUCTS.has(finalLeg?.line?.product)) {
@@ -3946,7 +3955,8 @@ function journeyBadges(journey, finalLeg) {
     tightBadge = document.createElement("span");
     tightBadge.className = "badge yellow";
     tightBadge.textContent = t("tightBadge");
-    tightBadge.title = t("tightBadgeTooltip", tts.map((tt) => tt.station).join(", "));
+    const live = tts.every((tt) => tt.liveMinutes != null);
+    tightBadge.title = t(live ? "tightLiveTooltip" : "tightBadgeTooltip", tts.map((tt) => tt.station).join(", "));
   }
   return { badge, tightBadge, stats };
 }
@@ -4192,7 +4202,11 @@ function render() {
         tightStrips.push({ strip: warn, legIndex: i });
         const lead = document.createElement("strong");
         lead.textContent = tt.unlikely ? `⛔ ${t("unlikelyTitle")}` : `⚠ ${t("tightTitle")}`;
-        warn.append(lead, document.createTextNode(" " + t("tightDetail", tt.transferMinutes, tt.medianDelay)));
+        // live times already carry today's delay, so they get their own wording
+        const detail = tt.liveMinutes == null
+          ? t("tightDetail", tt.transferMinutes, tt.medianDelay)
+          : t(tt.unlikely ? "liveMissedDetail" : "liveTightDetail", tt.liveDelay, tt.transferMinutes, tt.liveMinutes);
+        warn.append(lead, document.createTextNode(" " + detail));
         if (tt.ifMissed?.legs?.length) {
           const btn = document.createElement("button");
           btn.type = "button";
