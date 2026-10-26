@@ -811,6 +811,9 @@ body.past-mode .trip-steps { display: none; }
 /* journey report: bell next to the booking button + modal (reuses the .claim-modal shell) */
 .book-row { display: flex; gap: 8px; }
 .book-row .book-btn { flex: 1; text-align: center; }
+/* compensation check: the claim button or its "no claim" note beside the bookmark */
+.book-row .claim-btn { flex: 1; text-align: center; }
+.book-row .claim-none { flex: 1; align-self: center; white-space: normal; }
 /* a train under way: "Track live" to the train map, beside the booking button */
 .track-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;

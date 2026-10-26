@@ -2105,3 +2105,12 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 
 - Reverted 62f18f1 at the user's request: the forecast page (`/`, `/en/`) searches past dates again, and the past-date callout, its CSS and the `past-date-blocked` / `past-date-hint` tracking are gone. The live-time transfer change (532b4b0) stays.
 - Busters moved forward, not back, so no edge-cached file mismatches: app.js 154, style.css 138 (index, impressum, leaderboard, login, stories, trips), SHELL_VERSION v113.
+
+## 2026-10-26 — Bookmark on the compensation check
+
+- User request: the compensation check (`/entschaedigung`, `/en/compensation`) showed only the claim button or note per journey, without the Meine Fahrten bookmark the forecast page has beside "Book".
+- Past-mode journey heads now put the claim button / "no claim" note and the same `tripButton` in a `.book-row`; the saved url is `bahnDeUrl(journey, null)` like the forecast card. The backend already accepts past departures (only > 400 days ahead is refused), and the trips page sorts them into past trips.
+- Phone width: the note wraps inside the row (`white-space: normal`) so the bookmark stays on screen; the claim button stretches like the book button.
+- Busters: app.js 155, style.css 139 (index, impressum, leaderboard, login, stories, trips), SHELL_VERSION v114.
+- Verified: Playwright + Chrome against local servers (main vs branch), Hamburg → Bremen 17.10., desktop 1100 px and phone 390 px, before/after screenshots; the claim-button case with a sample button injected (no claimable trip in the local data).
+- Not done: a signed-in save press was not exercised (no test account).

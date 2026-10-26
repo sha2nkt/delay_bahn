@@ -4053,7 +4053,11 @@ function render() {
           : journey.pending ? t("claimPending")
           : t("noData");
       }
-      head.append(times, meta, spacer, badge, action);
+      // the bookmark files the past journey under Meine Fahrten, as on the forecast page
+      const bookSlot = document.createElement("div");
+      bookSlot.className = "book-row";
+      bookSlot.append(action, tripButton([{ kind: "oneway", journey }], bahnDeUrl(journey, null)));
+      head.append(times, meta, spacer, badge, bookSlot);
     } else {
       const price = priceNode(journey.price, journey);
 
