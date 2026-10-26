@@ -286,6 +286,9 @@ const I18N = {
     pastLead: "Gib deine Reise ein, um zu sehen, wie sie tatsächlich verlief – mit Verspätungen, verpassten Anschlüssen und deinem Entschädigungsanspruch.",
     pastCoverageLabel: "Daten verfügbar:",
     pastExit: "← Zur Verbindungssuche",
+    pastDateHintTitle: "Dieses Datum liegt in der Vergangenheit",
+    pastDateHint: "Sieh dir an, wie eine Fahrt tatsächlich lief und was du zurückbekommst.",
+    pastDateHintLink: "Entschädigung beantragen →",
     searchPast: "Entschädigung prüfen",
     dateOutOfRange: (a, b) => `Verspätungsdaten sind nur für Reisen vom ${a} bis ${b} verfügbar.`,
     dateNotYet: (d) => `Verspätungsdaten für dieses Datum sind noch nicht verfügbar. Neue Daten kommen jeden Morgen dazu – schau ab dem ${d} wieder vorbei.`,
@@ -598,6 +601,9 @@ const I18N = {
     pastLead: "Enter your journey to see the trip you actually took – including delays, missed connections and what you can claim back.",
     pastCoverageLabel: "Data available:",
     pastExit: "← Back to connection search",
+    pastDateHintTitle: "This date is in the past",
+    pastDateHint: "See how a journey actually went and what you can claim back.",
+    pastDateHintLink: "Claim compensation →",
     searchPast: "Check compensation",
     dateOutOfRange: (a, b) => `Delay data is only available for journeys from ${a} to ${b}.`,
     dateNotYet: (d) => `Delay data for this date isn't available yet. New data arrives every morning – check back on ${d}.`,
@@ -1450,6 +1456,31 @@ document.getElementById("return-remove").addEventListener("click", () => {
 dateEl.addEventListener("change", () => {
   returnDateEl.min = dateEl.value;
   if (returnDateEl.value && returnDateEl.value < dateEl.value) returnDateEl.value = dateEl.value;
+  syncPastDateHint();
+});
+
+// a forecast for a day that is already over is rarely what is wanted: the
+// search still runs, and a note points at the compensation check
+const pastDateHintEl = document.getElementById("past-date-hint");
+function isPastForecastDate() {
+  const todayIso = new Date().toLocaleDateString("sv-SE");  // local YYYY-MM-DD
+  return !PAST_PAGE && !!dateEl.value && dateEl.value < todayIso;
+}
+function syncPastDateHint() {
+  pastDateHintEl.hidden = !isPastForecastDate();
+}
+
+// href built at click time so the stations picked by then carry over
+document.getElementById("past-date-hint-link").addEventListener("click", (e) => {
+  const params = new URLSearchParams();
+  if (state.from && state.to) {
+    params.set("fromId", state.from.id); params.set("from", state.from.name);
+    params.set("toId", state.to.id); params.set("to", state.to.name);
+    params.set("date", dateEl.value);
+    params.set("time", document.getElementById("time").value);
+  }
+  e.currentTarget.href = `${pagePath("past")}${params.size ? `?${params}` : ""}`;
+  track("past-date-hint");
 });
 
 // --- stopovers (the last row of the advanced-options panel) ---
@@ -4566,6 +4597,7 @@ const qp = new URLSearchParams(location.search);
     document.getElementById("to").value = state.to.name;
     // date after initPastPage so a restored past date wins over the coverage clamp
     if (qp.get("date")) document.getElementById("date").value = qp.get("date");
+    syncPastDateHint();
     if (qp.get("time")) document.getElementById("time").value = qp.get("time");
     if (["7", "15", "30"].includes(qp.get("window"))) document.getElementById("window").value = qp.get("window");
     // "1" is the legacy value from before the "all trains" mode existed

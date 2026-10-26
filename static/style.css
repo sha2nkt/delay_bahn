@@ -110,6 +110,28 @@ main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
    of width and wraps them to a line of their own, the button still sits right
    beside the switches instead of being orphaned under the fields. */
 .search-actions { display: flex; align-items: center; gap: 12px; }
+/* a full row of its own under the search button */
+.past-date-hint {
+  flex-basis: 100%; display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; background: #fff5f4;
+  border: 1px solid #f6c9c7; border-left: 4px solid var(--brand-red); border-radius: 8px;
+}
+.past-date-hint[hidden] { display: none; }
+.past-date-hint-icon { flex: none; color: var(--brand-red); }
+.past-date-hint-text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.past-date-hint-text strong { font-size: 15px; color: var(--text); }
+.past-date-hint-text span { font-size: 13px; line-height: 1.45; color: var(--text-muted); }
+.past-date-hint-go {
+  flex: none; padding: 10px 16px; border-radius: 6px;
+  background: var(--brand-red); color: #fff; font-size: 14px; font-weight: 600;
+  text-decoration: none; white-space: nowrap; transition: background .15s ease;
+}
+.past-date-hint-go:hover { background: var(--brand-red-dark); }
+@media (max-width: 700px) {
+  .past-date-hint { flex-wrap: wrap; align-items: flex-start; }
+  .past-date-hint-text { flex-basis: calc(100% - 42px); }
+  .past-date-hint-go { flex-basis: 100%; text-align: center; }
+}
 /* occasional settings (age bracket, transfer time, transport modes, stopovers)
    fold away behind an outlined secondary button so the card's main row keeps its
    shape while the toggle still reads as clickable beside Suchen */

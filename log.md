@@ -2114,3 +2114,11 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Busters: app.js 155, style.css 139 (index, impressum, leaderboard, login, stories, trips), SHELL_VERSION v114.
 - Verified: Playwright + Chrome against local servers (main vs branch), Hamburg → Bremen 17.10., desktop 1100 px and phone 390 px, before/after screenshots; the claim-button case with a sample button injected (no claimable trip in the local data).
 - Not done: a signed-in save press was not exercised (no test account).
+
+## 2026-10-26 — Past-date note back on the forecast page, without the block
+
+- User request: bring back the past-date callout from 62f18f1 (reverted in c6d0393), shorter, while the connection search itself stays as usual.
+- The forecast page (`/`, `/en/`) shows the callout under the search button whenever the date is before today (picked or restored from a URL); the search runs and scrolls to its results as before. Dropped from 62f18f1: the search block, the attention pulse and the `past-date-blocked` event; kept: the `past-date-hint` click event and the link carrying stations, date and time to `/entschaedigung` / `/en/compensation`.
+- Wording (the user asked not to call it "delay check"): "This date is in the past" / "See how a journey actually went and what you can claim back." / button "Claim compensation →"; DE "Dieses Datum liegt in der Vergangenheit" / "Sieh dir an, wie eine Fahrt tatsächlich lief und was du zurückbekommst." / "Entschädigung beantragen →" (the nav tab's name).
+- Busters: app.js 156, style.css 140 (index, impressum, leaderboard, login, stories, trips), SHELL_VERSION v115.
+- Verified: Playwright + Chrome against a local server, DE and EN, 1100 px and 390 px: callout shown for 21.10.2026 with the five results loaded below, hidden for today, no horizontal overflow.

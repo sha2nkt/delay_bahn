@@ -66,7 +66,7 @@ try {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DelayBahn">
-<link rel="stylesheet" href="/style.css?v=139">
+<link rel="stylesheet" href="/style.css?v=140">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -186,6 +186,14 @@ try {
         <span data-i18n="advancedOptions">Erweiterte Optionen</span>
       </button>
       <button id="search" class="search-btn" type="button" data-i18n="search">Suchen</button>
+    </div>
+    <div id="past-date-hint" class="past-date-hint" role="status" hidden>
+      <svg class="past-date-hint-icon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8.3"/><path d="M3 3.5v4.8h4.8"/><path d="M12 7.5V12l3 2"/></svg>
+      <div class="past-date-hint-text">
+        <strong data-i18n="pastDateHintTitle">Dieses Datum liegt in der Vergangenheit</strong>
+        <span data-i18n="pastDateHint">Sieh dir an, wie eine Fahrt tatsächlich lief und was du zurückbekommst.</span>
+      </div>
+      <a id="past-date-hint-link" class="past-date-hint-go" href="/entschaedigung" data-i18n="pastDateHintLink">Entschädigung beantragen →</a>
     </div>
     <div id="advanced-panel" class="advanced-panel hidden">
     <div id="traveller-fields" class="traveller-fields">
@@ -772,7 +780,7 @@ try {
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
   <p class="footer-copyright">Copyright © 2026 Shashank Tripathi</p>
 </footer>
-<script src="/app.js?v=155"></script>
+<script src="/app.js?v=156"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
