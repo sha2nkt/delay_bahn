@@ -377,7 +377,7 @@ function legRow(leg, struck, live) {
   desc.className = "leg-desc";
   desc.textContent = `${origin} ${fmtTime(leg.plannedDeparture)} → ${dest} ${fmtTime(leg.plannedArrival)}`;
   let mark;
-  if (struck) mark = leg.delayOnDate?.canceled ? badge("red", t("legCanceled")) : badge("gray", t("legMissed"));
+  if (struck) mark = leg.delayOnDate?.canceled || leg.departureCanceled ? badge("red", t("legCanceled")) : badge("gray", t("legMissed"));
   else if (UNTRACKED.has(leg.line?.product)) mark = badge("gray", t("notTracked"), t("notTrackedTooltip"));
   else mark = dayBadge(leg.delayOnDate, live);
   row.append(train, desc, mark);

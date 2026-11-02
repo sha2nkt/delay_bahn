@@ -572,8 +572,13 @@ async def _simulate_walk(legs: list[dict], window: int, replans_left: int, live:
         leg = legs[i]
         d = leg.get("delayOnDate")
         dep_planned = _planned_dt(leg, "plannedDeparture")
-        dep_info = _departure_info(leg, live) if pos > 0 else None
+        # the first leg needs it too: a train can skip the boarding stop yet still
+        # reach the destination, and only the origin record shows that cancellation
+        dep_info = _departure_info(leg, live)
         canceled = bool(d and d["canceled"]) or bool(dep_info and dep_info["canceled"])
+        if dep_info and dep_info["canceled"]:
+            # delayOnDate is the destination record, so the badge needs its own flag
+            leg["departureCanceled"] = True
         ended = None
         if d and d["canceled"] and not (dep_info and dep_info["canceled"]):
             ended = _ended_early(leg, live)

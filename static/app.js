@@ -2771,7 +2771,7 @@ function buildLegRow(leg, past, struck, open = state.liveDay) {
   let badge;
   if (struck) {
     badge = document.createElement("span");
-    if (leg.delayOnDate?.canceled) {
+    if (leg.delayOnDate?.canceled || leg.departureCanceled) {
       badge.className = "badge red";
       badge.textContent = t("chartCanceled");
     } else {

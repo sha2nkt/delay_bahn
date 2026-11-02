@@ -2122,3 +2122,14 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Wording (the user asked not to call it "delay check"): "This date is in the past" / "See how a journey actually went and what you can claim back." / button "Claim compensation →"; DE "Dieses Datum liegt in der Vergangenheit" / "Sieh dir an, wie eine Fahrt tatsächlich lief und was du zurückbekommst." / "Entschädigung beantragen →" (the nav tab's name).
 - Busters: app.js 156, style.css 140 (index, impressum, leaderboard, login, stories, trips), SHELL_VERSION v115.
 - Verified: Playwright + Chrome against a local server, DE and EN, 1100 px and 390 px: callout shown for 21.10.2026 with the five results loaded below, hidden for today, no horizontal overflow.
+
+## 2026-11-02 — Compensation check: a train that skipped the boarding stop counts as cancelled
+
+- Found from a customer email (Ludwigslust → Berlin Hbf, 27.08.2026): ICE 695/2595 was cancelled at Ludwigslust and Wittenberge, rerouted via Stendal, and still reached Berlin Hbf 115 min late. The check showed "+115 min, 25 %" as if the passenger had been on board.
+- Cause: `_simulate_walk` looked up the boarding-stop record (`_departure_info`) only for legs after the first (`if pos > 0`, from the checker's first version, where it served the transfer slack alone). A first leg cancelled only at its origin went unnoticed whenever its destination stop ran; one cancelled at the destination too (ICE 873 the same day) was already caught.
+- Fix: the origin record is read for every leg, so the existing pos-0 cancellation branch fires and the walk re-plans from the boarding station. The leg carries `departureCanceled`, and the struck-leg badge on the compensation page (`app.js`) and the trips page (`trips.js`) reads it, so it says "cancelled" instead of "missed" (`delayOnDate` is the destination record). A later leg cancelled only at its origin now gets the same badge.
+- Example after the fix: ICE 2595 struck out as cancelled at Ludwigslust, continuation ICE 2597 18:24, arrival 19:56, +153 min, 50 %.
+- Cost: one more lookup per journey for the first leg — local DuckDB on settled days, one IRIS call per journey on live days.
+- Busters: app.js 157, trips.js 12, SHELL_VERSION v118 (v117 skipped: an earlier build of this commit shipped with it).
+- Verified: full suite green (342); a local server copy with the August release file loaded as its delay data, /api/journeys for Ludwigslust → Berlin Hbf 27.08. 16:00 in past mode, and headless-Chrome before/after screenshots of /en/compensation.
+- Not done: no regression test (nothing tests `_simulate_walk` yet).
