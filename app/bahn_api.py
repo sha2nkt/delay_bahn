@@ -29,8 +29,10 @@ BASE_URL = "https://www.bahn.de/web/api"
 # started getting 403 OPS_BLOCKED (fresh sessions too, so it was the
 # fingerprint rather than cookies or rate) while firefox and safari passed.
 # So keep spares and move to the next profile — on a fresh session — whenever
-# one gets blocked.
-PROFILES = ["firefox135", "safari17_0", "chrome"]
+# one gets blocked. On 2026-11-03 every chrome, edge and firefox profile and
+# safari 15.5/17.x went to 403 on /angebote/fahrplan and /reiseloesung/abfahrten
+# (all IPs, /orte unaffected); safari 18+ profiles kept passing.
+PROFILES = ["safari260", "safari184", "safari18_0"]
 
 # All tunables below read the environment once at import (systemd Environment=
 # in production, .env locally via app.config) and fall back to safe defaults.

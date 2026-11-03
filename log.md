@@ -2133,3 +2133,12 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Busters: app.js 157, trips.js 12, SHELL_VERSION v118 (v117 skipped: an earlier build of this commit shipped with it).
 - Verified: full suite green (342); a local server copy with the August release file loaded as its delay data, /api/journeys for Ludwigslust → Berlin Hbf 27.08. 16:00 in past mode, and headless-Chrome before/after screenshots of /en/compensation.
 - Not done: no regression test (nothing tests `_simulate_walk` yet).
+
+## 2026-11-03 — bahn.de searches back: Safari 18+ impersonation profiles
+
+- Outage from ~07:30 UTC: every connection search (`/angebote/fahrplan`) and departure board (`/reiseloesung/abfahrten`) got `403 OPS_BLOCKED` from Akamai; station lookup (`/reiseloesung/orte`) kept answering. The circuit stayed open and searches fell back to cache.
+- Not an IP block and not request headers: the same 403 came from the dev box and from hetzner3, on every egress path. Accept-Language, Content-Type, Origin/Referer, Sec-Fetch-*, x-correlation-id and HTML warm-up cookies changed nothing, and bahn.de's own frontend sends nothing beyond x-correlation-id and Accept-Language.
+- Cause: Akamai now blocks by client fingerprint. A sweep of every curl_cffi 0.15 profile: all chrome*/edge*/firefox* and safari15_5 / safari17_0 / safari17_2_ios → 403; safari15_3, safari18_0 and later, safari184, safari260/2601 (and iOS variants) → 201. The app's profiles (`firefox135`, `safari17_0`, `chrome`) were all on the blocked side.
+- Fix: `PROFILES = ["safari260", "safari184", "safari18_0"]` in `app/bahn_api.py`.
+- Verified: `tests/test_bahn_api.py` (43) green; a real Berlin Hbf → Hamburg Hbf search through `journeys()` returned 5 connections (`upstream_200: 1`); the Safari 18+ profiles gave 201/200 on search/departures from hetzner3 on every path, 3/3 each.
+- Risk: Akamai flags fingerprints one at a time (chrome on 2026-07-23, now this), so the Safari profiles can go the same way. When searches 403 everywhere again, sweep all profiles first.
