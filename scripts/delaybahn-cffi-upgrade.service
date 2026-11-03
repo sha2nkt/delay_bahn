@@ -4,4 +4,4 @@ OnFailure=delaybahn-alert@%n.service
 
 [Service]
 Type=oneshot
-ExecStart=/home/stripathi/Documents/code_local/db_delay_predictor/scripts/curl-cffi-upgrade.sh
+ExecStart=/bin/bash /home/stripathi/Documents/code_local/db_delay_predictor/scripts/curl-cffi-upgrade.sh
