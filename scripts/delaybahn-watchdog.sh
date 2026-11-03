@@ -165,18 +165,57 @@ json.dump({"c403": cur403, "c200": cur200, "streak": streak, "blocked": blocked,
 PY
 )
 
+# The app's own fingerprint self-heal (app/profile_heal.py), reported from
+# /health upstream.profiles as one 🧬 line under every block page.
+cffi=$(HEALTH_BODY="$body" python3 - <<'PY'
+import json, os
+try:
+    p = json.loads(os.environ["HEALTH_BODY"])["upstream"]["profiles"]
+except Exception:
+    raise SystemExit(0)   # a build without the self-heal
+ver, sw, up = p.get("curlCffi"), p.get("sweep") or {}, p.get("upgrade") or {}
+fmt = lambda names: ", ".join(names) or "none"
+if p.get("upgradePending"):
+    line = (f"curl_cffi {ver}: none of the {sw.get('tried')} profiles tried passes; "
+            "upgrading curl_cffi now")
+elif up and up.get("at", "") >= sw.get("at", ""):
+    r = up.get("result")
+    if r == "upgraded":
+        line = (f"curl_cffi upgraded {up['from']} -> {up['to']}, now using {fmt(up['working'])}. "
+                "uv.lock on the server changed: commit it to the repo")
+    elif r == "upgraded-none":
+        line = (f"curl_cffi upgraded {up['from']} -> {up['to']}, but none of its "
+                f"{up.get('tried')} profiles passes either (kept; uv.lock on the server changed)")
+    elif r == "newest":
+        line = (f"curl_cffi profile update didn't work: none of the {sw.get('tried')} profiles in "
+                f"{up['from']} passes and it is already the newest release")
+    else:
+        line = (f"curl_cffi upgrade failed ({r}): "
+                f"{up.get('detail') or 'see journalctl -u delaybahn-cffi-upgrade'}")
+elif sw.get("result") == "adopted":
+    line = (f"curl_cffi {ver}: switched to {fmt(sw['working'])} "
+            f"({len(sw['working'])} of {sw.get('tried')} tried pass)")
+elif sw.get("result") == "none":
+    line = f"curl_cffi {ver}: none of the {sw.get('tried')} profiles tried passes; upgrade requested"
+else:
+    line = f"curl_cffi {ver}: no profile sweep yet (active: {fmt(p.get('active', []))})"
+print("\U0001F9EC " + line)
+PY
+)
+cffi=${cffi:+$'\n\n'$cffi}
+
 case "$verdict" in
   BLOCKED*)
     d403=${verdict#BLOCKED }
     notify "bahn.de is HARD-BLOCKING delaybahn" urgent "no_entry,rotating_light" \
-      "Akamai is returning 403 to every bahn.de API call from the server IP ($d403 blocked, 0 succeeded in the last watchdog window). The site stays up on cached data but live journey search is dead. This is IP-scoped (same as 2026-08-19): verify with the curl-cffi probe from another IP, then plan an IP move. Check: curl -s https://delaybahn.com/health | python3 -m json.tool" ;;
+      "Akamai is returning 403 to every bahn.de API call from the server IP ($d403 blocked, 0 succeeded in the last watchdog window). The site stays up on cached data but live journey search is dead. This is IP-scoped (same as 2026-08-19): verify with the curl-cffi probe from another IP, then plan an IP move. Check: curl -s https://delaybahn.com/health | python3 -m json.tool$cffi" ;;
   STILL*)
     read -r d403 mins <<<"${verdict#STILL }"
     notify "bahn.de STILL blocking delaybahn (${mins}m)" urgent "no_entry,rotating_light" \
-      "Akamai has been 403ing every bahn.de API call from the server IP for ${mins} min ($d403 blocked, 0 succeeded in the last window). Live journey search is still dead; the site is serving cached data only. This does not clear on its own — it needs an IP move. Check: curl -s https://delaybahn.com/health | python3 -m json.tool" ;;
+      "Akamai has been 403ing every bahn.de API call from the server IP for ${mins} min ($d403 blocked, 0 succeeded in the last window). Live journey search is still dead; the site is serving cached data only. This does not clear on its own — it needs an IP move. Check: curl -s https://delaybahn.com/health | python3 -m json.tool$cffi" ;;
   RECOVERED*)
     notify "bahn.de unblocked delaybahn" default white_check_mark \
-      "Upstream 200s are flowing again (${verdict#RECOVERED } in the last window). The Akamai block has lifted." ;;
+      "Upstream 200s are flowing again (${verdict#RECOVERED } in the last window). The Akamai block has lifted.$cffi" ;;
 esac
 
 # ------------------------------------------------------- check 3: grey map

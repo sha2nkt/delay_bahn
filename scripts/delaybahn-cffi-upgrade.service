@@ -1,0 +1,7 @@
+[Unit]
+Description=Upgrade curl_cffi after bahn.de refused every installed profile
+OnFailure=delaybahn-alert@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/stripathi/Documents/code_local/db_delay_predictor/scripts/curl-cffi-upgrade.sh

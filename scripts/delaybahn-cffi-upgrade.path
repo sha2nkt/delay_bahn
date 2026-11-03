@@ -1,0 +1,8 @@
+[Unit]
+Description=Start a curl_cffi upgrade when the delaybahn app asks for one
+
+[Path]
+PathExists=/home/stripathi/Documents/code_local/db_delay_predictor/data/curl_cffi_upgrade.request
+
+[Install]
+WantedBy=multi-user.target

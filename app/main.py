@@ -21,8 +21,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, StringConstraints
 
 from app import (
-    auth, bahn_api, bounces, delays, feedback, leaderboard, live_delays, mailer, ratelimit, reports,
-    stories, translate, trips,
+    auth, bahn_api, bounces, delays, feedback, leaderboard, live_delays, mailer, profile_heal,
+    ratelimit, reports, stories, translate, trips,
 )
 from app.config import env_int
 from app.transfers import (
@@ -135,6 +135,8 @@ async def lifespan(app: FastAPI):
     delays.init()
     # counted once here: COUNT(*) over 19.7M rows must not run per /health call
     _rows = delays.row_count()
+    profile_heal.restore()
+    bahn_api.on_block = profile_heal.on_block
     # the leaderboard's one pass over the table runs off the loop: the first
     # visitor never waits for it, and startup stays sub-second
     asyncio.create_task(_warm_leaderboard())
@@ -954,7 +956,7 @@ async def health():
             "delayOnDate": len(delays._date_cache),
             "departureOnDate": len(delays._dep_date_cache),
         },
-        "upstream": bahn_api.status(),
+        "upstream": {**bahn_api.status(), "profiles": profile_heal.status()},
         **(delaybahn_map.status() if delaybahn_map else {}),
         "auth": auth.status(),
         "mail": {**mailer.status(), "bounces": bounces.status()},

@@ -5,7 +5,7 @@ import random
 import re
 import time
 from collections import Counter, OrderedDict, deque
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from types import SimpleNamespace
 from typing import Awaitable, Callable
@@ -23,7 +23,8 @@ log = logging.getLogger(__name__)
 # client (not just cookies) and returns 403 OPS_BLOCKED to plain HTTP stacks
 # like httpx/requests. curl_cffi's impersonate=... reproduces a real browser
 # ClientHello, which passes the check with no cookie warmup needed.
-BASE_URL = "https://www.bahn.de/web/api"
+# overridable only so the self-heal can be exercised against a local stand-in
+BASE_URL = os.environ.get("BAHN_BASE_URL", "https://www.bahn.de/web/api")
 
 # Akamai flags one fingerprint at a time: on 2026-07-23 every chrome profile
 # started getting 403 OPS_BLOCKED (fresh sessions too, so it was the
@@ -31,8 +32,13 @@ BASE_URL = "https://www.bahn.de/web/api"
 # So keep spares and move to the next profile — on a fresh session — whenever
 # one gets blocked. On 2026-11-03 every chrome, edge and firefox profile and
 # safari 15.5/17.x went to 403 on /angebote/fahrplan and /reiseloesung/abfahrten
-# (all IPs, /orte unaffected); safari 18+ profiles kept passing.
-PROFILES = ["safari260", "safari184", "safari18_0"]
+# (all IPs, /orte unaffected); safari 18+ profiles kept passing. When every
+# profile here is refused, app.profile_heal finds replacements (on_block).
+PROFILES = ["safari260", "safari184", "safari180"]
+
+# called (sync) whenever every profile has been refused; app.main wires it to
+# app.profile_heal.on_block, tests leave it unset
+on_block: Callable[[], None] | None = None
 
 # All tunables below read the environment once at import (systemd Environment=
 # in production, .env locally via app.config) and fall back to safe defaults.
@@ -353,6 +359,50 @@ def _acquire_identity() -> SimpleNamespace:
     return _ident
 
 
+def adopt_profiles(profiles: list[str], reason: str) -> None:
+    """Replace the rotation with `profiles` and start over on a fresh identity."""
+    global _profile_idx
+    PROFILES[:] = profiles
+    _profile_idx = 0
+    if _ident is not None:
+        _retire(_ident, reason)
+    log.warning("bahn.de profiles now %s (%s)", ", ".join(profiles), reason)
+
+
+async def probe_profile(profile: str) -> int | str:
+    """One search on a throwaway session with `profile`, outside the identity
+    and the circuit breaker: the self-heal sweep's test of whether Akamai lets
+    this fingerprint through. Returns the HTTP status or the error's name."""
+    departure = (datetime.now() + timedelta(hours=1)).strftime("%Y-%m-%dT%H:00:00")
+    body = {
+        "abfahrtsHalt": "A=1@L=8011160@", "ankunftsHalt": "A=1@L=8002549@",
+        "anfrageZeitpunkt": departure, "ankunftSuche": "ABFAHRT", "klasse": "KLASSE_2",
+        "produktgattungen": ["ICE"],
+        "reisende": [{"typ": "ERWACHSENER", "ermaessigungen": [
+            {"art": "KEINE_ERMAESSIGUNG", "klasse": "KLASSENLOS"}], "alter": [], "anzahl": 1}],
+        "schnelleVerbindungen": True, "sitzplatzOnly": False, "bikeCarriage": False,
+        "reservierungsKontingenteVorhanden": False, "deutschlandTicketVorhanden": False,
+        "nurDeutschlandTicketVerbindungen": False,
+    }
+    metrics["profile_probes"] += 1
+    session = None
+    try:
+        session = _session(profile)
+        async with _upstream_sem:
+            resp = await session.post(f"{BASE_URL}/angebote/fahrplan", json=body)
+        log.info("bahn.de profile probe %s: %d", profile, resp.status_code)
+        return resp.status_code
+    except Exception as e:  # an unknown target name raises too
+        log.info("bahn.de profile probe %s: %s", profile, type(e).__name__)
+        return type(e).__name__
+    finally:
+        if session is not None:
+            try:
+                await session.close()
+            except Exception:
+                pass
+
+
 def _retire(ident: SimpleNamespace, reason: str) -> None:
     """Take an identity out of service and schedule its close. Sync, no
     awaits: the next _acquire_identity builds a replacement with a fresh
@@ -500,6 +550,8 @@ async def _request(method: str, path: str, *, source: str,
         # wholesale Akamai block: not a rolling-window signal, pause outright
         _breaker.force_open(BLOCK_COOLDOWN)
         _train_breaker.force_open(BLOCK_COOLDOWN)
+        if on_block is not None:
+            on_block()
         raise
     except (UpstreamUnavailable, UpstreamProtocolError):
         breaker.record_failure(probe)
