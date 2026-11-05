@@ -2399,7 +2399,7 @@ def _r_page(lang: str, title: str, lead: str, form_html: str = "", status: int =
         '<link rel="icon" type="image/png" href="/favicon.png">'
         '<link rel="stylesheet" href="/style.css">'
         '</head><body><header><div class="header-inner">'
-        '<a class="logo-link" href="/"><img class="logo" src="/logo.png" alt="DelayBahn"></a>'
+        '<a class="logo-link" href="/"><img class="logo" src="/logo.webp?v=1" alt="DelayBahn" width="85" height="60"></a>'
         f'<span class="header-title">{escape(title)}</span></div></header>'
         f'<main><div class="legal-card"><p>{escape(lead)}</p>{form_html}'
         f'<p style="margin-top:18px;"><a href="/">{escape(s["back"])}</a></p>'

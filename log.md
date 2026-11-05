@@ -2164,3 +2164,8 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Busters: app.js 158, SHELL_VERSION v119.
 - Verified: headless Chrome against a local server from the worktree: a past-date forecast URL redirects with all fields carried over; the callout shows on picking a past date and the page stays put until Suchen, which then redirects; a future date stays on the forecast. Before/after screenshots of the 27.10 case against production.
 - Not done: the forecast page's other options (travellers, transfer time, stopovers, return trip) are dropped on the redirect, as the compensation check ignores them anyway.
+
+## 2026-11-05 — Header logo as a sized WebP (load speed-up, rebuilt)
+
+- Re-applies 2690a54 from the reverted `feature/load-speedup`: every page's header loads `/logo.webp?v=1` (255x180, 18 KB, width/height set) instead of the 1254x885 692 KB `logo.png`; `og:image` keeps the PNG for link previews. Service-worker shell v119 -> v120 (v116 was burned by the reverted branch).
+- Verified: tests/test_header_logo.py 27 passed.
