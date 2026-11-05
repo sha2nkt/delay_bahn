@@ -1459,8 +1459,8 @@ dateEl.addEventListener("change", () => {
   syncPastDateHint();
 });
 
-// a forecast for a day that is already over is rarely what is wanted: the
-// search still runs, and a note points at the compensation check
+// a forecast for a day that is already over is never what is wanted: a note
+// points at the compensation check, and searching goes there
 const pastDateHintEl = document.getElementById("past-date-hint");
 function isPastForecastDate() {
   const todayIso = new Date().toLocaleDateString("sv-SE");  // local YYYY-MM-DD
@@ -1470,8 +1470,9 @@ function syncPastDateHint() {
   pastDateHintEl.hidden = !isPastForecastDate();
 }
 
-// href built at click time so the stations picked by then carry over
-document.getElementById("past-date-hint-link").addEventListener("click", (e) => {
+// the compensation check for the journey in the form; built when used, so the
+// stations picked by then carry over
+function pastPageUrl() {
   const params = new URLSearchParams();
   if (state.from && state.to) {
     params.set("fromId", state.from.id); params.set("from", state.from.name);
@@ -1479,7 +1480,11 @@ document.getElementById("past-date-hint-link").addEventListener("click", (e) => 
     params.set("date", dateEl.value);
     params.set("time", document.getElementById("time").value);
   }
-  e.currentTarget.href = `${pagePath("past")}${params.size ? `?${params}` : ""}`;
+  return `${pagePath("past")}${params.size ? `?${params}` : ""}`;
+}
+
+document.getElementById("past-date-hint-link").addEventListener("click", (e) => {
+  e.currentTarget.href = pastPageUrl();
   track("past-date-hint");
 });
 
@@ -2111,6 +2116,13 @@ async function search() {
   if (!state.from || !state.to) {
     setStatus("pickStations");
     statusEl.classList.add("error");
+    return;
+  }
+  // the forecast's median delays say nothing about a day that is over: past
+  // dates are searched on the compensation check, which shows how it actually went
+  if (isPastForecastDate()) {
+    track("past-date-redirect");
+    location.assign(pastPageUrl());
     return;
   }
   // typed but unresolved stopover text must not silently search without it

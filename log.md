@@ -2154,3 +2154,13 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Verified: suite green (312) on 0.15 and 0.17; scripted fakes for adopt / persist / restore / interval gate / upgrade request; live probes on 0.17 (safari260/184/180, firefox155, safari270 → 201); an end-to-end rehearsal on ps083 (sandbox copy, user systemd units, a fake bahn.de admitting only the 0.17-only fingerprints): block → 37-profile sweep none → request → path unit → uv.lock 0.15.0 → 0.17.0 → sweep 3 of 12 → restart → restored safari270, safari270_ios, firefox155 → lookups 200 → watchdog 🧬 line rendered in the BLOCKED and STILL pages.
 - Not done: the BLOCKED / STILL text still says a block needs an IP move; the rehearsal ran without root/sudo and without the map package.
 - Follow-up: `delaybahn-cffi-upgrade.service` runs the script through `/bin/bash`. The repo has `core.fileMode=false`, so the script reached hetzner3 without its executable bit and a direct ExecStart would have failed with 203/EXEC on the first block.
+
+## 2026-11-05 — Past dates on the forecast page go to the compensation check
+
+- Visitor report (Zugfinder comparison, ICE 1080 München → Hamburg on 27.10.2026): our forecast card showed "+7 min (7/7 Tage)" while Zugfinder showed +48 min for that day. The badge is the median of the last 7 days of data, whatever date was searched, so on a past date it read like that day's delay. The compensation check had the real run (+45 min at Hamburg).
+- User decision: the forecast's medians are for future journeys; past dates belong to the compensation check, which handles every past search. The past-date callout stays on the forecast page.
+- `search()` in `app.js`: once the stations resolve, a date before today navigates to the compensation page (`/entschaedigung`, `/en/compensation`) with stations, date and time carried over, instead of running the forecast. A bookmarked forecast URL with a past date lands there too, since the restore runs `search()`. The callout link and the redirect share `pastPageUrl()`. Tracked as `past-date-redirect`.
+- Considered and dropped (user call): rendering the compensation cards inside the forecast page itself.
+- Busters: app.js 158, SHELL_VERSION v119.
+- Verified: headless Chrome against a local server from the worktree: a past-date forecast URL redirects with all fields carried over; the callout shows on picking a past date and the page stays put until Suchen, which then redirects; a future date stays on the forecast. Before/after screenshots of the 27.10 case against production.
+- Not done: the forecast page's other options (travellers, transfer time, stopovers, return trip) are dropped on the redirect, as the compensation check ignores them anyway.
