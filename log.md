@@ -2169,3 +2169,8 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 
 - Re-applies 2690a54 from the reverted `feature/load-speedup`: every page's header loads `/logo.webp?v=1` (255x180, 18 KB, width/height set) instead of the 1254x885 692 KB `logo.png`; `og:image` keeps the PNG for link previews. Service-worker shell v119 -> v120 (v116 was burned by the reverted branch).
 - Verified: tests/test_header_logo.py 27 passed.
+
+## 2026-11-05 — Static files with a ?v= buster cached for a year (load speed-up, row 2)
+
+- `HtmlNoCacheStatic.get_response` sets `Cache-Control: public, max-age=31536000, immutable` on any static file asked for with a `v` query parameter (200 and 304); files without one keep the default (Cloudflare's 4 h browser TTL) and HTML documents stay `no-cache`. A returning visitor stopped re-downloading the scripts and CSS every 4 h although their URLs only change with a release. The rule this leans on was already in place: every change to a bustered file bumps its `?v=`.
+- Verified: tests/test_static_cache.py 4 passed.

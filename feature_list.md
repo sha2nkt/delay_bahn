@@ -6,6 +6,7 @@ Status: done = implemented and verified end-to-end; partial = works with caveats
 
 | Feature | Status | Notes |
 |---|---|---|
+| Header logo + static caching (2026-11-05) | done | `/logo.webp?v=1` (255x180, 18 KB) in every header, PNG kept for link previews; `?v=` static files `public, max-age=31536000, immutable`, so a buster bump is the only way a changed file reaches returning visitors |
 | Station autocomplete (Von/Nach) | done | `/api/locations` served from the local delay data (folded-name index built at startup, multi-level Hbf EVAs deduped, ranked prefix > word-start > substring then volume); bahn.de `/reiseloesung/orte` only for stations with no delay history; debounced 250 ms in UI |
 | Typed-station fallback | partial | exact case-insensitive name match resolves un-selected input at search time; implemented 2026-07-19, browser verification pending |
 | Journey search with transfers | done | `/api/journeys` → bahn.de `/angebote/fahrplan` (POST), 1 adult 2nd class, all products |

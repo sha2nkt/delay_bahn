@@ -11,6 +11,7 @@ from html import escape
 from math import ceil
 from pathlib import Path
 from typing import Annotated, Literal, get_args
+from urllib.parse import parse_qs
 from zoneinfo import ZoneInfo
 
 import anyio
@@ -2659,6 +2660,20 @@ class HtmlNoCacheStatic(StaticFiles):
         if (response.media_type or "").startswith("text/html"):
             response.headers["Cache-Control"] = "no-cache"
         return response
+
+    async def get_response(self, path: str, scope) -> Response:
+        response = await super().get_response(path, scope)
+        # a ?v= URL is renamed on every change, so its contents never change
+        if versioned(scope) and "cache-control" not in response.headers:
+            response.headers["Cache-Control"] = IMMUTABLE
+        return response
+
+
+IMMUTABLE = "public, max-age=31536000, immutable"
+
+
+def versioned(scope) -> bool:
+    return b"v=" in scope.get("query_string", b"") and "v" in parse_qs(scope["query_string"].decode())
 
 
 if delaybahn_map:
