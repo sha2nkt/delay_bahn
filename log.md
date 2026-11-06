@@ -2192,3 +2192,8 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - pipeline/update_monthly_graphs.py (cron): homepage scatter + violin SVGs regenerated from data-2026-09 and data-2026-10 parquets; 42,003 qualifying trains.
 - Month strings and train count patched in app.js, index.html fallbacks; SVG busters, app.js?v=159 and sw.js SHELL_VERSION bumped.
 - Deployed to delaybahn.com and /health verified by the same run.
+
+## 2026-11-06 — Graph refresh health check rides out the 80 s restart
+
+- The cron's `--push` run paged "graph update FAILED" right after a successful push and deploy: its post-restart health curl (20 retries × 3 s) gave up before uvicorn had bound, which takes about 80 s with four countries' timetables restored. `pipeline/update_monthly_graphs.py` now retries 30 × 5 s like `scripts/deploy.sh` (0310a4a).
+- Also this morning: the clone on ps083 had pulled main before the 2026-11-03 force-push (load-speedup rollback), so `git pull --ff-only` refused for four runs; resynced by re-pointing its main at origin/main. After any force-push of main, resync that clone the same way.
