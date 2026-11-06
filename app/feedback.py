@@ -9,6 +9,7 @@ Nothing identifying is stored: no IP, no session id, no link to a search. The
 per-IP rate limit it needs to survive contact with the internet lives in memory.
 """
 
+import asyncio
 import base64
 import binascii
 import logging
@@ -21,6 +22,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import httpx
+
+from app import translate
 
 log = logging.getLogger(__name__)
 
@@ -47,7 +50,8 @@ CREATE TABLE IF NOT EXISTS feedback (
   context TEXT NOT NULL,
   shot    BLOB,
   uid     TEXT,
-  email   TEXT
+  email   TEXT,
+  en_text TEXT
 )
 """
 
@@ -138,7 +142,7 @@ def save(
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with closing(sqlite3.connect(DB_PATH, timeout=5)) as conn, conn:
         conn.execute(_SCHEMA)
-        for column in ("shot BLOB", "uid TEXT", "email TEXT"):
+        for column in ("shot BLOB", "uid TEXT", "email TEXT", "en_text TEXT"):
             try:
                 conn.execute(f"ALTER TABLE feedback ADD COLUMN {column}")
             except sqlite3.OperationalError:
@@ -177,6 +181,29 @@ def save(
     return dropped
 
 
+def _save_english(sid: str, text: str, english: str) -> None:
+    with closing(sqlite3.connect(DB_PATH, timeout=5)) as conn, conn:
+        # pinned to the text it was made from, in case the row's text moved on
+        conn.execute(
+            "UPDATE feedback SET en_text = ? WHERE sid = ? AND text = ?",
+            (english, sid, text),
+        )
+
+
+async def english(sid: str, text: str) -> str:
+    """Translate a comment into English and store it next to the original;
+    "" when it is English already or no translation could be made. Never
+    raises - the push goes out untranslated rather than not at all."""
+    result = await translate.to_english(text)
+    if result is None:
+        return ""
+    try:
+        await asyncio.to_thread(_save_english, sid, text, result)
+    except sqlite3.Error as exc:
+        log.warning("storing feedback translation failed: %s", exc)
+    return result
+
+
 def budget_warn_due() -> bool:
     """True at most once per SHOT_BUDGET_WARN_EVERY - called from the event loop
     only, so plain module state is race-free."""
@@ -198,8 +225,10 @@ async def notify(
     context: str,
     shot: tuple[bytes, str] | None,
     requester: tuple[str, str | None] | None = None,
+    english: str = "",
 ) -> None:
-    """Push a written comment - and its screenshot as a second, attachment-only
+    """Push a written comment, with its English translation below it when it
+    has one, - and its screenshot as a second, attachment-only
     message - to ntfy. Never raises - a submission must not fail because the
     notifier is unreachable, and stays a no-op when NTFY_TOPIC is unset.
 
@@ -220,6 +249,8 @@ async def notify(
             )
         return
     base = os.environ.get("NTFY_URL", "https://ntfy.sh").rstrip("/")
+    if text and english:
+        text = f"{text}\n\n--- English ---\n{english}"
     if vote == "request":
         headers = {"Title": f"DelayBahn analysis request ({lang}, {context})", "Tags": "bulb"}
         if requester:

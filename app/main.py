@@ -1798,8 +1798,13 @@ async def submit_feedback(fb: Feedback, request: Request) -> Response:
             _spawn(feedback.notify_budget())
     # only a comment or screenshot is worth a phone buzz, and never on the request's clock
     if text or shot:
-        _spawn(feedback.notify(fb.vote, text, fb.lang, fb.context, shot, requester))
+        _spawn(_push_feedback(fb, text, shot, requester))
     return Response(status_code=204)
+
+
+async def _push_feedback(fb: Feedback, text: str, shot, requester) -> None:
+    english = await feedback.english(fb.sid, text) if text else ""
+    await feedback.notify(fb.vote, text, fb.lang, fb.context, shot, requester, english)
 
 
 # strip_whitespace runs before the length checks, so an all-spaces field fails
