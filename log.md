@@ -2174,3 +2174,8 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 
 - `HtmlNoCacheStatic.get_response` sets `Cache-Control: public, max-age=31536000, immutable` on any static file asked for with a `v` query parameter (200 and 304); files without one keep the default (Cloudflare's 4 h browser TTL) and HTML documents stay `no-cache`. A returning visitor stopped re-downloading the scripts and CSS every 4 h although their URLs only change with a release. The rule this leans on was already in place: every change to a bustered file bumps its `?v=`.
 - Verified: tests/test_static_cache.py 4 passed.
+
+## 2026-11-06 — Deploy script samples homepage latency before and after each restart
+
+- `scripts/deploy.sh` now takes 20 homepage samples on the box (1 min) before pulling, prints median/p90/worst/over-3 s, and starts a detached sampler on the box that waits 15 min for the warm-up and takes 40 more; `bash scripts/deploy.sh --after` prints both lines from `/var/tmp/delaybahn-latency.txt`. On 2026-11-05 France was rolled back once on a stall that existed before it and re-shipped once on a check taken before its warm-up was over; the two numbers side by side settle that.
+- Verified: the sampler run by hand on hetzner3.

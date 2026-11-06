@@ -5,6 +5,23 @@
 # action must live in this reviewed, version-controlled file.
 set -euo pipefail
 
+# Homepage latency on the box itself, so a deploy that stalls the event loop
+# shows up as numbers next to the numbers from before it (2026-11-05: France
+# was rolled back once on a stall that was already there, and re-shipped once
+# on a check taken before its warm-up was over). The "after" sample starts
+# 15 min after the restart, when the warm-up is done, and lands in a file:
+#   bash scripts/deploy.sh --after
+# prints it next to the "before" one.
+SAMPLE='sample() { for i in $(seq "$1"); do curl -s -o /dev/null -w "%{time_total}\n" http://127.0.0.1:8000/; sleep "$2"; done \
+  | sort -n | awk "{a[NR]=\$1} END {n=0; for (i=1; i<=NR; i++) if (a[i]>3) n++; \
+  printf \"%d samples: median %.3f s, p90 %.3f s, worst %.3f s, over 3 s: %d\\n\", NR, a[int(NR*0.5)+1], a[int(NR*0.9)+1], a[NR], n}"; }'
+if [ "${1:-}" = "--after" ]; then
+  ssh root@delaybahn_hetzner3 'cat /var/tmp/delaybahn-latency.txt 2>/dev/null || echo "no sample yet"'
+  exit 0
+fi
+echo "latency before (1 min):"
+ssh root@delaybahn_hetzner3 "$SAMPLE; { echo \"before \$(date -u +%H:%M): \$(sample 20 3)\"; } | tee /var/tmp/delaybahn-latency.txt"
+
 ssh root@delaybahn_hetzner3 'sudo -u stripathi -i bash -s' <<'EOF'
 set -euo pipefail
 cd /home/stripathi/Documents/code_local/db_delay_predictor
@@ -46,3 +63,6 @@ ssh root@delaybahn_hetzner3 'systemctl restart delaybahn && systemctl is-active 
 # check that still fails after that into a nonzero exit instead of a silent pass.
 curl -4 -sS -f --retry 6 --retry-delay 3 --max-time 20 https://delaybahn.com/health
 echo
+# The "after" sample, detached on the box: 15 min of warm-up, then 4 min of samples.
+ssh root@delaybahn_hetzner3 "setsid nohup bash -c '$SAMPLE; sleep 900; echo \"after  \$(date -u +%H:%M): \$(sample 40 6)\" >> /var/tmp/delaybahn-latency.txt' >/dev/null 2>&1 &"
+echo "latency after the warm-up: bash scripts/deploy.sh --after (from $(date -u -d '+19 min' +%H:%M) UTC)"
