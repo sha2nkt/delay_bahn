@@ -2179,3 +2179,4 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 
 - `scripts/deploy.sh` now takes 20 homepage samples on the box (1 min) before pulling, prints median/p90/worst/over-3 s, and starts a detached sampler on the box that waits 15 min for the warm-up and takes 40 more; `bash scripts/deploy.sh --after` prints both lines from `/var/tmp/delaybahn-latency.txt`. On 2026-11-05 France was rolled back once on a stall that existed before it and re-shipped once on a check taken before its warm-up was over; the two numbers side by side settle that.
 - Verified: the sampler run by hand on hetzner3.
+- The health check now retries for up to 2.5 min: the app takes about 80 s to restore four countries' timetables, and the old 6 x 3 s gave up before that, which also kept the after-sampler from starting.

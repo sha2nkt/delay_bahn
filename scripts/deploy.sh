@@ -59,9 +59,10 @@ EOF
 
 ssh root@delaybahn_hetzner3 'systemctl restart delaybahn && systemctl is-active delaybahn'
 # -4: this dev box (ps083) has broken IPv6; the check must go through Cloudflare.
-# --retry rides out the restart race (502 until uvicorn binds); -f turns a health
-# check that still fails after that into a nonzero exit instead of a silent pass.
-curl -4 -sS -f --retry 6 --retry-delay 3 --max-time 20 https://delaybahn.com/health
+# --retry rides out the restart race (502 until uvicorn binds, about 80 s with
+# four countries' timetables restored); -f turns a health check that still
+# fails after that into a nonzero exit instead of a silent pass.
+curl -4 -sS -f --retry 30 --retry-delay 5 --max-time 20 https://delaybahn.com/health
 echo
 # The "after" sample, detached on the box: 15 min of warm-up, then 4 min of samples.
 ssh root@delaybahn_hetzner3 "setsid nohup bash -c '$SAMPLE; sleep 900; echo \"after  \$(date -u +%H:%M): \$(sample 40 6)\" >> /var/tmp/delaybahn-latency.txt' >/dev/null 2>&1 &"
