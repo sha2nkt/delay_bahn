@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import re
+import os
 import sys
 from collections import OrderedDict
 from contextlib import asynccontextmanager
@@ -36,6 +37,19 @@ from app.transfers import (
 try:
     import delaybahn_map
 except ImportError:
+    delaybahn_map = None
+
+# DELAYBAHN_MAP: "inline" runs the map in this process (the default, as before);
+# "off" is the public site alone, its /health merging the map process's; "only"
+# is that map process: the map's routes and loops, the site's own background
+# work left off. The map's work (timetables of five countries, the traffic
+# tick) no longer shares an interpreter with the search pages on "off"/"only".
+MAP_MODE = os.environ.get("DELAYBAHN_MAP", "inline")
+if MAP_MODE not in ("inline", "off", "only"):
+    raise RuntimeError(f"DELAYBAHN_MAP must be inline, off or only, not {MAP_MODE!r}")
+MAP_URL = os.environ.get("DELAYBAHN_MAP_URL", "http://127.0.0.1:8010")
+MAP_HEALTH_KEYS = ("trainLive", "fleet", "traffic", "alarms", "basemap")
+if delaybahn_map and MAP_MODE == "off":
     delaybahn_map = None
 
 log = logging.getLogger(__name__)
@@ -140,14 +154,15 @@ async def lifespan(app: FastAPI):
     bahn_api.on_block = profile_heal.on_block
     # the leaderboard's one pass over the table runs off the loop: the first
     # visitor never waits for it, and startup stays sub-second
-    asyncio.create_task(_warm_leaderboard())
-    credits_watch = asyncio.create_task(mailer.watch_credits())
-    trip_sweep = asyncio.create_task(_sweep_trip_verdicts())
+    site_tasks = []
+    if MAP_MODE != "only":
+        asyncio.create_task(_warm_leaderboard())
+        site_tasks = [asyncio.create_task(mailer.watch_credits()), asyncio.create_task(_sweep_trip_verdicts())]
     if delaybahn_map:
         delaybahn_map.start()
     yield
-    credits_watch.cancel()
-    trip_sweep.cancel()
+    for task in site_tasks:
+        task.cancel()
     if delaybahn_map:
         await delaybahn_map.stop()
     await bahn_api.close()
@@ -942,6 +957,21 @@ def live_max_day() -> date | None:
     return datetime.now(ZoneInfo("Europe/Berlin")).date() if live_delays.configured() else None
 
 
+async def _map_health() -> dict:
+    """The map process's share of /health, when the map runs as one: the same
+    keys it would add in this process, so the watchdog reads them as before."""
+    if MAP_MODE != "off":
+        return {}
+    try:
+        async with httpx.AsyncClient(timeout=3, trust_env=False) as client:
+            res = await client.get(f"{MAP_URL}/health")
+            res.raise_for_status()
+            remote = res.json()
+    except Exception as e:  # noqa: BLE001 - any failure reads as "unreachable"
+        return {"map": f"unreachable: {type(e).__name__}"}
+    return {"map": "ok", **{k: remote[k] for k in MAP_HEALTH_KEYS if k in remote}}
+
+
 @app.get("/health")
 async def health():
     """Liveness probe and event-loop canary: pure in-memory, no I/O, so a slow response
@@ -958,7 +988,7 @@ async def health():
             "departureOnDate": len(delays._dep_date_cache),
         },
         "upstream": {**bahn_api.status(), "profiles": profile_heal.status()},
-        **(delaybahn_map.status() if delaybahn_map else {}),
+        **(delaybahn_map.status() if delaybahn_map else await _map_health()),
         "auth": auth.status(),
         "mail": {**mailer.status(), "bounces": bounces.status()},
     }

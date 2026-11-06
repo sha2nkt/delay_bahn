@@ -54,7 +54,9 @@ _last_ok: dict[tuple, tuple["asyncio.Task", float]] = {}
 # process (past-journey searches, the live train poller). Every response names
 # what is left; a 429 names how long to wait. Both are kept so callers with
 # optional work can stand back before the quota is gone.
-QUOTA_PER_MINUTE = 60
+# the key's 60 calls a minute; with the map as its own process each side
+# counts alone, so the two units split it (IRIS_QUOTA_PER_MINUTE in each)
+QUOTA_PER_MINUTE = int(os.environ.get("IRIS_QUOTA_PER_MINUTE", "60"))
 _quota_remaining: int | None = None
 _quota_seen_at = 0.0
 _quota_blocked_until = 0.0

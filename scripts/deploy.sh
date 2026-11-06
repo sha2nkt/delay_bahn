@@ -57,13 +57,23 @@ fi
 echo "deployed: $(git log --oneline -1)"
 EOF
 
-ssh root@delaybahn_hetzner3 'systemctl restart delaybahn && systemctl is-active delaybahn'
+# The map runs as its own unit where delaybahn-map is installed (the public
+# site then runs with DELAYBAHN_MAP=off); both restart, the map first so its
+# 80 s timetable restore overlaps the site's.
+ssh root@delaybahn_hetzner3 'if systemctl is-enabled -q delaybahn-map 2>/dev/null; then
+  systemctl restart delaybahn-map; fi
+systemctl restart delaybahn && systemctl is-active delaybahn
+if systemctl is-enabled -q delaybahn-map 2>/dev/null; then systemctl is-active delaybahn-map; fi'
 # -4: this dev box (ps083) has broken IPv6; the check must go through Cloudflare.
 # --retry rides out the restart race (502 until uvicorn binds, about 80 s with
 # four countries' timetables restored); -f turns a health check that still
 # fails after that into a nonzero exit instead of a silent pass.
 curl -4 -sS -f --retry 30 --retry-delay 5 --max-time 20 https://delaybahn.com/health
 echo
+# The map process answers through the tunnel's path rule; its own /health is
+# the same app's, so the site's /health above already carries its share ("map").
+ssh root@delaybahn_hetzner3 'if systemctl is-enabled -q delaybahn-map 2>/dev/null; then
+  curl -sS -f --retry 30 --retry-delay 5 --max-time 20 -o /dev/null http://127.0.0.1:8010/health && echo "map process: ok"; fi'
 # The "after" sample, detached on the box: 15 min of warm-up, then 4 min of samples.
 ssh root@delaybahn_hetzner3 "setsid nohup bash -c '$SAMPLE; sleep 900; echo \"after  \$(date -u +%H:%M): \$(sample 40 6)\" >> /var/tmp/delaybahn-latency.txt' >/dev/null 2>&1 &"
 echo "latency after the warm-up: bash scripts/deploy.sh --after (from $(date -u -d '+19 min' +%H:%M) UTC)"

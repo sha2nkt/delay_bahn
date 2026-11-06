@@ -1,0 +1,17 @@
+# The ingress rules /etc/cloudflared/delaybahn.yml carries since the map
+# became its own process: the map's paths to :8010, everything else to :8000.
+# Kept here for reference; the live file is on the box.
+ingress:
+  - hostname: delaybahn.com
+    path: ^/(api/(fleet|share|train|alarm|stories/problems/train)(/|$)|s/|wo-ist-mein-zug|zug$|en/where-is-my-train|where-is-my-train|train\.(js|css)$|maplibre-gl\.(js|css)$|map-style\.json$|train-thanks/)
+    service: http://127.0.0.1:8010
+  - hostname: www.delaybahn.com
+    path: ^/(api/(fleet|share|train|alarm|stories/problems/train)(/|$)|s/|wo-ist-mein-zug|zug$|en/where-is-my-train|where-is-my-train|train\.(js|css)$|maplibre-gl\.(js|css)$|map-style\.json$|train-thanks/)
+    service: http://127.0.0.1:8010
+  - hostname: delaybahn.com
+    service: http://127.0.0.1:8000
+  - hostname: www.delaybahn.com
+    service: http://127.0.0.1:8000
+  - hostname: analytics.delaybahn.com
+    service: http://127.0.0.1:3001
+  - service: http_status:404

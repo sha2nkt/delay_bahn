@@ -1,0 +1,28 @@
+# The live train map as its own process (DELAYBAHN_MAP=only): the same app,
+# serving the map's routes on :8010 with the map's loops, the site's own
+# background work left to the delaybahn unit (DELAYBAHN_MAP=off). The tunnel
+# sends the map's paths here (ingress rule in /etc/cloudflared/delaybahn.yml).
+# Install: cp to /etc/systemd/system/, add the OnFailure drop-in the delaybahn
+# unit has, systemctl daemon-reload, systemctl enable --now delaybahn-map.
+# The delaybahn unit gets a drop-in (/etc/systemd/system/delaybahn.service.d/map.conf):
+#   [Service]
+#   Environment=DELAYBAHN_MAP=off
+#   Environment=IRIS_QUOTA_PER_MINUTE=20
+# The IRIS key allows 60 calls a minute; each process counts its own, so the
+# map takes 40 (its poll budget) and the site 20.
+[Unit]
+Description=DelayBahn live train map (delaybahn.com)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=stripathi
+WorkingDirectory=/home/stripathi/Documents/code_local/db_delay_predictor
+Environment=DELAYBAHN_MAP=only
+Environment=IRIS_QUOTA_PER_MINUTE=40
+ExecStart=/home/stripathi/Documents/code_local/db_delay_predictor/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8010
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
