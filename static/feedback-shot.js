@@ -1,13 +1,16 @@
 /* Page screenshot for the feedback boxes, shared by every page through
-   import("/feedback-shot.js?v=1"). The page is redrawn from the DOM (no browser
-   prompt), and only one screen-height directly above the feedback box is kept:
-   the box sits at the foot of its page, so that is what the visitor was reading
-   just before scrolling down to it. The box itself is left out and the account
-   name is blanked. The 55 KB renderer is only fetched for a capture. */
+   import("/feedback-shot.js?v=2"). The page is redrawn from the DOM (no browser
+   prompt), from the top of the page down to the feedback box: the box sits at
+   the foot of its page, so that is everything the visitor scrolled through to
+   reach it; the footer below is left out. The box itself is left out and the
+   account name is blanked. The 55 KB renderer is only fetched for a capture. */
 
 // the server refuses anything bigger (feedback.SHOT_MAX_BYTES is 512 KiB)
 const MAX_BYTES = 500 * 1024;
-const MAX_EDGE = 1600;
+// a long page stays a tall strip at a readable width rather than shrinking whole
+const MAX_W = 1200;
+const MAX_H = 12000;
+const MAX_AREA = 16_000_000; // Safari's canvas ceiling
 // a capture older than this is retaken when the visitor comes back to the box
 const STALE_MS = 30_000;
 const PRIVATE = ".auth-name-text, [data-shot-private]";
@@ -40,27 +43,30 @@ async function freezeMap(map) {
   return img;
 }
 
+// JPEG quality gives way before size does: small text survives compression
+// better than downscaling
 function toJpeg(src, sx, sy, sw, sh) {
-  let scale = Math.min(1, MAX_EDGE / Math.max(sw, sh));
-  for (const quality of [0.8, 0.65, 0.5]) {
+  let scale = Math.min(1, MAX_W / sw, MAX_H / sh);
+  for (let step = 0; step < 5; step++, scale *= 0.8) {
     const out = document.createElement("canvas");
     out.width = Math.max(1, Math.round(sw * scale));
     out.height = Math.max(1, Math.round(sh * scale));
     out.getContext("2d").drawImage(src, sx, sy, sw, sh, 0, 0, out.width, out.height);
-    const url = out.toDataURL("image/jpeg", quality);
-    if (dataUrlBytes(url) <= MAX_BYTES) return url;
-    scale *= 0.75;
+    for (const quality of [0.75, 0.6, 0.45]) {
+      const url = out.toDataURL("image/jpeg", quality);
+      if (dataUrlBytes(url) <= MAX_BYTES) return url;
+    }
   }
   throw new Error("screenshot still too large after shrinking");
 }
 
-// -> JPEG data URL of the screen-height above `box`
+// -> JPEG data URL of the page from its top down to `box`
 export async function capturePage(box, { maps = [] } = {}) {
   const body = document.body;
   const bodyRect = body.getBoundingClientRect();
   const boxTop = box.getBoundingClientRect().top - bodyRect.top;
-  let y0 = Math.max(0, boxTop - window.innerHeight);
-  let h = boxTop - y0;
+  let y0 = 0;
+  let h = boxTop;
   // a box near the top of the page has little above it: take the screen instead
   if (h < 200) { y0 = Math.max(0, -bodyRect.top); h = window.innerHeight; }
 
@@ -72,7 +78,9 @@ export async function capturePage(box, { maps = [] } = {}) {
   try {
     const { domToCanvas } = await import("/modern-screenshot.js?v=1");
     const canvas = await domToCanvas(body, {
-      scale: Math.min(window.devicePixelRatio || 1, 2),
+      // no sharper than the output keeps, and inside the canvas ceiling on long pages
+      scale: Math.min(window.devicePixelRatio || 1, 2, MAX_W / bodyRect.width,
+        Math.sqrt(MAX_AREA / (bodyRect.width * bodyRect.height))),
       backgroundColor: getComputedStyle(body).backgroundColor || "#fff",
       font: false,
       timeout: 8000,
@@ -157,3 +165,34 @@ export function mountAutoShot({ box, row, label, i18n, maps = () => [], track = 
     reset() { gen++; pending = null; url = null; at = 0; tick.checked = true; show(); },
   };
 }
+
+/* Full-size view of a screenshot thumbnail, so the visitor can check what will be
+   sent. Delegated, so the page's own attachment chip is covered as well; a tap
+   anywhere or Esc closes it. Styled here rather than in style.css so every page
+   that loads this module gets it without a stylesheet buster. A long page shows
+   at full width and scrolls, so its text stays readable. */
+let viewer = null;
+function openViewer(src) {
+  if (!viewer) {
+    const style = document.createElement("style");
+    style.textContent = `
+      .feedback-shot-thumb { cursor: zoom-in; }
+      .shot-viewer { margin: auto; inset: 0; padding: 0; border: none; background: transparent; max-width: 96vw; max-height: 94vh; overflow: auto; cursor: zoom-out; }
+      .shot-viewer::backdrop { background: rgba(0, 0, 0, .75); }
+      .shot-viewer img { display: block; max-width: 96vw; height: auto; border-radius: 4px; box-shadow: 0 6px 30px rgba(0, 0, 0, .4); }`;
+    document.head.append(style);
+    viewer = document.createElement("dialog");
+    viewer.className = "shot-viewer";
+    viewer.append(Object.assign(document.createElement("img"), { alt: "" }));
+    viewer.addEventListener("click", () => viewer.close());
+    document.body.append(viewer);
+  }
+  viewer.querySelector("img").src = src;
+  viewer.showModal();
+}
+document.addEventListener("click", (e) => {
+  const thumb = e.target.closest?.(".feedback-shot-thumb");
+  if (!thumb?.getAttribute("src")) return;
+  e.preventDefault(); // the auto thumbnail sits in the tick's <label>: a tap on it must not untick
+  openViewer(thumb.src);
+});

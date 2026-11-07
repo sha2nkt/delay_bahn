@@ -1515,7 +1515,7 @@ document.getElementById("auth-logout").addEventListener("click", async () => {
   });
   // the page screenshot, ticked by default
   let autoShot = null;
-  import("/feedback-shot.js?v=1").then((m) => {
+  import("/feedback-shot.js?v=2").then((m) => {
     autoShot = m.mountAutoShot({
       box, row: form.querySelector(".feedback-shot-row"), label: t("feedbackAutoShot"), track,
     });

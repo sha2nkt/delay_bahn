@@ -2230,3 +2230,12 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - The "New features:" X / LinkedIn / Instagram row is in the ask's line on all three pages (stories clones its footer row like the homepage; the map page carries the markup, its footer has none), with `follow-*` Umami events; the map page also gets the ✕ dismiss. With the shorter shared question the line fits on desktop; on phones it wraps to a second line on every page, as the search page already did. A first version on the old, longer questions wrapped on desktop too and was dropped, as was hiding the row when it wraps.
 - Busters: app 161, stories 30, SHELL_VERSION v123; map repo train.js 114.
 - Verified in headless Chrome against a static copy of the pages at 1100 and 390 px (screenshots compared side by side).
+
+## 2026-11-07 — Feedback screenshot: whole page, and a full-size view
+
+- The automatic screenshot now covers the page from its top down to the feedback box (the footer below stays out), instead of one screen-height above the box — on a long results list the visitor's question can be about anything they scrolled past. Output is capped at 1200 px wide / 12000 px tall, the render scale stays inside a 16 M px canvas (Safari's ceiling), and the 500 KB limit is met by lowering JPEG quality before shrinking, so small text stays readable.
+- Clicking a screenshot thumbnail (the automatic one or an attached image, on all four boxes) opens it full size in a `<dialog>`; a tall shot shows at full width and scrolls; a tap or Esc closes it. The click on the automatic thumbnail no longer toggles its tick (it sits inside the `<label>`). Delegated handler and injected styles in `static/feedback-shot.js`, so no stylesheet buster; the site's dialog reset needed an explicit `margin: auto; inset: 0`.
+- Impressum: the screenshot paragraph now says "von ihrem Anfang bis zum Feedback-Feld" and mentions the full-size view.
+- Busters: feedback-shot.js v2 (import pins), app 162, stories 31, leaderboard 20, SHELL_VERSION v124; map repo train.js 115.
+- Verified in headless Chrome against a static copy with 40 extra result cards: 1100 px -> 1100x3171, 321 KB, 0.8 s; 390 px -> 780x8774, 472 KB, 1.0 s, text legible at both; viewer opens, scrolls, closes on tap and Esc, tick unchanged, own attachment opens too.
+- Limit: a much longer page on a phone lands near the 500 KB cap and gets blurrier.
