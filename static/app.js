@@ -1717,7 +1717,7 @@ function setShot(url) {
   autoShot?.hide(!!url);
 }
 
-import("/feedback-shot.js?v=2").then((m) => {
+import("/feedback-shot.js?v=3").then((m) => {
   autoShot = m.mountAutoShot({
     box: feedbackEl, row: feedbackForm.querySelector(".feedback-shot-row"),
     label: t("feedbackAutoShot"), i18n: "feedbackAutoShot", track,

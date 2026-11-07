@@ -838,7 +838,7 @@ const meReady = loadMe().then(renderAuth);
   $("lb-request-login").href = LOGIN;
   // the page screenshot, ticked by default, taken when the box is first used
   let autoShot = null;
-  import("/feedback-shot.js?v=2").then((m) => {
+  import("/feedback-shot.js?v=3").then((m) => {
     autoShot = m.mountAutoShot({
       box, row: form.querySelector(".feedback-shot-row"),
       label: t("requestAutoShot"), i18n: "requestAutoShot",

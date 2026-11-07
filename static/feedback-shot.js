@@ -1,5 +1,5 @@
 /* Page screenshot for the feedback boxes, shared by every page through
-   import("/feedback-shot.js?v=2"). The page is redrawn from the DOM (no browser
+   import("/feedback-shot.js?v=3"). The page is redrawn from the DOM (no browser
    prompt), from the top of the page down to the feedback box: the box sits at
    the foot of its page, so that is everything the visitor scrolled through to
    reach it; the footer below is left out. The box itself is left out and the
@@ -179,11 +179,24 @@ function openViewer(src) {
       .feedback-shot-thumb { cursor: zoom-in; }
       .shot-viewer { margin: auto; inset: 0; padding: 0; border: none; background: transparent; max-width: 96vw; max-height: 94vh; overflow: auto; cursor: zoom-out; }
       .shot-viewer::backdrop { background: rgba(0, 0, 0, .75); }
-      .shot-viewer img { display: block; max-width: 96vw; height: auto; border-radius: 4px; box-shadow: 0 6px 30px rgba(0, 0, 0, .4); }`;
+      .shot-viewer img { display: block; max-width: 96vw; height: auto; border-radius: 4px; box-shadow: 0 6px 30px rgba(0, 0, 0, .4); }
+      .shot-viewer-close {
+        position: fixed; top: max(12px, env(safe-area-inset-top)); right: 12px; width: 40px; height: 40px;
+        display: flex; align-items: center; justify-content: center; padding: 0;
+        border: 1px solid rgba(255, 255, 255, .35); border-radius: 50%;
+        background: rgba(0, 0, 0, .65); color: #fff; font: 20px/1 system-ui, sans-serif; cursor: pointer;
+      }
+      .shot-viewer-close:hover { background: rgba(0, 0, 0, .85); }
+      .shot-viewer-close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }`;
     document.head.append(style);
     viewer = document.createElement("dialog");
     viewer.className = "shot-viewer";
-    viewer.append(Object.assign(document.createElement("img"), { alt: "" }));
+    // fixed, so it stays in the corner while a tall shot scrolls under it
+    const close = Object.assign(document.createElement("button"), {
+      type: "button", className: "shot-viewer-close", textContent: "✕",
+    });
+    close.setAttribute("aria-label", document.documentElement.lang === "en" ? "Close" : "Schließen");
+    viewer.append(close, Object.assign(document.createElement("img"), { alt: "" }));
     viewer.addEventListener("click", () => viewer.close());
     document.body.append(viewer);
   }

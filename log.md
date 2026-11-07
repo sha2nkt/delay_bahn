@@ -2239,3 +2239,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Busters: feedback-shot.js v2 (import pins), app 162, stories 31, leaderboard 20, SHELL_VERSION v124; map repo train.js 115.
 - Verified in headless Chrome against a static copy with 40 extra result cards: 1100 px -> 1100x3171, 321 KB, 0.8 s; 390 px -> 780x8774, 472 KB, 1.0 s, text legible at both; viewer opens, scrolls, closes on tap and Esc, tick unchanged, own attachment opens too.
 - Limit: a much longer page on a phone lands near the 500 KB cap and gets blurrier.
+
+## 2026-11-07 — Close button on the full-size screenshot view
+
+- The full-size feedback screenshot view gets a round ✕ in the top-right corner (fixed, so it stays put while a tall shot scrolls; below the notch on iPhones; aria-label "Schließen" / "Close" by page language). A tap anywhere or Esc still closes it as before. Visitors did not see that a tap closes the view.
+- Busters: feedback-shot.js v3 (import pins), app 163, stories 32, leaderboard 21, SHELL_VERSION v125; map repo train.js 116.
+- Verified in headless Chrome at 1100 and 390 px: the button sits in the corner after scrolling the view, closes it, and leaves the screenshot tick on.
