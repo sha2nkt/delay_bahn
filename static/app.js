@@ -1694,7 +1694,7 @@ function resetFeedback() {
   feedbackSid = newSid();
   delete feedbackEl.dataset.vote;
   feedbackEl.classList.remove("feedback-voted", "feedback-done");
-  feedbackForm.classList.add("hidden");
+  feedbackForm.classList.remove("hidden"); // the comment box is open from the start, a vote is optional
   feedbackInput.value = "";
   setShot(null);
   autoShot?.reset();
@@ -1855,10 +1855,12 @@ feedbackEl.querySelectorAll(".feedback-vote").forEach((btn) => {
     feedbackLead.dataset.i18n = "feedbackFollowUp";
     feedbackLead.textContent = t("feedbackFollowUp");
     feedbackEl.classList.add("feedback-voted");
-    feedbackForm.classList.remove("hidden");
     feedbackInput.focus();
   });
 });
+
+// the box is open without a vote: the first touch of it takes the screenshot
+feedbackInput.addEventListener("focus", () => autoShot?.refresh());
 
 // Enter now inserts a newline, so keep the keyboard path open the usual way
 feedbackInput.addEventListener("keydown", (e) => {
@@ -1868,9 +1870,11 @@ feedbackInput.addEventListener("keydown", (e) => {
 feedbackForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const text = feedbackInput.value.trim();
+  if (!text && !feedbackShot && !feedbackEl.dataset.vote) return;
   if (text || feedbackShot) {
-    track("feedback-text", { vote: feedbackEl.dataset.vote });
-    const { vote } = feedbackEl.dataset;
+    // text sent without a vote goes in as "comment"
+    const vote = feedbackEl.dataset.vote || "comment";
+    track("feedback-text", { vote });
     const sid = feedbackSid; // fresh results may start a new ask while the capture runs
     (feedbackShot ? Promise.resolve(feedbackShot) : autoShot?.take() ?? Promise.resolve(null))
       .then((shot) => sendFeedback(vote, text, shot, sid));

@@ -2222,3 +2222,11 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Fix: when the arriving leg has no observed delay and the next leg no observed departure, the transfer is not judged; it counts as made and the walk is marked uncertain. Cancellations and any change with an observed delay on either side are judged as before.
 - Verified: stub legs through `_simulate_walk` (ship -> bus 1 min: made; train +10 -> bus 5 min: missed; train -> train 1 min on time: missed, unchanged); the real Baltrum -> Norden past search on a local server: all five journeys made, live site still showing missed before the deploy. Backend only, no busters.
 - Not changed: a 1-2 min train -> train change with both trains on time still counts as missed (the tolerance itself). The fixed Baltrum journeys carry no arrival delay, since neither leg is tracked.
+
+## 2026-11-07 — One feedback box on every page
+
+- The connection search / compensation check and Delay Geschichten now open the comment box from the start, like "Wo ist mein Zug?": a vote is optional, text sent without one goes in as vote "comment", and Send with neither does nothing. The page screenshot is taken on the first focus of the text box as well as on a vote.
+- Same wording everywhere: Delay Geschichten and the map page ask "Hat dir das geholfen?" / "Was this helpful?" with the search page's thumb tooltips and placeholder (the map keeps the paste-a-screenshot sentence; stories has no attach button, so not there). Replies stay told apart by `context`.
+- The "New features:" X / LinkedIn / Instagram row is in the ask's line on all three pages (stories clones its footer row like the homepage; the map page carries the markup, its footer has none), with `follow-*` Umami events; the map page also gets the ✕ dismiss. With the shorter shared question the line fits on desktop; on phones it wraps to a second line on every page, as the search page already did. A first version on the old, longer questions wrapped on desktop too and was dropped, as was hiding the row when it wraps.
+- Busters: app 161, stories 30, SHELL_VERSION v123; map repo train.js 114.
+- Verified in headless Chrome against a static copy of the pages at 1100 and 390 px (screenshots compared side by side).

@@ -15,14 +15,15 @@ const I18N = {
     sortNew: "Neueste",
     sortLiked: "Beliebteste",
     sortCommented: "Meistkommentiert",
-    feedbackAsk: "Wie findest du Delay Geschichten?",
-    feedbackYes: "Gut",
-    feedbackNo: "Nicht gut",
+    feedbackAsk: "Hat dir das geholfen?",
+    feedbackYes: "Ja, hilfreich",
+    feedbackNo: "Nein, nicht hilfreich",
     feedbackDismiss: "Ausblenden",
     feedbackFollowUp: "Danke! Was können wir besser machen?",
-    feedbackPlaceholder: "Was gefällt dir, was fehlt oder stört? Je konkreter, desto besser.",
+    feedbackPlaceholder: "Was war hilfreich, was hat gefehlt oder gestört? Je konkreter, desto besser.",
     feedbackSend: "Senden",
     feedbackAutoShot: "Screenshot dieser Seite mitsenden",
+    followFeatures: "New features:",
     feedbackThanks: "Danke für dein Feedback.",
     composeToggle: "+ Geschichte erzählen",
     fromLabel: "Von",
@@ -133,14 +134,15 @@ const I18N = {
     sortNew: "Newest",
     sortLiked: "Most liked",
     sortCommented: "Most commented",
-    feedbackAsk: "How do you like Delay Stories?",
-    feedbackYes: "Good",
-    feedbackNo: "Not good",
+    feedbackAsk: "Was this helpful?",
+    feedbackYes: "Yes, helpful",
+    feedbackNo: "No, not helpful",
     feedbackDismiss: "Dismiss",
     feedbackFollowUp: "Thanks! What could be better?",
-    feedbackPlaceholder: "What do you like, what is missing or in the way? The more specific, the better.",
+    feedbackPlaceholder: "What helped, what was missing or in the way? The more specific, the better.",
     feedbackSend: "Send",
     feedbackAutoShot: "Include a screenshot of this page",
+    followFeatures: "New features:",
     feedbackThanks: "Thanks for your feedback.",
     composeToggle: "+ Tell your story",
     fromLabel: "From",
@@ -1489,8 +1491,9 @@ document.getElementById("auth-logout").addEventListener("click", async () => {
 });
 
 /* -- feedback ask at the foot of the page -------------------------------
-   Same widget as the connection search: a vote, then an optional comment
-   under the same id so the two land as one row. A failed send is swallowed -
+   Same widget as the connection search: the comment box is open from the
+   start, a vote is optional, and the two share one id so they land as one row
+   (text without a vote goes in as "comment"). A failed send is swallowed -
    the visitor is doing us a favour and must never see an error for it. */
 (function initFeedback() {
   const box = document.getElementById("feedback-nudge");
@@ -1498,6 +1501,18 @@ document.getElementById("auth-logout").addEventListener("click", async () => {
   const form = document.getElementById("feedback-form");
   const input = document.getElementById("feedback-text");
   const sid = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  // the footer's follow row, labelled, in the ask's own line before ✕ - as on the connection search
+  const follow = document.querySelector(".footer-social").cloneNode(true);
+  follow.classList.replace("footer-social", "feedback-follow");
+  const followLead = document.createElement("span");
+  followLead.dataset.i18n = "followFeatures";
+  followLead.textContent = t("followFeatures");
+  follow.prepend(followLead);
+  box.querySelector(".feedback-row").insertBefore(follow, document.getElementById("feedback-skip"));
+  follow.addEventListener("click", (e) => {
+    const link = e.target.closest(".social-link");
+    if (link) track(`follow-${link.dataset.net}`);
+  });
   // the page screenshot, ticked by default
   let autoShot = null;
   import("/feedback-shot.js?v=1").then((m) => {
@@ -1526,19 +1541,22 @@ document.getElementById("auth-logout").addEventListener("click", async () => {
       autoShot?.refresh(); // before the form opens: the page as it was voted on
       say("feedbackFollowUp");
       box.classList.add("feedback-voted");
-      form.classList.remove("hidden");
       input.focus();
     });
   });
+  // the box is open without a vote: the first touch of it takes the screenshot
+  input.addEventListener("focus", () => autoShot?.refresh());
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) form.requestSubmit();
   });
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const text = input.value.trim();
+    if (!text && !box.dataset.vote) return;
     if (text) {
-      track("feedback-text", { vote: box.dataset.vote });
-      const { vote } = box.dataset;
+      // text sent without a vote goes in as "comment"
+      const vote = box.dataset.vote || "comment";
+      track("feedback-text", { vote });
       (autoShot?.take() ?? Promise.resolve(null)).then((shot) => send(vote, text, shot));
     }
     say("feedbackThanks");
