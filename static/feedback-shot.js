@@ -1,5 +1,5 @@
 /* Page screenshot for the feedback boxes, shared by every page through
-   import("/feedback-shot.js?v=3"). The page is redrawn from the DOM (no browser
+   import("/feedback-shot.js?v=4"). The page is redrawn from the DOM (no browser
    prompt), from the top of the page down to the feedback box: the box sits at
    the foot of its page, so that is everything the visitor scrolled through to
    reach it; the footer below is left out. The box itself is left out and the
@@ -177,11 +177,19 @@ function openViewer(src) {
     const style = document.createElement("style");
     style.textContent = `
       .feedback-shot-thumb { cursor: zoom-in; }
-      .shot-viewer { margin: auto; inset: 0; padding: 0; border: none; background: transparent; max-width: 96vw; max-height: 94vh; overflow: auto; cursor: zoom-out; }
+      .shot-viewer {
+        margin: 0; inset: 0; width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none;
+        /* a strip above the shot for the ✕, so it never covers the picture */
+        box-sizing: border-box; padding: calc(max(12px, env(safe-area-inset-top)) + 52px) 2vw 2vh;
+        border: none; background: transparent; overflow: hidden; cursor: zoom-out;
+      }
+      .shot-viewer[open] { display: flex; align-items: flex-start; justify-content: center; }
       .shot-viewer::backdrop { background: rgba(0, 0, 0, .75); }
-      .shot-viewer img { display: block; max-width: 96vw; height: auto; border-radius: 4px; box-shadow: 0 6px 30px rgba(0, 0, 0, .4); }
+      .shot-viewer-scroll { max-width: 100%; max-height: 100%; overflow: auto; -webkit-overflow-scrolling: touch; }
+      .shot-viewer img { display: block; max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 6px 30px rgba(0, 0, 0, .4); }
       .shot-viewer-close {
-        position: fixed; top: max(12px, env(safe-area-inset-top)); right: 12px; width: 40px; height: 40px;
+        position: absolute; z-index: 1; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right));
+        width: 40px; height: 40px;
         display: flex; align-items: center; justify-content: center; padding: 0;
         border: 1px solid rgba(255, 255, 255, .35); border-radius: 50%;
         background: rgba(0, 0, 0, .65); color: #fff; font: 20px/1 system-ui, sans-serif; cursor: pointer;
@@ -191,16 +199,21 @@ function openViewer(src) {
     document.head.append(style);
     viewer = document.createElement("dialog");
     viewer.className = "shot-viewer";
-    // fixed, so it stays in the corner while a tall shot scrolls under it
+    // The dialog covers the whole screen and only the inner box scrolls, so the ✕
+    // sits in the screen's corner over a scrolling shot. A fixed ✕ inside a
+    // scrolling dialog was pinned to the dialog's edge and clipped in iOS Safari.
     const close = Object.assign(document.createElement("button"), {
       type: "button", className: "shot-viewer-close", textContent: "✕",
     });
     close.setAttribute("aria-label", document.documentElement.lang === "en" ? "Close" : "Schließen");
-    viewer.append(close, Object.assign(document.createElement("img"), { alt: "" }));
+    const scroll = Object.assign(document.createElement("div"), { className: "shot-viewer-scroll" });
+    scroll.append(Object.assign(document.createElement("img"), { alt: "" }));
+    viewer.append(close, scroll);
     viewer.addEventListener("click", () => viewer.close());
     document.body.append(viewer);
   }
   viewer.querySelector("img").src = src;
+  viewer.querySelector(".shot-viewer-scroll").scrollTop = 0;
   viewer.showModal();
 }
 document.addEventListener("click", (e) => {
