@@ -264,6 +264,8 @@
   border: 1px solid var(--gray-border); border-radius: 8px; padding: 10px 12px;
 }
 .lb-request-form textarea:focus { outline: none; border-color: var(--lb-accent); }
+/* iOS Safari zooms into any field under 16 px on focus */
+@media (hover: none) and (pointer: coarse) { .lb-request-form textarea { font-size: 16px; } }
 .lb-request-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 14px; }
 .lb-request-note { margin: 0 auto 0 0; font-size: 13px; line-height: 1.4; color: var(--text-muted); }
 .lb-request-note.hidden { display: none; }

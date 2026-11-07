@@ -2245,3 +2245,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - The full-size feedback screenshot view gets a round ✕ in the top-right corner (fixed, so it stays put while a tall shot scrolls; below the notch on iPhones; aria-label "Schließen" / "Close" by page language). A tap anywhere or Esc still closes it as before. Visitors did not see that a tap closes the view.
 - Busters: feedback-shot.js v3 (import pins), app 163, stories 32, leaderboard 21, SHELL_VERSION v125; map repo train.js 116.
 - Verified in headless Chrome at 1100 and 390 px: the button sits in the corner after scrolling the view, closes it, and leaves the screenshot tick on.
+
+## 2026-11-07 — No iOS zoom on the feedback text boxes
+
+- On an iPhone 15 Pro, tapping the feedback box zoomed the page in and left the box clipped on the right: iOS Safari zooms into any field whose font is under 16 px on focus and does not zoom back. The feedback box (`.feedback-form textarea`, all four pages incl. the map page) and the leaderboard request box were 14 px; under `(hover: none) and (pointer: coarse)` they are now 16 px. Desktop keeps 14 px. The viewport meta (no `maximum-scale`) is left alone so pinch-zoom still works.
+- Busters: style.css 142 (every page that pins it, incl. the map repo's train.html), leaderboard.css 15, SHELL_VERSION v126.
+- Verified in headless Chrome with the iPhone 15 Pro profile: computed 16 px on homepage, Delay Geschichten and leaderboard; 14 px on desktop. Safari's zoom itself is not reproducible there; on-device check after deploy.
