@@ -2214,3 +2214,11 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Busters: style 141 (all pages), app 160, stories 29, leaderboard 19, SHELL_VERSION v122; map repo train.js 113, its style pin 132 -> 141.
 - Verified in headless Chrome against a static server of the worktree: homepage capture 0.75 s / 73 KB, reaches `/api/feedback` with the comment, image matches the page, account name blanked, own attachment hides the tick and removing it restores it; stories at 390 px (100 KB); leaderboard thumbnail on focus; a MapLibre test page captures blank without the freeze and correctly with it. The real map page was not exercised (needs the map backend).
 - Backend unchanged: the existing shot validation, 512 KiB cap and 200 MB/24 h budget apply.
+
+## 2026-11-07 — Unobserved transfers no longer count as missed on the compensation check
+
+- Feedback: the bus at Neßmersiel Hafen (Reederei Baltrum-Linie, held for the ferry) was "constantly counted as missed". Reconstructed as a past-mode Baltrum -> Norden search: every journey on 2026-11-04..07 showed the 1-min ship -> bus change missed, a replan onto a later bus, +495..1500 min and 50 % compensation.
+- Cause: `_simulate_walk` assumes an untracked leg (SCHIFF, BUS, ...) ran on time, so the planned 1-min gap fell under `TRANSFER_TOLERANCE_MIN = 2` on every day without any observed delay.
+- Fix: when the arriving leg has no observed delay and the next leg no observed departure, the transfer is not judged; it counts as made and the walk is marked uncertain. Cancellations and any change with an observed delay on either side are judged as before.
+- Verified: stub legs through `_simulate_walk` (ship -> bus 1 min: made; train +10 -> bus 5 min: missed; train -> train 1 min on time: missed, unchanged); the real Baltrum -> Norden past search on a local server: all five journeys made, live site still showing missed before the deploy. Backend only, no busters.
+- Not changed: a 1-2 min train -> train change with both trains on time still counts as missed (the tolerance itself). The fixed Baltrum journeys carry no arrival delay, since neither leg is tracked.

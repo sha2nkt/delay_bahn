@@ -616,6 +616,11 @@ async def _simulate_walk(legs: list[dict], window: int, replans_left: int, live:
             ready = prev_arrival + timedelta(minutes=walk_min) if prev_arrival else None
             if ready is None or dep_planned is None:
                 uncertain = True  # can't evaluate the transfer: assume it was made
+            elif not canceled and prev_delay is None and not (dep_info and dep_info["delayMin"] is not None):
+                # no delay observed on either side (ship to bus, bus to bus): only the
+                # timetable is left, and its connection stands - often one the operator
+                # guarantees by holding the bus
+                uncertain = True
             else:
                 dep_delay = dep_info["delayMin"] if dep_info and dep_info["delayMin"] is not None else 0
                 slack = (dep_planned + timedelta(minutes=dep_delay) - ready).total_seconds() / 60
