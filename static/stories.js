@@ -22,6 +22,7 @@ const I18N = {
     feedbackFollowUp: "Danke! Was können wir besser machen?",
     feedbackPlaceholder: "Was gefällt dir, was fehlt oder stört? Je konkreter, desto besser.",
     feedbackSend: "Senden",
+    feedbackAutoShot: "Screenshot dieser Seite mitsenden",
     feedbackThanks: "Danke für dein Feedback.",
     composeToggle: "+ Geschichte erzählen",
     fromLabel: "Von",
@@ -139,6 +140,7 @@ const I18N = {
     feedbackFollowUp: "Thanks! What could be better?",
     feedbackPlaceholder: "What do you like, what is missing or in the way? The more specific, the better.",
     feedbackSend: "Send",
+    feedbackAutoShot: "Include a screenshot of this page",
     feedbackThanks: "Thanks for your feedback.",
     composeToggle: "+ Tell your story",
     fromLabel: "From",
@@ -1496,13 +1498,20 @@ document.getElementById("auth-logout").addEventListener("click", async () => {
   const form = document.getElementById("feedback-form");
   const input = document.getElementById("feedback-text");
   const sid = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  // the page screenshot, ticked by default
+  let autoShot = null;
+  import("/feedback-shot.js?v=1").then((m) => {
+    autoShot = m.mountAutoShot({
+      box, row: form.querySelector(".feedback-shot-row"), label: t("feedbackAutoShot"), track,
+    });
+  }).catch(() => { /* the comment goes without one */ });
 
-  async function send(vote, text) {
+  async function send(vote, text, shot) {
     try {
       await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sid, vote, text, lang, context: "stories" }),
+        body: JSON.stringify({ sid, vote, text, shot: shot || "", lang, context: "stories" }),
       });
     } catch (e) { /* swallowed by design */ }
   }
@@ -1514,6 +1523,7 @@ document.getElementById("auth-logout").addEventListener("click", async () => {
       box.dataset.vote = btn.dataset.vote;
       track(`feedback-${btn.dataset.vote}`);
       send(btn.dataset.vote, "");
+      autoShot?.refresh(); // before the form opens: the page as it was voted on
       say("feedbackFollowUp");
       box.classList.add("feedback-voted");
       form.classList.remove("hidden");
@@ -1528,7 +1538,8 @@ document.getElementById("auth-logout").addEventListener("click", async () => {
     const text = input.value.trim();
     if (text) {
       track("feedback-text", { vote: box.dataset.vote });
-      send(box.dataset.vote, text);
+      const { vote } = box.dataset;
+      (autoShot?.take() ?? Promise.resolve(null)).then((shot) => send(vote, text, shot));
     }
     say("feedbackThanks");
     form.classList.add("hidden");

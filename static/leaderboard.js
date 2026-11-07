@@ -67,6 +67,7 @@ const I18N = {
     requestLoginNote: "Zum Senden bitte kurz anmelden – dein Text bleibt erhalten.",
     requestLoginLink: "Anmelden",
     requestSend: "Anfrage senden",
+    requestAutoShot: "Screenshot dieser Seite mitsenden",
     requestSending: "Wird gesendet …",
     requestThanks: "Danke! Deine Anfrage ist angekommen. Sobald es die Daten oder die Auswertung gibt, schicken wir sie dir per E-Mail.",
     requestError: "Das hat gerade nicht geklappt – bitte später noch einmal versuchen oder an kontakt@delaybahn.com schreiben.",
@@ -148,6 +149,7 @@ const I18N = {
     requestLoginNote: "Please log in to send – your text will be kept.",
     requestLoginLink: "Log in",
     requestSend: "Send request",
+    requestAutoShot: "Include a screenshot of this page",
     requestSending: "Sending …",
     requestThanks: "Thanks! Your request has arrived. Once the data or analysis exists we will share it with you over email.",
     requestError: "That did not work just now – please try again later or write to kontakt@delaybahn.com.",
@@ -834,6 +836,16 @@ const meReady = loadMe().then(renderAuth);
   const PARKED = "lb-request-draft";
 
   $("lb-request-login").href = LOGIN;
+  // the page screenshot, ticked by default, taken when the box is first used
+  let autoShot = null;
+  import("/feedback-shot.js?v=1").then((m) => {
+    autoShot = m.mountAutoShot({
+      box, row: form.querySelector(".feedback-shot-row"),
+      label: t("requestAutoShot"), i18n: "requestAutoShot",
+      track: (name) => window.umami?.track(name, { lang: LANG }),
+    });
+  }).catch(() => { /* the request goes without one */ });
+  input.addEventListener("focus", () => autoShot?.refresh());
   function say(key) { lead.dataset.i18n = key; lead.textContent = t(key); }
 
   // no account: a quiet line with the way to the login, the text stays in
@@ -862,11 +874,12 @@ const meReady = loadMe().then(renderAuth);
     const sid = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     let status = 0;
     try {
+      const shot = await (autoShot?.take() ?? null);
       const token = await me.user.getIdToken();
       const r = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify({ sid, vote: "request", text, lang: LANG, context: "leaderboard" }),
+        body: JSON.stringify({ sid, vote: "request", text, shot: shot || "", lang: LANG, context: "leaderboard" }),
       });
       status = r.status;
     } catch (err) { /* status stays 0: shown as an error below */ }

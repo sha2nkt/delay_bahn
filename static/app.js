@@ -245,6 +245,7 @@ const I18N = {
     feedbackPlaceholder: "Was war hilfreich, was hat gefehlt oder gestört? Je konkreter, desto besser. Screenshots kannst du direkt hier einfügen.",
     feedbackSend: "Senden",
     feedbackAttach: "📎 Screenshot anhängen",
+    feedbackAutoShot: "Screenshot dieser Seite mitsenden",
     feedbackShotRemove: "Screenshot entfernen",
     feedbackShotError: "Screenshot konnte nicht angehängt werden.",
     feedbackThanks: "Danke für dein Feedback.",
@@ -561,6 +562,7 @@ const I18N = {
     feedbackPlaceholder: "What helped, what was missing or in the way? The more specific, the better. You can paste a screenshot right here.",
     feedbackSend: "Send",
     feedbackAttach: "📎 Attach a screenshot",
+    feedbackAutoShot: "Include a screenshot of this page",
     feedbackShotRemove: "Remove screenshot",
     feedbackShotError: "Couldn't attach that screenshot.",
     feedbackThanks: "Thanks for your feedback.",
@@ -1676,6 +1678,8 @@ const shotError = document.getElementById("feedback-shot-error");
 
 // optional screenshot riding along with the comment, as a base64 data URL
 let feedbackShot = null;
+// the page screenshot, ticked by default; an image of their own replaces it
+let autoShot = null;
 
 // one id per prompt, so the vote and the comment that may follow become one row
 let feedbackSid = null;
@@ -1693,6 +1697,7 @@ function resetFeedback() {
   feedbackForm.classList.add("hidden");
   feedbackInput.value = "";
   setShot(null);
+  autoShot?.reset();
   shotError.classList.add("hidden");
   feedbackLead.dataset.i18n = "feedbackAsk";
   feedbackLead.textContent = t("feedbackAsk");
@@ -1709,7 +1714,15 @@ function setShot(url) {
   shotThumb.src = url || "";
   shotChip.classList.toggle("hidden", !url);
   shotAttach.classList.toggle("hidden", !!url);
+  autoShot?.hide(!!url);
 }
+
+import("/feedback-shot.js?v=1").then((m) => {
+  autoShot = m.mountAutoShot({
+    box: feedbackEl, row: feedbackForm.querySelector(".feedback-shot-row"),
+    label: t("feedbackAutoShot"), i18n: "feedbackAutoShot", track,
+  });
+}).catch(() => { /* no tick then, the attach button still works */ });
 
 // via an <img> rather than createImageBitmap for the sake of older Safari
 function loadShotImage(file) {
@@ -1808,13 +1821,13 @@ function setFeedbackNudge(show) {
 }
 
 // the visitor is doing us a favour: a failed send must never surface as an error
-async function sendFeedback(vote, text, shot) {
+async function sendFeedback(vote, text, shot, sid = feedbackSid) {
   try {
     await fetch("/api/feedback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        sid: feedbackSid, vote, text, shot: shot || "",
+        sid, vote, text, shot: shot || "",
         lang: state.lang,
         context: PAST_PAGE ? "past" : "future",
       }),
@@ -1838,6 +1851,7 @@ feedbackEl.querySelectorAll(".feedback-vote").forEach((btn) => {
     // directly, without depending on its per-event properties view
     track(`feedback-${vote}`);
     sendFeedback(vote, "");
+    autoShot?.refresh(); // before the form opens: the page as it was voted on
     feedbackLead.dataset.i18n = "feedbackFollowUp";
     feedbackLead.textContent = t("feedbackFollowUp");
     feedbackEl.classList.add("feedback-voted");
@@ -1856,7 +1870,10 @@ feedbackForm.addEventListener("submit", (e) => {
   const text = feedbackInput.value.trim();
   if (text || feedbackShot) {
     track("feedback-text", { vote: feedbackEl.dataset.vote });
-    sendFeedback(feedbackEl.dataset.vote, text, feedbackShot);
+    const { vote } = feedbackEl.dataset;
+    const sid = feedbackSid; // fresh results may start a new ask while the capture runs
+    (feedbackShot ? Promise.resolve(feedbackShot) : autoShot?.take() ?? Promise.resolve(null))
+      .then((shot) => sendFeedback(vote, text, shot, sid));
   }
   thankFeedback();
 });

@@ -992,6 +992,10 @@ body.nudge-on #donate-footer-item { display: none; }
 }
 .feedback-shot-error { font-size: 13px; color: var(--red); }
 .feedback-attach.hidden, .feedback-shot-chip.hidden, .feedback-shot-error.hidden { display: none; }
+.feedback-auto { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); cursor: pointer; }
+.feedback-auto input { margin: 0; accent-color: var(--brand-red); }
+.feedback-auto[hidden], .feedback-auto-thumb[hidden] { display: none; }
+.feedback-auto-thumb { max-height: 40px; }
 
 .legal-card {
   background: #fff; border-radius: 8px; padding: 24px 28px;
