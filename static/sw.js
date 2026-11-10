@@ -11,7 +11,7 @@
  * Bump SHELL_VERSION whenever the precached asset URLs below change (e.g. after a
  * ?v= cache-buster bump in index.html) so old shells are dropped and re-primed.
  */
-const SHELL_VERSION = "v127";
+const SHELL_VERSION = "v128";
 const SHELL_CACHE = `delaybahn-shell-${SHELL_VERSION}`;
 const API_CACHE = `delaybahn-api-${SHELL_VERSION}`;
 
@@ -23,7 +23,7 @@ const PRECACHE = [
   "/",
   "/en/",
   "/style.css?v=142",
-  "/app.js?v=164",
+  "/app.js?v=165",
   "/manifest.json",
   "/favicon.png",
   "/logo.webp?v=1",

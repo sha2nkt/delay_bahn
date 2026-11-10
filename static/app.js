@@ -237,7 +237,8 @@ const I18N = {
     footerDonate: "☕ Spendier mir einen Kaffee",
     donateNudgeLead: "Hat dir das geholfen?",
     donateNudgeLink: "☕ Spendier mir einen Kaffee",
-    feedbackAsk: "Hat dir das geholfen?",
+    feedbackAsk: "War die Suche hilfreich?",
+    feedbackAskPast: "War die Prüfung hilfreich?",
     feedbackYes: "Ja, hilfreich",
     feedbackNo: "Nein, nicht hilfreich",
     feedbackDismiss: "Ausblenden",
@@ -554,7 +555,8 @@ const I18N = {
     footerDonate: "☕ Buy me a coffee",
     donateNudgeLead: "Found this useful?",
     donateNudgeLink: "☕ Buy me a coffee",
-    feedbackAsk: "Was this helpful?",
+    feedbackAsk: "Was the search helpful?",
+    feedbackAskPast: "Was the check helpful?",
     feedbackYes: "Yes, helpful",
     feedbackNo: "No, not helpful",
     feedbackDismiss: "Dismiss",
@@ -1694,13 +1696,14 @@ function resetFeedback() {
   feedbackSid = newSid();
   delete feedbackEl.dataset.vote;
   feedbackEl.classList.remove("feedback-voted", "feedback-done");
-  feedbackForm.classList.remove("hidden"); // the comment box is open from the start, a vote is optional
+  feedbackForm.classList.add("hidden"); // thumbs first: the comment box opens with the vote
   feedbackInput.value = "";
   setShot(null);
   autoShot?.reset();
   shotError.classList.add("hidden");
-  feedbackLead.dataset.i18n = "feedbackAsk";
-  feedbackLead.textContent = t("feedbackAsk");
+  // each page asks about itself: the connection search or the compensation check
+  feedbackLead.dataset.i18n = PAST_PAGE ? "feedbackAskPast" : "feedbackAsk";
+  feedbackLead.textContent = t(feedbackLead.dataset.i18n);
 }
 
 // --- feedback screenshot ---
@@ -1800,7 +1803,7 @@ document.getElementById("feedback-shot-remove").addEventListener("click", () => 
 // ✕ stays the trailing affordance. Cloned from the footer rather than repeated in
 // the markup, so the brand marks exist exactly once. Mounted once: the vote buttons
 // hide themselves after a vote but this row stays for every state of the ask.
-// The footer row is bare icons; next to "Hat dir das geholfen?" they need a word to
+// The footer row is bare icons; next to the ask's question they need a word to
 // say what clicking them does, so the label is added here rather than cloned.
 (function mountFollowRow() {
   const row = document.querySelector(".footer-social").cloneNode(true);
@@ -1855,12 +1858,10 @@ feedbackEl.querySelectorAll(".feedback-vote").forEach((btn) => {
     feedbackLead.dataset.i18n = "feedbackFollowUp";
     feedbackLead.textContent = t("feedbackFollowUp");
     feedbackEl.classList.add("feedback-voted");
+    feedbackForm.classList.remove("hidden");
     feedbackInput.focus();
   });
 });
-
-// the box is open without a vote: the first touch of it takes the screenshot
-feedbackInput.addEventListener("focus", () => autoShot?.refresh());
 
 // Enter now inserts a newline, so keep the keyboard path open the usual way
 feedbackInput.addEventListener("keydown", (e) => {
@@ -1870,10 +1871,8 @@ feedbackInput.addEventListener("keydown", (e) => {
 feedbackForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const text = feedbackInput.value.trim();
-  if (!text && !feedbackShot && !feedbackEl.dataset.vote) return;
   if (text || feedbackShot) {
-    // text sent without a vote goes in as "comment"
-    const vote = feedbackEl.dataset.vote || "comment";
+    const { vote } = feedbackEl.dataset;
     track("feedback-text", { vote });
     const sid = feedbackSid; // fresh results may start a new ask while the capture runs
     (feedbackShot ? Promise.resolve(feedbackShot) : autoShot?.take() ?? Promise.resolve(null))

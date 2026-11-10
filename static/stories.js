@@ -15,9 +15,9 @@ const I18N = {
     sortNew: "Neueste",
     sortLiked: "Beliebteste",
     sortCommented: "Meistkommentiert",
-    feedbackAsk: "Hat dir das geholfen?",
-    feedbackYes: "Ja, hilfreich",
-    feedbackNo: "Nein, nicht hilfreich",
+    feedbackAsk: "Gefallen dir die Geschichten?",
+    feedbackYes: "Ja",
+    feedbackNo: "Nein",
     feedbackDismiss: "Ausblenden",
     feedbackFollowUp: "Danke! Was können wir besser machen?",
     feedbackPlaceholder: "Was war hilfreich, was hat gefehlt oder gestört? Je konkreter, desto besser.",
@@ -134,9 +134,9 @@ const I18N = {
     sortNew: "Newest",
     sortLiked: "Most liked",
     sortCommented: "Most commented",
-    feedbackAsk: "Was this helpful?",
-    feedbackYes: "Yes, helpful",
-    feedbackNo: "No, not helpful",
+    feedbackAsk: "Enjoying Delay Stories?",
+    feedbackYes: "Yes",
+    feedbackNo: "No",
     feedbackDismiss: "Dismiss",
     feedbackFollowUp: "Thanks! What could be better?",
     feedbackPlaceholder: "What helped, what was missing or in the way? The more specific, the better.",
@@ -1491,9 +1491,8 @@ document.getElementById("auth-logout").addEventListener("click", async () => {
 });
 
 /* -- feedback ask at the foot of the page -------------------------------
-   Same widget as the connection search: the comment box is open from the
-   start, a vote is optional, and the two share one id so they land as one row
-   (text without a vote goes in as "comment"). A failed send is swallowed -
+   Same widget as the connection search: a vote, then an optional comment
+   under the same id so the two land as one row. A failed send is swallowed -
    the visitor is doing us a favour and must never see an error for it. */
 (function initFeedback() {
   const box = document.getElementById("feedback-nudge");
@@ -1541,21 +1540,18 @@ document.getElementById("auth-logout").addEventListener("click", async () => {
       autoShot?.refresh(); // before the form opens: the page as it was voted on
       say("feedbackFollowUp");
       box.classList.add("feedback-voted");
+      form.classList.remove("hidden");
       input.focus();
     });
   });
-  // the box is open without a vote: the first touch of it takes the screenshot
-  input.addEventListener("focus", () => autoShot?.refresh());
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) form.requestSubmit();
   });
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const text = input.value.trim();
-    if (!text && !box.dataset.vote) return;
     if (text) {
-      // text sent without a vote goes in as "comment"
-      const vote = box.dataset.vote || "comment";
+      const { vote } = box.dataset;
       track("feedback-text", { vote });
       (autoShot?.take() ?? Promise.resolve(null)).then((shot) => send(vote, text, shot));
     }

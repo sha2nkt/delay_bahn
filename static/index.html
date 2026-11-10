@@ -417,12 +417,12 @@ try {
   </p>
   <div id="feedback-nudge" class="feedback-nudge hidden" aria-live="polite">
     <div class="feedback-row">
-      <span id="feedback-lead" data-i18n="feedbackAsk">Hat dir das geholfen?</span>
+      <span id="feedback-lead" data-i18n="feedbackAsk">War die Suche hilfreich?</span>
       <button class="feedback-vote" data-vote="up" type="button" data-i18n-title="feedbackYes" data-i18n-aria="feedbackYes">👍</button>
       <button class="feedback-vote" data-vote="down" type="button" data-i18n-title="feedbackNo" data-i18n-aria="feedbackNo">👎</button>
       <button id="feedback-skip" class="feedback-skip" type="button" data-i18n-title="feedbackDismiss" data-i18n-aria="feedbackDismiss">✕</button>
     </div>
-    <form id="feedback-form" class="feedback-form">
+    <form id="feedback-form" class="feedback-form hidden">
       <textarea id="feedback-text" rows="4" maxlength="1000" data-i18n-placeholder="feedbackPlaceholder"></textarea>
       <div class="feedback-shot-row">
         <input id="feedback-shot-input" type="file" accept="image/*" hidden>
@@ -780,7 +780,7 @@ try {
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
   <p class="footer-copyright">Copyright © 2026 Shashank Tripathi</p>
 </footer>
-<script src="/app.js?v=164"></script>
+<script src="/app.js?v=165"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
