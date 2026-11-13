@@ -28,7 +28,11 @@ const I18N = {
     navRefund: "Entschädigung beantragen",
     tagline: "Ein Name für alle deine Geschichten",
     chooseHeading: "Anmelden oder registrieren",
-    chooseLead: "Mit einem Konto kannst du Geschichten schreiben, kommentieren und abstimmen.",
+    perkLive: "Züge live verfolgen",
+    perkTrips: "Meine Fahrten: deine verlorene Zeit",
+    perkRefund: "Erinnerung an die Entschädigung",
+    perkStories: "Geschichten, Kommentare, Votes",
+    perkMore: "… und mehr",
     reportLead: "Mit einem Konto bekommst du deinen Verspätungs-Report per E-Mail.",
     tripsLead: "Mit einem Konto merkt sich DelayBahn die Fahrten, die du dir merkst oder auf bahn.de buchst.",
     pageLead: "Mit einem Konto blätterst du ohne Limit durch frühere und spätere Verbindungen.",
@@ -112,7 +116,11 @@ const I18N = {
     navRefund: "Claim compensation",
     tagline: "One name for all your stories",
     chooseHeading: "Log in or sign up",
-    chooseLead: "With an account you can write stories, comment and vote.",
+    perkLive: "Follow trains live",
+    perkTrips: "My Trips: your time lost to delays",
+    perkRefund: "Compensation reminders",
+    perkStories: "Stories, comments, votes",
+    perkMore: "… and more",
     reportLead: "With an account you get your delay report by email.",
     tripsLead: "With an account DelayBahn remembers the trips you bookmark or book on bahn.de.",
     pageLead: "With an account you browse earlier and later connections without limit.",
@@ -305,11 +313,12 @@ function applyStatic() {
     a.href = navPaths[a.dataset.nav];
     a.querySelector(".site-nav-label").textContent = t(navKeys[a.dataset.nav]);
   });
-  if (REASON === "report") $("choose-lead").textContent = t("reportLead");
-  if (REASON === "trips") $("choose-lead").textContent = t("tripsLead");
-  if (REASON === "page") $("choose-lead").textContent = t("pageLead");
-  if (REASON === "request") $("choose-lead").textContent = t("requestLead");
-  if (REASON === "train") $("choose-lead").textContent = t("trainLead");
+  // a visitor sent here by one feature gets that feature's line above the list
+  const reasonLead = { report: "reportLead", trips: "tripsLead", page: "pageLead", request: "requestLead", train: "trainLead" }[REASON];
+  if (reasonLead) {
+    $("choose-lead").textContent = t(reasonLead);
+    $("choose-lead").hidden = false;
+  }
   // the login is a detour: the way back without an account stays in sight
   if (NEXT) {
     $("login-back").href = NEXT;

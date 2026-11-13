@@ -2264,3 +2264,10 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Each page asks about itself, worded to fit the 520 px row on desktop next to the follow row: "War die Suche hilfreich?" / "Was the search helpful?" (search), "War die Prüfung hilfreich?" / "Was the check helpful?" (compensation, `feedbackAskPast` via `PAST_PAGE`), "Gefallen dir die Geschichten?" / "Enjoying Delay Stories?" (stories; thumbs titled Ja/Nein, Yes/No), "War die Karte hilfreich?" / "Was the map helpful?" (map). The impressum quotes the search question.
 - Busters: app 165, stories 34, SHELL_VERSION v128; map repo train.js 118.
 - Verified in headless Chrome against a static copy: on all three pages the box is hidden before the vote and open after it, thumbs hide, and the vote and the comment with screenshot post under one sid; every question renders on one line at 1280 px ("Gefallen dir die Geschichten?" with ~1 px spare).
+
+## 2026-11-13 — Login page lists what an account gives you
+
+- The sign-in card's single line "With an account you can write stories, comment and vote." is replaced by four features in a 2×2 grid of red line icons, most useful first: follow trains live, My Trips with your time lost to delays, compensation reminders, stories/comments/votes, then "… and more". Eight were drafted; cut to four because a login card is scanned, not read, and the alarm and share-live login asks are switched off (`LOGIN_GATES = false` in the map repo), so listing them as account features would be untrue until those asks return.
+- A visitor sent from one feature (`reason=report|trips|page|request|train`) still gets that feature's line, now above the list; the generic `chooseLead` key is gone.
+- Busters: style.css 143 (every page that pins it, incl. the map repo's train.html), login.js 24, SHELL_VERSION v129.
+- Verified in headless Chrome against a static copy at 390 and 1000 px: grid stays two columns, icons align with the first line of wrapped labels, Google and "Weiter" stay on the first phone screen. English strings not rendered on screen (the static copy has no `?lang`).
