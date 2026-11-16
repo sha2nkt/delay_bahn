@@ -2271,3 +2271,12 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - A visitor sent from one feature (`reason=report|trips|page|request|train`) still gets that feature's line, now above the list; the generic `chooseLead` key is gone.
 - Busters: style.css 143 (every page that pins it, incl. the map repo's train.html), login.js 24, SHELL_VERSION v129.
 - Verified in headless Chrome against a static copy at 390 and 1000 px: grid stays two columns, icons align with the first line of wrapped labels, Google and "Weiter" stay on the first phone screen. English strings not rendered on screen (the static copy has no `?lang`).
+
+## 2026-11-16 — Tabs open from the service worker's cache
+
+- Why: in the installed app a tab tap often seemed to do nothing. Every tab is a full page load, and navigations were network-first, so each tap waited on a round trip to hetzner3 with no visible sign (a standalone PWA has no loading bar); a second tap restarted the load.
+- `static/sw.js`: the 12 tab pages (`/`, `/en/`, compensation, map, leaderboard, stories, trips; DE and EN) are served from the shell cache when the copy is under 1 h old, keyed by path (their markup carries nothing per visitor or per query), and refreshed behind it. Older or missing copies stay network-first, so a page from before a deploy is shown at most once. Every other navigation is unchanged.
+- New `static/nav.js?v=1`: the tapped tab lights up at once and a 3 px bar runs along the top until the next page replaces this one; `pageshow` from bfcache resets both. In the installed app (`display-mode: standalone`), 2 s after load it sends the service worker the nav's tab paths; the worker fetches each (skipping copies under 10 min old) plus the page's own stylesheets and scripts, read from its markup. Skipped on Data Saver and 2G. Static tag in the six public pages; `_site_nav` adds it to pages lacking it (the map repo's train.html), so the map repo needs no change.
+- Busters: SHELL_VERSION v130, nav.js 1.
+- Verified in headless Chrome against a local server holding every HTML answer 4 s: after a warm, all tabs and their CSS/JS (incl. maplibre and train.js) were in the cache and tab switches committed in 34–75 ms; a copy aged past 1 h went back to the network; the bar and active tab appear on tap. Not tried on a phone.
+- Not done: the map page's 100 ms fleet frame (`FLEET_FRAME_S`, map repo) still keeps a phone's main thread busy, a likely cause of taps lost when leaving the map; phone tab targets are ~33 px tall.

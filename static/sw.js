@@ -11,7 +11,7 @@
  * Bump SHELL_VERSION whenever the precached asset URLs below change (e.g. after a
  * ?v= cache-buster bump in index.html) so old shells are dropped and re-primed.
  */
-const SHELL_VERSION = "v129";
+const SHELL_VERSION = "v130";
 const SHELL_CACHE = `delaybahn-shell-${SHELL_VERSION}`;
 const API_CACHE = `delaybahn-api-${SHELL_VERSION}`;
 
@@ -32,6 +32,25 @@ const PRECACHE = [
 ];
 
 const STATIC_ASSET = /\.(?:css|js|mjs|png|jpe?g|webp|gif|svg|ico|woff2?|json)$/i;
+
+// The pages behind the tab bar. Their markup carries nothing per visitor or per
+// query (the scripts fetch that), so a cached copy, keyed by path, opens a tab
+// at once while a fresh one is fetched behind it.
+const TAB_PAGES = new Set([
+  "/", "/en/",
+  "/entschaedigung", "/en/compensation",
+  "/wo-ist-mein-zug", "/en/where-is-my-train",
+  "/rangliste", "/leaderboard",
+  "/geschichten", "/stories",
+  "/meine-fahrten", "/en/my-trips",
+]);
+// An older copy is fetched first again: after a deploy it could name scripts
+// of a version the cache no longer holds.
+const TAB_MAX_AGE = 60 * 60 * 1000;
+// warming skips a tab fetched this recently
+const TAB_WARM_AGE = 10 * 60 * 1000;
+// a page's own stylesheets and scripts, to warm along with it
+const PAGE_ASSET = /<(?:link|script)\b[^>]*?\b(?:href|src)="(\/(?!stats\/)[^"]+\.(?:css|js)(?:\?[^"]*)?)"/g;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -68,6 +87,8 @@ self.addEventListener("fetch", (event) => {
 
   if (url.pathname.startsWith("/api/")) {
     event.respondWith(networkFirstApi(req));
+  } else if (req.mode === "navigate" && TAB_PAGES.has(url.pathname)) {
+    event.respondWith(tabPage(event, req, url.pathname));
   } else if (req.mode === "navigate") {
     event.respondWith(networkFirstNavigation(req));
   } else if (STATIC_ASSET.test(url.pathname)) {
@@ -125,6 +146,57 @@ async function networkFirstNavigation(req) {
     return (await cache.match(req)) || (await cache.match(home)) || offlinePage(home);
   }
 }
+
+function ageOf(res) {
+  const t = Number(res.headers.get("sw-cached-at") || 0);
+  return t > 0 ? Date.now() - t : Infinity;
+}
+
+// Fetch a tab page and keep it under its path. Null when the network fails.
+async function refreshTab(cache, req, path) {
+  try {
+    const res = await fetch(req);
+    if (res && res.ok && !res.redirected) await cache.put(path, await withTimestamp(res.clone()));
+    return res;
+  } catch (err) {
+    return null;
+  }
+}
+
+async function tabPage(event, req, path) {
+  const cache = await caches.open(SHELL_CACHE);
+  const cached = await cache.match(path);
+  const network = refreshTab(cache, req, path);
+  if (cached && ageOf(cached) < TAB_MAX_AGE) {
+    event.waitUntil(network);
+    return cached;
+  }
+  const home = path.startsWith("/en") ? "/en/" : "/";
+  return (await network) || cached || (await cache.match(home)) || offlinePage(home);
+}
+
+// Fetch the tabs the page names, with their stylesheets and scripts, so a
+// switch finds them all in the cache.
+async function warmTabs(paths) {
+  const cache = await caches.open(SHELL_CACHE);
+  for (const path of new Set(paths)) {
+    if (!TAB_PAGES.has(path)) continue;
+    const cached = await cache.match(path);
+    if (cached && ageOf(cached) < TAB_WARM_AGE) continue;
+    const res = await refreshTab(cache, new Request(path, { credentials: "same-origin" }), path);
+    if (!res || !res.ok || res.redirected) continue;
+    const html = await res.text();
+    const assets = [...html.matchAll(PAGE_ASSET)].map((m) => m[1].replace(/&amp;/g, "&"));
+    await Promise.allSettled(assets.map(async (asset) => {
+      if (!(await cache.match(asset))) await cache.add(asset);
+    }));
+  }
+}
+
+self.addEventListener("message", (event) => {
+  const paths = event.data && event.data.warm;
+  if (Array.isArray(paths)) event.waitUntil(warmTabs(paths.filter((p) => typeof p === "string")));
+});
 
 async function staleWhileRevalidate(req) {
   const cache = await caches.open(SHELL_CACHE);

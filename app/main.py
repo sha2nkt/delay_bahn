@@ -1064,6 +1064,8 @@ if delaybahn_map:
 _NAV_LINK = re.compile(
     r'<a class="site-nav-link[^"]*" data-nav="(?P<key>\w+)" href="[^"]*"[^>]*>'
     r'<span class="site-nav-label">[^<]*')
+# the same tag sits in the static pages' markup; keep the buster in step
+NAV_SCRIPT = '<script defer src="/nav.js?v=1"></script>'
 # the map's link is in the markup; without the package it comes out
 _NAV_TRAIN_LINK = re.compile(r'\s*<a class="site-nav-link[^"]*" data-nav="train" .*?</a>', re.S)
 
@@ -1088,6 +1090,9 @@ def _site_nav(html: str, lang: str, active: str | None = None) -> str:
                 f'<span class="site-nav-label">{NAV_LABELS[key][lang]}')
 
     html = _NAV_LINK.sub(sub, html)
+    # pages whose markup lacks the tab bar's script (the map's) get it here
+    if NAV_SCRIPT not in html:
+        html = html.replace("</body>", NAV_SCRIPT + "\n</body>", 1)
     if lang == "en":
         html = html.replace('<nav class="site-nav" aria-label="Bereiche">',
                             '<nav class="site-nav" aria-label="Sections">')
