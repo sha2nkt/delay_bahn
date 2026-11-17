@@ -2305,3 +2305,10 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Now compared as strings against Berlin's wall-clock (`berlinStamp`, hoisted from `liveLegQuery`, which already did this).
 - Busters: app 167, SHELL_VERSION v132.
 - Verified: node with TZ=America/Los_Angeles at the press time - old check true, new check false. Not checked: other `new Date(plannedX)` uses; the one remaining (leg duration) is a difference and zone-neutral.
+
+## 2026-11-18 — Compensation check: a replacement train that ran short is shown to where it went
+
+- On the compensation check, the "actual onward journey" could list a replacement train with its full planned stretch and a red "cancelled" badge, followed by a train from a station that row never named. Example, Berlin Hbf -> Paris Est on 2026-11-14: ICE 595 was shown as "Erfurt Hbf 09:30 -> Mannheim Hbf 12:30, cancelled", then ICE 371 from Fulda. The simulation was right (ICE 595 ran to Fulda and was cancelled from Frankfurt on; the parquet confirms it), only the row was wrong: the miss event that says "ended early" survives for the booked itinerary alone, not for replacement legs.
+- `_simulate_walk` now writes `endedEarly` (station, actual and planned arrival, delay) on the leg itself; `_ended_early` returns the planned arrival and delay with it. `buildLegRow` shows a replacement leg that ran short as the ride it was ("Erfurt Hbf 09:30 -> Fulda 10:47" with that stop's delay badge, no platform: the delay data has none there). A booked train that ran short keeps its booked stretch, which is what the ticket says, and gets the badge "ended at Fulda, arr. 10:47" instead of "cancelled"; the note under the card stays.
+- Busters: `app.js?v=170`, `SHELL_VERSION` v134 (169 / v133 are held by the uncommitted claim-flow worktree).
+- Verified: 346 tests pass; ICE 595's stops on 2026-11-14 read from the parquet. Not seen in a browser before shipping.

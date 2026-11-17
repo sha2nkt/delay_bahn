@@ -324,6 +324,7 @@ const I18N = {
     simIncomplete: "Keine Ersatzverbindung in den Daten gefunden – tatsächliche Ankunft unbekannt",
     simNoData: "Für die Ankunft der Weiterfahrt liegen keine Verspätungsdaten vor – tatsächliche Ankunft unbekannt",
     simEndedEarly: (train, station, time) => `${train} endete vorzeitig in ${station} (an ${time})`,
+    legEndedEarly: (station, time) => `endete in ${station}, an ${time}`,
     pastDisclaimer: "Entschädigung nach EU-Fahrgastrechten: 25 % des Ticketpreises ab 60 min, 50 % ab 120 min Verspätung am Ziel. Auszahlung ab 4 €. Angezeigte Verspätungen basieren auf unseren aufgezeichneten Daten – maßgeblich ist die tatsächliche Ankunft.",
     installTitle: "DelayBahn als App installieren",
     installLead: "Schneller Zugriff vom Startbildschirm.",
@@ -648,6 +649,7 @@ const I18N = {
     simIncomplete: "No replacement connection found in the data – actual arrival unknown",
     simNoData: "No delay data for the onward journey's arrival – actual arrival unknown",
     simEndedEarly: (train, station, time) => `${train} ended early at ${station} (arr. ${time})`,
+    legEndedEarly: (station, time) => `ended at ${station}, arr. ${time}`,
     pastDisclaimer: "Compensation under EU passenger rights: 25% of the ticket price from 60 min, 50% from 120 min delay at your destination. Paid out from €4. Shown delays are based on our recorded data – the actual arrival is authoritative.",
     installTitle: "Install DelayBahn as an app",
     installLead: "Quick access from your home screen.",
@@ -2808,11 +2810,15 @@ function buildLegRow(leg, past, struck, open = state.liveDay) {
   const desc = document.createElement("span");
   desc.className = "leg-desc";
   // past mode shows the schedule; the actual delay is the story of the badge next to it
+  // a replacement train that ran short is shown as the ride it was: to the stop
+  // where it ended. A booked train keeps its booked stretch, that is the ticket.
+  const short = !struck && leg.replacement && leg.endedEarly ? leg.endedEarly : null;
   desc.append(
     document.createTextNode(`${leg.origin?.name || ""} `),
     stopTimeNode(leg.plannedDeparture, past ? null : leg.departure, leg.departurePlatform),
-    document.createTextNode(` → ${leg.destination?.name || ""} `),
-    stopTimeNode(leg.plannedArrival, past ? null : leg.arrival, leg.arrivalPlatform),
+    document.createTextNode(` → ${(short ? short.station : leg.destination?.name) || ""} `),
+    short ? stopTimeNode(short.plannedArrival, null, null)
+      : stopTimeNode(leg.plannedArrival, past ? null : leg.arrival, leg.arrivalPlatform),
   );
   let badge;
   if (struck) {
@@ -2824,6 +2830,13 @@ function buildLegRow(leg, past, struck, open = state.liveDay) {
       badge.className = "badge gray";
       badge.textContent = t("missedLegBadge");
     }
+  } else if (short) {
+    badge = exactDelayBadge({ delayMin: short.delayMin, canceled: false }, open);
+  } else if (leg.endedEarly) {
+    // boarded, but the train stopped running before the booked stop
+    badge = document.createElement("span");
+    badge.className = "badge red";
+    badge.textContent = t("legEndedEarly", leg.endedEarly.station, fmtTime(leg.endedEarly.arrival));
   } else if (UNTRACKED_PRODUCTS.has(leg.line?.product)) {
     badge = notTrackedBadge();
   } else {

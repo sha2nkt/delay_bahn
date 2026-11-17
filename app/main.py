@@ -408,6 +408,7 @@ def _ended_early(leg: dict, live: bool = False) -> dict | None:
     return {
         "station": {"id": stop["eva"].lstrip("0"), "name": stop["name"]},
         "arrival": stop["plannedArrival"] + timedelta(minutes=stop["delayMin"]),
+        "plannedArrival": stop["plannedArrival"], "delayMin": stop["delayMin"],
     }
 
 
@@ -646,6 +647,12 @@ async def _simulate_walk(legs: list[dict], window: int, replans_left: int, live:
             # it stopped, and everything from this leg's destination on is replaced
             replan_from = ended["station"]
             ready = ended["arrival"]
+            # the row itself says where the ride stopped: on a replacement leg no
+            # miss event survives to tell it
+            leg["endedEarly"] = {
+                "station": ended["station"]["name"], "arrival": ended["arrival"].isoformat(),
+                "plannedArrival": ended["plannedArrival"].isoformat(), "delayMin": ended["delayMin"],
+            }
             missed_event = {
                 "legIndex": i, "station": ended["station"]["name"],
                 "trainName": leg["line"]["name"], "canceled": True,
