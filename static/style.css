@@ -879,6 +879,10 @@ body.past-mode .trip-steps { display: none; }
 .report-teaser-row > span:first-child { flex: none; width: 165px; color: var(--text-muted); font-weight: 600; }
 .report-teaser-note { font-size: 12px; color: var(--text-muted); font-style: italic; }
 .report-blur { filter: blur(3px); }
+.report-hero { margin-bottom: 4px; padding: 14px 16px; border: 1px solid #d7dce1; border-left: 4px solid var(--green); border-radius: 8px; }
+.report-hero-line { font-size: 20px; font-weight: 700; color: var(--green); }
+.report-hero-line .report-blur { display: inline-block; padding: 0 8px; margin: 0 2px; border-radius: 12px; background: var(--green); color: #fff; filter: blur(4px); }
+.report-hero .report-teaser-note { display: block; margin-top: 4px; }
 
 .report-login, .report-done { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
 .report-login.hidden, .report-done.hidden { display: none; }

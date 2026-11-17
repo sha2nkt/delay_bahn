@@ -37,7 +37,7 @@ MAX_PER_ACCOUNT = 200
 MAX_JOURNEYS_PER_PRESS = 2
 
 KINDS = ("oneway", "outbound", "return")
-VIAS = ("card", "summary", "report-modal", "add")
+VIAS = ("card", "summary", "report-modal", "report-bell", "add")
 
 # a press is one small write by a signed-in account; this budget only keeps a
 # script from filling the table
@@ -377,6 +377,7 @@ def mine(uid: str) -> list[dict]:
             "id": r["id"],
             "key": r["journey_key"],
             "kind": r["kind"],
+            "via": r["via"],
             "fromName": r["from_name"],
             "fromId": r["from_id"],
             "toName": r["to_name"],

@@ -2489,7 +2489,7 @@ async def report_unsubscribe_submit(token: str = Query("")) -> HTMLResponse:
 
 class TripPress(BaseModel):
     lang: Literal["de", "en"] = "de"
-    via: Literal["card", "summary", "report-modal", "add"] = "card"
+    via: Literal["card", "summary", "report-modal", "report-bell", "add"] = "card"
     url: str
     journeys: list[dict] = Field(min_length=1, max_length=trips.MAX_JOURNEYS_PER_PRESS)
     search: dict = Field(default_factory=dict)
