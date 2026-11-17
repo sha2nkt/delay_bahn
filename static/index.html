@@ -66,7 +66,7 @@ try {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DelayBahn">
-<link rel="stylesheet" href="/style.css?v=143">
+<link rel="stylesheet" href="/style.css?v=144">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -438,9 +438,26 @@ try {
   </div>
   <p id="past-disclaimer" class="past-disclaimer hidden" data-i18n="pastDisclaimer">Entschädigung nach EU-Fahrgastrechten: 25 % des Ticketpreises ab 60 min, 50 % ab 120 min Verspätung am Ziel. Auszahlung ab 4 €. Angezeigte Verspätungen basieren auf unseren aufgezeichneten Daten – maßgeblich ist die tatsächliche Ankunft.</p>
 </main>
-<!-- one-time launch announcement for the live train map; closing it in any way retires it -->
+<!-- one-time launch announcements; ACTIVE_LAUNCH in app.js picks which one shows, and
+     closing it in any way retires it -->
+<dialog id="launch-comp-modal" class="claim-modal launch-modal" aria-labelledby="launch-comp-title">
+  <button class="claim-modal-close launch-close" type="button" data-i18n-aria="launchClose" data-i18n-title="launchClose" aria-label="Schließen">✕</button>
+  <div class="launch-shot"><img src="/launch-compensation.svg" width="1200" height="464" alt="" loading="lazy"></div>
+  <div class="launch-body">
+    <span class="launch-badge" data-i18n="launchBadge">Neu</span>
+    <h2 id="launch-comp-title" class="launch-title" data-i18n="launchCompTitle">Entschädigungs-Erinnerung</h2>
+    <p class="launch-lead" data-i18n="launchCompLead">Geld zurück, wenn dein Zug zu spät kommt</p>
+    <ul class="launch-list launch-steps">
+      <li data-i18n="launchCompF1">Verbindung suchen</li>
+      <li data-i18n-icon="launchCompF2">Bei deiner gewählten Verbindung auf den Knopf drücken</li>
+      <li data-i18n="launchCompF3">Nach der Fahrt sagen wir dir per E-Mail, ob du Geld zurückbekommst</li>
+    </ul>
+    <button id="launch-comp-search" class="claim-modal-go launch-cta" type="button" data-i18n="launchCompCta">Verbindung suchen</button>
+    <button class="launch-later" type="button" data-i18n="launchLater">Später</button>
+  </div>
+</dialog>
 <dialog id="launch-modal" class="claim-modal launch-modal" aria-labelledby="launch-title">
-  <button id="launch-close" class="claim-modal-close launch-close" type="button" data-i18n-aria="launchClose" data-i18n-title="launchClose" aria-label="Schließen">✕</button>
+  <button class="claim-modal-close launch-close" type="button" data-i18n-aria="launchClose" data-i18n-title="launchClose" aria-label="Schließen">✕</button>
   <a class="launch-shot launch-go" href="/wo-ist-mein-zug"><img src="/launch-train-map.webp" width="1200" height="464" alt="" loading="lazy"></a>
   <div class="launch-body">
     <span class="launch-badge" data-i18n="launchBadge">Neu</span>
@@ -454,7 +471,7 @@ try {
       <li data-i18n="launchF5">Störungen im Zug für Mitreisende melden</li>
     </ul>
     <a class="claim-modal-go launch-cta launch-go" href="/wo-ist-mein-zug" data-i18n="launchCta">Zur Live-Karte</a>
-    <button id="launch-later" class="launch-later" type="button" data-i18n="launchLater">Später</button>
+    <button class="launch-later" type="button" data-i18n="launchLater">Später</button>
   </div>
 </dialog>
 
@@ -590,8 +607,8 @@ try {
 <dialog id="report-modal" class="claim-modal report-modal">
   <div class="claim-modal-inner">
     <button id="report-modal-close" class="claim-modal-close" type="button" data-i18n-title="reportModalClose" data-i18n-aria="reportModalClose">✕</button>
-    <h2 class="claim-modal-title" data-i18n="reportModalTitle">Statistik vs. Realität – dein Verspätungs-Report</h2>
-    <p class="claim-modal-lead" data-i18n="reportModalLead">Nach deiner Fahrt vergleichen wir die heute angezeigte Verspätung aus der Vergangenheit mit dem, was tatsächlich passiert ist – der Report kommt etwa zwei Tage später per E-Mail.</p>
+    <h2 class="claim-modal-title" data-i18n="reportModalTitle">Entschädigungs-Erinnerung nach deiner Fahrt</h2>
+    <p class="claim-modal-lead" data-i18n="reportModalLead">Etwa zwei Tage nach deiner Fahrt sagen wir dir per E-Mail, ob dir eine Entschädigung zusteht – dazu die heute angezeigte Verspätung im Vergleich zu dem, was tatsächlich passiert ist.</p>
     <div id="report-teaser" class="report-teaser"></div>
     <!-- signed out: the order waits on the login page and completes on return -->
     <div id="report-login" class="report-login hidden">
@@ -602,7 +619,7 @@ try {
     <div id="report-done" class="report-done hidden">
       <p id="report-done-msg" class="report-done-msg"></p>
       <a id="report-book" class="book-btn book-btn-lg" target="_blank" rel="noopener" data-i18n="bookOnBahn">Auf bahn.de buchen</a>
-      <a id="report-trip-saved" class="trip-saved hidden" href="/meine-fahrten" data-i18n="tripSaved">✓ Unter „Meine Fahrten“ gespeichert</a>
+      <a id="report-trip-saved" class="trip-saved hidden" href="/meine-fahrten" data-i18n="tripSaved">✓ Fahrt unter „Meine Fahrten“ gespeichert</a>
       <p class="report-note"><span data-i18n="reportStoredNote">Gespeichert: diese Verbindung und deine Konto-E-Mail. Abbestellen jederzeit hier oder per Link in der E-Mail.</span> <a href="/impressum.html#datenschutz-report" target="_blank" rel="noopener" data-i18n="reportPrivacyLink">Datenschutzhinweise</a></p>
       <button id="report-cancel" class="report-cancel" type="button" data-i18n="reportCancelBtn">Report abbestellen</button>
     </div>
@@ -780,7 +797,7 @@ try {
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
   <p class="footer-copyright">Copyright © 2026 Shashank Tripathi</p>
 </footer>
-<script src="/app.js?v=165"></script>
+<script src="/app.js?v=166"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {

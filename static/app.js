@@ -262,7 +262,7 @@ const I18N = {
     navLogin: "Anmelden",
     navLogout: "Abmelden",
     navTrips: "Meine Fahrten",
-    tripSaved: "✓ Unter „Meine Fahrten“ gespeichert",
+    tripSaved: "✓ Fahrt unter „Meine Fahrten“ gespeichert",
     tripBtnTitle: "Zu Meine Fahrten hinzufügen",
     tripModalTitle: "Fahrt merken",
     tripModalLead: "Unter „Meine Fahrten“ siehst du nach der Fahrt die tatsächliche Verspätung, deinen Entschädigungsanspruch und deine Bilanz: wie viel Zeit dich Verspätungen und Ausfälle gekostet haben.",
@@ -351,14 +351,21 @@ const I18N = {
     launchF5: "Störungen im Zug für Mitreisende melden",
     launchCta: "Zur Live-Karte",
     launchLater: "Später",
+    launchCompTitle: "Entschädigungs-Erinnerung",
+    launchCompLead: "Geld zurück, wenn dein Zug zu spät kommt",
+    launchCompF1: "Verbindung suchen",
+    launchCompF2: "Bei deiner gewählten Verbindung auf {icon} drücken",
+    launchCompF3: "Nach der Fahrt sagen wir dir per E-Mail, ob du Geld zurückbekommst",
+    launchCompCta: "Verbindung suchen",
     launchClose: "Schließen",
-    reportBellTitle: "Verspätungs-Report nach der Fahrt erhalten",
+    reportBellTitle: "Entschädigungs-Erinnerung nach der Fahrt erhalten",
     reportBellOnTitle: "Report bestellt – zum Abbestellen klicken",
-    reportModalTitle: "Statistik vs. Realität – dein Verspätungs-Report",
-    reportModalLead: "Nach deiner Fahrt vergleichen wir die heute angezeigte Verspätung aus der Vergangenheit mit dem, was tatsächlich passiert ist – der Report kommt etwa zwei Tage später per E-Mail.",
+    reportModalTitle: "Entschädigungs-Erinnerung nach deiner Fahrt",
+    reportModalLead: "Etwa zwei Tage nach deiner Fahrt sagen wir dir per E-Mail, ob dir eine Entschädigung zusteht – dazu die heute angezeigte Verspätung im Vergleich zu dem, was tatsächlich passiert ist.",
     reportTeaserSeen: "Heute angezeigte Verspätung",
     reportTeaserUpTo: (station) => `bis ${station}`,
     reportTeaserActual: "Tatsächliche Verspätung",
+    reportHeroLine: "Du bekommst {pct} % als Entschädigung zurück",
     reportTeaserAfter: "wird nach deiner Fahrt ermittelt",
     reportLoginLead: "Der Report geht an die E-Mail-Adresse deines DelayBahn-Kontos.",
     reportLoginBtn: "Anmelden & Report bestellen",
@@ -371,7 +378,7 @@ const I18N = {
     reportErrInvalid: "Für diese Fahrt ist kein Report möglich.",
     reportErrTooMany: (max) =>
       `Mehr als ${max} Reports gleichzeitig gehen nicht. Bestell einen laufenden ab `
-      + `– dazu die Glocke der Fahrt noch einmal drücken – und versuch es hier erneut.`,
+      + `– dazu bei der Fahrt denselben Knopf noch einmal drücken – und versuch es hier erneut.`,
     reportErrThrottle: "Zu viele Anfragen – bitte versuch es später noch einmal.",
     reportErrGeneric: "Das hat gerade nicht geklappt – bitte versuch es später noch einmal.",
     reportModalClose: "Schließen",
@@ -579,7 +586,7 @@ const I18N = {
     navLogin: "Login",
     navLogout: "Logout",
     navTrips: "My trips",
-    tripSaved: "✓ Saved under “My trips”",
+    tripSaved: "✓ Journey saved under “My trips”",
     tripBtnTitle: "Add to My trips",
     tripModalTitle: "Save this trip",
     tripModalLead: "Under “My trips” you'll see, after the journey, the actual delay, what you can claim and your tally: how much time delays and cancellations have cost you.",
@@ -668,14 +675,21 @@ const I18N = {
     launchF5: "Report problems on board for other passengers",
     launchCta: "Open the live map",
     launchLater: "Not now",
+    launchCompTitle: "Compensation reminder",
+    launchCompLead: "Money back when your train is late",
+    launchCompF1: "Search your connection",
+    launchCompF2: "Press {icon} next to your chosen journey",
+    launchCompF3: "After the journey we email you whether you get money back",
+    launchCompCta: "Search a connection",
     launchClose: "Close",
-    reportBellTitle: "Get a delay report after your journey",
+    reportBellTitle: "Get a compensation reminder after your journey",
     reportBellOnTitle: "Report ordered – click to cancel",
-    reportModalTitle: "History vs. reality – your delay report",
-    reportModalLead: "After your journey we compare the past delay shown today with what actually happened – the report arrives by email about two days later.",
+    reportModalTitle: "Compensation reminder after your journey",
+    reportModalLead: "About two days after your journey we email you whether you're owed compensation – along with the delay shown today next to what actually happened.",
     reportTeaserSeen: "Delay shown today",
     reportTeaserUpTo: (station) => `up to ${station}`,
     reportTeaserActual: "Actual delay",
+    reportHeroLine: "You get {pct}% back in compensation",
     reportTeaserAfter: "revealed after your journey",
     reportLoginLead: "The report goes to your DelayBahn account's email address.",
     reportLoginBtn: "Log in & order the report",
@@ -688,7 +702,7 @@ const I18N = {
     reportErrInvalid: "No report is possible for this journey.",
     reportErrTooMany: (max) =>
       `You can follow at most ${max} journeys at a time. Cancel one of them `
-      + `– press that journey's bell again – and then order this one.`,
+      + `– press the same button on that journey again – and then order this one.`,
     reportErrThrottle: "Too many requests – please try again later.",
     reportErrGeneric: "That didn't work right now – please try again later.",
     reportModalClose: "Close",
@@ -3278,11 +3292,12 @@ function reportKey(journey) {
     .join("\n");
 }
 
+// a euro coin with an arrow coming back: money back, not an alarm
 const BELL_SVG =
   '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"'
   + ' stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-  + '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>'
-  + '<path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+  + '<path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/>'
+  + '<path d="M15 9.2a3.2 3.2 0 1 0 0 5.6"/><path d="M9 11h4.5M9 13h4.5"/></svg>';
 
 // a journey whose train is already under way (or about to be) gets a "Track
 // live" button to the train map; the map's own list of trains running now
@@ -3436,7 +3451,22 @@ function populateReportModal() {
   note.textContent = t("reportTeaserAfter");
   actual.append(actualLabel, actualChip, note);
 
-  teaser.append(seen, actual);
+  // the compensation verdict leads the mail, so it leads the teaser too
+  const hero = document.createElement("div");
+  hero.className = "report-hero";
+  const heroLine = document.createElement("div");
+  heroLine.className = "report-hero-line";
+  const heroPct = document.createElement("span");
+  heroPct.className = "report-blur";
+  heroPct.textContent = "25";
+  const [heroPre, heroPost] = t("reportHeroLine").split("{pct}");
+  heroLine.append(heroPre, heroPct, heroPost);
+  const heroNote = document.createElement("span");
+  heroNote.className = "report-teaser-note";
+  heroNote.textContent = t("reportTeaserAfter");
+  hero.append(heroLine, heroNote);
+
+  teaser.append(hero, seen, actual);
 
   reportLoginEl.classList.toggle("hidden", reportView !== "login");
   reportDoneEl.classList.toggle("hidden", reportView !== "done");
@@ -3490,6 +3520,13 @@ async function orderReport(account, journey, search) {
     refreshBells();
     track("report-subscribe", { created: res.created });
     setReportView("done");
+    // a followed journey is filed under Meine Fahrten too, as its bookmark would
+    const filed = tripSaves.has(tripKey(journey)) ? Promise.resolve(true)
+      : saveTrip([{ kind: "oneway", journey }], bahnDeUrl(journey, null), "report-bell",
+        tripSearchMeta(), account);
+    filed.then((ok) => {
+      if (ok && state.reportJourney === journey) reportTripSavedEl.classList.remove("hidden");
+    });
   } catch (e) {
     // no account after all, or one short of a proven address: the login page knows which
     if (e.status === 401 || e.status === 403) { setReportView("login"); return; }
@@ -3550,6 +3587,11 @@ reportCancelBtn.addEventListener("click", async () => {
     reportSubs.delete(reportKey(journey));
     refreshBells();
     track("report-cancel");
+    if (bellTrips.has(tripKey(journey))) {
+      await removeTrips([{ kind: "oneway", journey }], account, "report-bell");
+      bellTrips.delete(tripKey(journey));
+      reportTripSavedEl.classList.add("hidden");
+    }
     setReportView("cancelled");
   } catch (e) {
     setReportView("error", "reportErrGeneric");
@@ -3572,6 +3614,8 @@ const tripsPath = () => (state.lang === "en" ? "/en/my-trips" : "/meine-fahrten"
 const TRIP_PENDING_KEY = "tripPending";
 
 let tripSaves = new Map();  // journey key -> trip id, for the signed-in account
+// keys filed only by a report order: cancelling the report takes them off again
+let bellTrips = new Set();
 
 function accountHinted() {
   try { return localStorage.getItem("account") === "1"; } catch (e) { return false; }
@@ -3676,7 +3720,11 @@ async function saveTrip(journeys, url, via, search = tripSearchMeta(), account =
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ lang: state.lang, via, url, journeys, search }),
     });
-    res.trips.forEach((tr) => tripSaves.set(tr.key, tr.id));
+    res.trips.forEach((tr) => {
+      tripSaves.set(tr.key, tr.id);
+      // any other press makes it the visitor's own entry, which a cancel leaves alone
+      if (via === "report-bell") bellTrips.add(tr.key); else bellTrips.delete(tr.key);
+    });
   } catch (e) { return false; }
   refreshTripBtns();
   track("trip-save", { via });
@@ -3684,14 +3732,14 @@ async function saveTrip(journeys, url, via, search = tripSearchMeta(), account =
 }
 
 // the bookmark pressed again: the journeys leave the list
-async function removeTrips(journeys, account) {
+async function removeTrips(journeys, account, via = "add") {
   const ids = journeys.map((j) => tripSaves.get(tripKey(j.journey))).filter((id) => id !== undefined);
   try {
     await Promise.all(ids.map((id) => reportApi(account.user, "/api/trips/" + id, { method: "DELETE" })));
   } catch (e) { /* a 404 means it was gone already: forgotten either way */ }
   journeys.forEach((j) => tripSaves.delete(tripKey(j.journey)));
   refreshTripBtns();
-  track("trip-remove", { via: "add" });
+  track("trip-remove", { via });
 }
 
 /* The bookmark is unlabelled, so what it does has to be said. Signed out, the
@@ -3914,7 +3962,10 @@ async function initReports() {
   } catch (e) { /* the bells simply start unlit */ }
   try {
     const res = await reportApi(account.user, "/api/trips");
-    res.trips.forEach((tr) => tripSaves.set(tr.key, tr.id));
+    res.trips.forEach((tr) => {
+      tripSaves.set(tr.key, tr.id);
+      if (tr.via === "report-bell") bellTrips.add(tr.key);
+    });
     refreshTripBtns();
   } catch (e) { /* the bookmarks simply start unlit */ }
 }
@@ -4458,33 +4509,56 @@ function renderSummary() {
   });
 })();
 
-// --- launch announcement: the live train map ---
+// --- launch announcement ---
 // Shown once per browser: closing it any way (✕, "Not now", Esc, backdrop, or
-// following the link) retires it for good.
+// its own button) retires it for good. Each announcement keeps its markup in
+// index.html and its own seen key; ACTIVE_LAUNCH picks the one on show.
+
+const LAUNCHES = {
+  // the live train map, 2026-09-29 to 2026-11-17
+  trainMap: { modal: "launch-modal", seenKey: "launchTrainMapSeen", event: "launch-train-map" },
+  compReminder: { modal: "launch-comp-modal", seenKey: "launchCompReminderSeen", event: "launch-comp-reminder" },
+};
+const ACTIVE_LAUNCH = "compReminder";
 
 (function initLaunchModal() {
-  const modal = document.getElementById("launch-modal");
+  const launch = LAUNCHES[ACTIVE_LAUNCH];
+  const modal = document.getElementById(launch.modal);
   if (!modal?.showModal || window.langRedirect) return;
-  const SEEN_KEY = "launchTrainMapSeen";
-  try { if (localStorage.getItem(SEEN_KEY)) return; } catch (e) { return; }
+  // the compensation reminder is ordered from search results, which the
+  // compensation page does not have
+  if (ACTIVE_LAUNCH === "compReminder" && PAST_PAGE) return;
+  try { if (localStorage.getItem(launch.seenKey)) return; } catch (e) { return; }
 
   let how = "dismiss";
   const close = (step) => { how = step; modal.close(); };
   modal.addEventListener("close", () => {
-    try { localStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
-    track("launch-train-map", { step: how });
+    try { localStorage.setItem(launch.seenKey, "1"); } catch (e) {}
+    track(launch.event, { step: how });
   });
-  document.getElementById("launch-close").addEventListener("click", () => close("close"));
-  document.getElementById("launch-later").addEventListener("click", () => close("later"));
+  modal.querySelector(".launch-close").addEventListener("click", () => close("close"));
+  modal.querySelector(".launch-later").addEventListener("click", () => close("later"));
   // the dialog box itself has no padding, so a click landing on it is the backdrop
   modal.addEventListener("click", (e) => { if (e.target === modal) close("backdrop"); });
   modal.querySelectorAll(".launch-go").forEach((a) => {
     a.href = state.lang === "en" ? "/en/where-is-my-train" : "/wo-ist-mein-zug";
     a.addEventListener("click", () => close("open"));
   });
+  // steps that show the card's button itself: data-i18n would flatten the svg to text
+  modal.querySelectorAll("[data-i18n-icon]").forEach((el) => {
+    const [before, after = ""] = t(el.dataset.i18nIcon).split("{icon}");
+    const icon = document.createElement("span");
+    icon.className = "launch-icon";
+    icon.innerHTML = BELL_SVG;
+    el.replaceChildren(before, icon, after);
+  });
+  document.getElementById("launch-comp-search")?.addEventListener("click", () => {
+    close("search");
+    document.getElementById("from").focus();
+  });
 
   modal.showModal();
-  track("launch-train-map", { step: "shown" });
+  track(launch.event, { step: "shown" });
 })();
 
 // --- install prompt (PWA awareness) ---

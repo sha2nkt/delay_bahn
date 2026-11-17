@@ -1,5 +1,6 @@
-"""Render the post-journey report email: the historic median delays shown at
-booking next to what actually happened.
+"""Render the post-journey report email: whether the journey earns
+compensation, then the historic median delays shown at booking next to what
+actually happened.
 
 Email-client HTML: tables, inline styles, ~600px, no images and no SVG - the
 site's day charts cannot travel by mail, only the chips do. Every dynamic string
@@ -11,6 +12,7 @@ accompanies the HTML one.
 import json
 from datetime import date
 from html import escape
+from urllib.parse import urlencode
 
 # palette mirrors static/style.css
 BRAND = "#fd1c17"
@@ -31,8 +33,25 @@ def delay_color(minutes: float) -> str:
 S = {
     "de": {
         "subjectReport": "Dein Verspätungs-Report: {frm} → {to} am {d}",
+        "subjectRefund": "{pct} % Entschädigung für deine Fahrt {frm} → {to} am {d}",
+        "verdictPct": "Dir stehen {pct} % Entschädigung zu",
+        "verdictNone": "Keine Entschädigung für diese Fahrt",
+        "verdictUnknown": "Entschädigung: nicht sicher bestimmbar",
+        "arrivedLate": "Du bist mit {n} min Verspätung an deinem Ziel angekommen.",
+        "arrivedOnTime": "Du bist pünktlich an deinem Ziel angekommen.",
+        "noneReason": "Entschädigung gibt es ab 60 min Verspätung am Ziel.",
+        "missed": "Du hast deinen Anschluss in {station} verpasst – gerechnet ist mit der"
+        " nächsten Verbindung, die du erreicht hättest.",
+        "missedCanceled": "{train} ist ausgefallen – gerechnet ist mit der nächsten"
+        " Verbindung, die du erreicht hättest.",
+        "unknownBody": "Wir konnten deine Ankunft am Ziel nicht sicher bestimmen.",
+        "ctaClaim": "Entschädigung beantragen",
+        "ctaCheck": "Fahrt selbst prüfen",
+        "verdictNote": "Nach EU-Fahrgastrechten: 25 % des Ticketpreises ab 60 min, 50 % ab"
+        " 120 min Verspätung am Ziel. Berechnet mit unseren aufgezeichneten Daten. Die"
+        " tatsächlichen Ankunftszeiten können abweichen.",
         "hello": "Hallo{name},",
-        "reportIntro": "so lief deine Fahrt am {d} im Vergleich zur typischen Verspätung bei deiner Buchung:",
+        "reportIntro": "So lief deine Fahrt am {d} im Vergleich zur typischen Verspätung bei deiner Buchung:",
         "card1": "Typische Verspätung bei deiner Buchung",
         "card1Note": "Median der letzten {window} Tage vor deiner Buchung",
         "card2": "So lief es wirklich",
@@ -55,8 +74,25 @@ S = {
     },
     "en": {
         "subjectReport": "Your delay report: {frm} → {to} on {d}",
+        "subjectRefund": "{pct}% compensation for your journey {frm} → {to} on {d}",
+        "verdictPct": "You are owed {pct}% compensation",
+        "verdictNone": "No compensation for this journey",
+        "verdictUnknown": "Compensation: could not be determined",
+        "arrivedLate": "You reached your destination {n} min late.",
+        "arrivedOnTime": "You reached your destination on time.",
+        "noneReason": "Compensation starts at 60 min delay at your destination.",
+        "missed": "You missed your connection in {station} – this counts the next"
+        " connection you could have caught.",
+        "missedCanceled": "{train} was cancelled – this counts the next connection you"
+        " could have caught.",
+        "unknownBody": "We could not reliably determine your arrival at your destination.",
+        "ctaClaim": "Claim compensation",
+        "ctaCheck": "Check the journey yourself",
+        "verdictNote": "Under EU passenger rights: 25% of the ticket price from 60 min,"
+        " 50% from 120 min delay at your destination. Calculated from our recorded data."
+        " Actual arrival times may differ.",
         "hello": "Hi{name},",
-        "reportIntro": "here is how your journey on {d} compared to the typical delays shown when you booked:",
+        "reportIntro": "Here is how your journey on {d} compared to the typical delays shown when you booked:",
         "card1": "Typical delays when you booked",
         "card1Note": "Median over the {window} days before your booking",
         "card2": "What actually happened",
@@ -233,6 +269,78 @@ def _final_tracked_index(legs: list[dict]) -> int | None:
     return None
 
 
+# the compensation page per language, as PAGE_PATHS in app/main.py
+CLAIM_PATHS = {"de": "/entschaedigung", "en": "/en/compensation"}
+
+
+def claim_url(base_url: str, legs: list[dict], lang: str) -> str:
+    """The compensation page searching this journey's day from its first
+    train's origin at that train's departure, the way a restored search link
+    does, so the itinerary heads the results."""
+    trains = [leg for leg in legs if not leg.get("walking")] or legs
+    origin = trains[0].get("origin") or {}
+    dest = trains[-1].get("destination") or {}
+    dep = str(trains[0].get("plannedDeparture") or "")
+    query = {
+        "fromId": f"A=1@O={origin.get('name') or ''}@L={origin.get('id') or ''}@",
+        "from": origin.get("name") or "",
+        "toId": f"A=1@O={dest.get('name') or ''}@L={dest.get('id') or ''}@",
+        "to": dest.get("name") or "",
+        "date": dep[:10],
+        "time": dep[11:16],
+    }
+    return f"{base_url}{CLAIM_PATHS[lang]}?{urlencode(query)}"
+
+
+def _verdict_parts(verdict: dict | None, lang: str) -> tuple[str, list[str], str | None, str]:
+    """(headline, sentences, button label or None, accent colour) of the
+    compensation verdict that opens the mail."""
+    s = S[lang]
+    if verdict is None:
+        return s["verdictUnknown"], [s["unknownBody"]], s["ctaCheck"], YELLOW
+    n = verdict["arrivalDelay"]
+    pct = verdict["compensationPct"]
+    lines = [s["arrivedLate"].format(n=n) if n > 0 else s["arrivedOnTime"]]
+    if verdict.get("missedTransfers"):
+        missed = verdict["missedTransfers"][0]
+        lines.append(
+            s["missedCanceled"].format(train=missed.get("trainName") or "")
+            if missed.get("canceled")
+            else s["missed"].format(station=missed.get("station") or "")
+        )
+    if not pct:
+        return s["verdictNone"], lines + [s["noneReason"]], None, GRAY
+    return s["verdictPct"].format(pct=pct), lines, s["ctaClaim"], GREEN
+
+
+def _verdict_block(title: str, lines: list[str], cta: str | None, accent: str,
+                   url: str, lang: str) -> str:
+    body = "".join(
+        f'<div style="font-size:13.5px;line-height:1.5;padding-top:6px;">{escape(line)}</div>'
+        for line in lines
+    )
+    button = (
+        '<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:12px;">'
+        f'<tr><td style="background:{BRAND};border-radius:6px;">'
+        f'<a href="{escape(url)}" style="display:inline-block;padding:9px 16px;'
+        'color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;">'
+        f'{escape(cta)}</a></td></tr></table>'
+        if cta
+        else ""
+    )
+    return (
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"'
+        ' style="margin-bottom:16px;"><tr>'
+        f'<td style="border:1px solid {BORDER};border-left:4px solid {accent};'
+        'border-radius:8px;padding:14px 16px;">'
+        f'<div style="font-size:17px;font-weight:700;color:{TEXT if accent == GRAY else accent};">'
+        f'{escape(title)}</div>'
+        f'{body}{button}'
+        f'<div style="font-size:11.5px;color:{MUTED};padding-top:10px;">'
+        f'{escape(S[lang]["verdictNote"])}</div></td></tr></table>'
+    )
+
+
 def render_report(sub: dict, base_url: str) -> tuple[str, str, str]:
     """(subject, html, text) for one resolved subscription row.
 
@@ -308,17 +416,32 @@ def render_report(sub: dict, base_url: str) -> tuple[str, str, str]:
             f'{escape(s["summary"].format(fc=fc, act=act))}</div>'
         )
 
+    verdict = actuals.get("verdict")
+    v_title, v_lines, v_cta, v_accent = _verdict_parts(verdict, lang)
+    v_url = claim_url(base_url, legs, lang)
     content = (
-        f'<div style="font-size:14px;padding-bottom:12px;">{escape(_hello(lang, sub.get("name") or ""))}<br>'
-        f'{escape(s["reportIntro"].format(d=day))}</div>'
+        f'<div style="font-size:14px;padding-bottom:12px;">{escape(_hello(lang, sub.get("name") or ""))}</div>'
+        + _verdict_block(v_title, v_lines, v_cta, v_accent, v_url, lang)
+        + f'<div style="font-size:14px;padding-bottom:12px;">{escape(s["reportIntro"].format(d=day))}</div>'
         + header + card1 + unresolved_note + card2 + cancel_note + summary
     )
     html = _shell(lang, content, _footer(lang, base_url, sub["unsub_token"], sub["created_ts"]))
 
-    subject = s["subjectReport"].format(frm=frm, to=to, d=f"{int(sub['travel_date'][8:10])}.{int(sub['travel_date'][5:7])}." if lang == "de" else fmt_date(sub["travel_date"], lang))
+    subject_day = (f"{int(sub['travel_date'][8:10])}.{int(sub['travel_date'][5:7])}."
+                   if lang == "de" else fmt_date(sub["travel_date"], lang))
+    if verdict and verdict["compensationPct"]:
+        subject = s["subjectRefund"].format(pct=verdict["compensationPct"], frm=frm, to=to, d=subject_day)
+    else:
+        subject = s["subjectReport"].format(frm=frm, to=to, d=subject_day)
 
     text_lines = [
         _hello(lang, sub.get("name") or ""),
+        "",
+        v_title,
+        *v_lines,
+        *([f"{v_cta}: {v_url}"] if v_cta else []),
+        s["verdictNote"],
+        "",
         s["reportIntro"].format(d=day),
         "",
         f"{frm} -> {to} · {day} · {dep} -> {arr}",
@@ -426,8 +549,10 @@ FIXTURE_ACTUALS = {
     "parquetMaxDay": "2026-08-16",
     "legs": {
         "2": {"delayMin": 25, "canceled": False, "reason": 36},
-        "3": {"delayMin": 15, "canceled": False, "reason": None},
+        "3": {"delayMin": 75, "canceled": False, "reason": None},
     },
+    "verdict": {"arrivalDelay": 75, "arrivalCanceled": False, "missedTransfers": [],
+                "compensationPct": 25},
 }
 
 
