@@ -824,6 +824,21 @@ body.past-mode .trip-steps { display: none; }
   width: 8px; height: 8px; border-radius: 50%; background: var(--brand-red);
 }
 .launch-cta { margin-top: 18px; background: var(--brand-red); }
+button.launch-cta { width: 100%; border: 0; font-family: inherit; cursor: pointer; }
+/* a how-to: numbered red discs in place of the bullets */
+.launch-steps { counter-reset: launch-step; }
+.launch-steps li { counter-increment: launch-step; padding-left: 32px; margin-top: 10px; min-height: 22px; }
+.launch-steps li::before {
+  content: counter(launch-step); top: 50%; margin-top: -11px; left: 0; width: 22px; height: 22px;
+  border-radius: 50%; background: var(--brand-red); color: #fff;
+  font-size: 12px; font-weight: 700; line-height: 22px; text-align: center;
+}
+/* the card's € button, drawn inline in a step's text */
+.launch-icon {
+  display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
+  width: 26px; height: 26px; margin: -3px 2px 0;
+  background: #fff; color: var(--text-muted); border: 2px solid var(--gray-border); border-radius: 4px;
+}
 .launch-later {
   display: block; margin: 8px auto 0; background: none; border: none; font: inherit;
   font-size: 13.5px; color: var(--text-muted); cursor: pointer; padding: 6px 12px; border-radius: 6px;
@@ -858,7 +873,8 @@ body.past-mode .trip-steps { display: none; }
 .bell-btn:hover, .trip-btn:hover { color: var(--brand-red); border-color: var(--brand-red); }
 /* an ordered report / a filed journey: the icon fills in */
 .bell-btn.on, .trip-btn.on { color: var(--brand-red); border-color: var(--brand-red); background: #fff3f2; }
-.bell-btn.on svg, .trip-btn.on svg { fill: currentColor; }
+/* the € coin stays an outline: filled, its € would disappear */
+.trip-btn.on svg { fill: currentColor; }
 .bell-btn:focus-visible, .trip-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 .trip-btn:disabled { opacity: .6; cursor: wait; }
 /* the dwell nudge: after 2s on a journey its unfiled bookmark pulses twice */

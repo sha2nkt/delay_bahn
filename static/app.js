@@ -351,6 +351,12 @@ const I18N = {
     launchF5: "Störungen im Zug für Mitreisende melden",
     launchCta: "Zur Live-Karte",
     launchLater: "Später",
+    launchCompTitle: "Entschädigungs-Erinnerung",
+    launchCompLead: "Geld zurück, wenn dein Zug zu spät kommt",
+    launchCompF1: "Verbindung suchen",
+    launchCompF2: "Bei deiner gewählten Verbindung auf {icon} drücken",
+    launchCompF3: "Nach der Fahrt sagen wir dir per E-Mail, ob du Geld zurückbekommst",
+    launchCompCta: "Verbindung suchen",
     launchClose: "Schließen",
     reportBellTitle: "Entschädigungs-Erinnerung nach der Fahrt erhalten",
     reportBellOnTitle: "Report bestellt – zum Abbestellen klicken",
@@ -372,7 +378,7 @@ const I18N = {
     reportErrInvalid: "Für diese Fahrt ist kein Report möglich.",
     reportErrTooMany: (max) =>
       `Mehr als ${max} Reports gleichzeitig gehen nicht. Bestell einen laufenden ab `
-      + `– dazu den €-Knopf der Fahrt noch einmal drücken – und versuch es hier erneut.`,
+      + `– dazu bei der Fahrt denselben Knopf noch einmal drücken – und versuch es hier erneut.`,
     reportErrThrottle: "Zu viele Anfragen – bitte versuch es später noch einmal.",
     reportErrGeneric: "Das hat gerade nicht geklappt – bitte versuch es später noch einmal.",
     reportModalClose: "Schließen",
@@ -669,6 +675,12 @@ const I18N = {
     launchF5: "Report problems on board for other passengers",
     launchCta: "Open the live map",
     launchLater: "Not now",
+    launchCompTitle: "Compensation reminder",
+    launchCompLead: "Money back when your train is late",
+    launchCompF1: "Search your connection",
+    launchCompF2: "Press {icon} next to your chosen journey",
+    launchCompF3: "After the journey we email you whether you get money back",
+    launchCompCta: "Search a connection",
     launchClose: "Close",
     reportBellTitle: "Get a compensation reminder after your journey",
     reportBellOnTitle: "Report ordered – click to cancel",
@@ -690,7 +702,7 @@ const I18N = {
     reportErrInvalid: "No report is possible for this journey.",
     reportErrTooMany: (max) =>
       `You can follow at most ${max} journeys at a time. Cancel one of them `
-      + `– press that journey's € button again – and then order this one.`,
+      + `– press the same button on that journey again – and then order this one.`,
     reportErrThrottle: "Too many requests – please try again later.",
     reportErrGeneric: "That didn't work right now – please try again later.",
     reportModalClose: "Close",
@@ -4497,33 +4509,56 @@ function renderSummary() {
   });
 })();
 
-// --- launch announcement: the live train map ---
+// --- launch announcement ---
 // Shown once per browser: closing it any way (✕, "Not now", Esc, backdrop, or
-// following the link) retires it for good.
+// its own button) retires it for good. Each announcement keeps its markup in
+// index.html and its own seen key; ACTIVE_LAUNCH picks the one on show.
+
+const LAUNCHES = {
+  // the live train map, 2026-09-29 to 2026-11-17
+  trainMap: { modal: "launch-modal", seenKey: "launchTrainMapSeen", event: "launch-train-map" },
+  compReminder: { modal: "launch-comp-modal", seenKey: "launchCompReminderSeen", event: "launch-comp-reminder" },
+};
+const ACTIVE_LAUNCH = "compReminder";
 
 (function initLaunchModal() {
-  const modal = document.getElementById("launch-modal");
+  const launch = LAUNCHES[ACTIVE_LAUNCH];
+  const modal = document.getElementById(launch.modal);
   if (!modal?.showModal || window.langRedirect) return;
-  const SEEN_KEY = "launchTrainMapSeen";
-  try { if (localStorage.getItem(SEEN_KEY)) return; } catch (e) { return; }
+  // the compensation reminder is ordered from search results, which the
+  // compensation page does not have
+  if (ACTIVE_LAUNCH === "compReminder" && PAST_PAGE) return;
+  try { if (localStorage.getItem(launch.seenKey)) return; } catch (e) { return; }
 
   let how = "dismiss";
   const close = (step) => { how = step; modal.close(); };
   modal.addEventListener("close", () => {
-    try { localStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
-    track("launch-train-map", { step: how });
+    try { localStorage.setItem(launch.seenKey, "1"); } catch (e) {}
+    track(launch.event, { step: how });
   });
-  document.getElementById("launch-close").addEventListener("click", () => close("close"));
-  document.getElementById("launch-later").addEventListener("click", () => close("later"));
+  modal.querySelector(".launch-close").addEventListener("click", () => close("close"));
+  modal.querySelector(".launch-later").addEventListener("click", () => close("later"));
   // the dialog box itself has no padding, so a click landing on it is the backdrop
   modal.addEventListener("click", (e) => { if (e.target === modal) close("backdrop"); });
   modal.querySelectorAll(".launch-go").forEach((a) => {
     a.href = state.lang === "en" ? "/en/where-is-my-train" : "/wo-ist-mein-zug";
     a.addEventListener("click", () => close("open"));
   });
+  // steps that show the card's button itself: data-i18n would flatten the svg to text
+  modal.querySelectorAll("[data-i18n-icon]").forEach((el) => {
+    const [before, after = ""] = t(el.dataset.i18nIcon).split("{icon}");
+    const icon = document.createElement("span");
+    icon.className = "launch-icon";
+    icon.innerHTML = BELL_SVG;
+    el.replaceChildren(before, icon, after);
+  });
+  document.getElementById("launch-comp-search")?.addEventListener("click", () => {
+    close("search");
+    document.getElementById("from").focus();
+  });
 
   modal.showModal();
-  track("launch-train-map", { step: "shown" });
+  track(launch.event, { step: "shown" });
 })();
 
 // --- install prompt (PWA awareness) ---

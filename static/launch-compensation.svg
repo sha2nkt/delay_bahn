@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 232" width="1200" height="464" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<!-- launch art for the compensation reminder: the footer's toy train, late at the
+     station; a press on the € button sends a coin up and an envelope with the
+     refund on its way -->
+<style>
+  .bob { animation: bob 2.4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+  .float { animation: float 3s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+  .ripple { animation: ripple 2.4s ease-out infinite; transform-box: fill-box; transform-origin: center; opacity: 0; }
+  .ripple-2 { animation-delay: 1.2s; }
+  .flow { stroke-dasharray: 3 7; animation: flow 1.4s linear infinite; }
+  .press { animation: press 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  .twinkle { animation: twinkle 1.8s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+  .twinkle-2 { animation-delay: .9s; }
+  .smoke { animation: puff 2.6s ease-out infinite; transform-box: fill-box; transform-origin: center; opacity: 0; }
+  .smoke-2 { animation-delay: .9s; }
+  .smoke-3 { animation-delay: 1.8s; }
+  @keyframes bob { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-6px) rotate(4deg); } }
+  @keyframes float { from { transform: translateY(0) rotate(-6deg); } to { transform: translateY(-5px) rotate(-2deg); } }
+  @keyframes ripple { 0% { opacity: .7; transform: scale(.9); } 100% { opacity: 0; transform: scale(1.7); } }
+  @keyframes flow { to { stroke-dashoffset: -20; } }
+  @keyframes press { 0%, 70%, 100% { transform: translate(0, 0); } 80% { transform: translate(-2px, -2px); } }
+  @keyframes twinkle { from { opacity: .35; transform: scale(.7); } to { opacity: 1; transform: scale(1.1); } }
+  @keyframes puff { 0% { opacity: 0; transform: translate(0, 0) scale(.5); } 15% { opacity: .75; } 100% { opacity: 0; transform: translate(-22px, -20px) scale(1.6); } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } .ripple, .smoke { opacity: 0; } }
+</style>
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#dff0fa"/><stop offset=".6" stop-color="#f3f9fd"/><stop offset="1" stop-color="#fdf4e3"/>
+  </linearGradient>
+  <radialGradient id="coin" cx=".38" cy=".32" r=".75">
+    <stop offset="0" stop-color="#ffe9a3"/><stop offset=".55" stop-color="#ffd75e"/><stop offset="1" stop-color="#f0b429"/>
+  </radialGradient>
+</defs>
+
+<!-- sky, sun, clouds -->
+<rect width="600" height="232" fill="url(#sky)"/>
+<circle cx="574" cy="118" r="14" fill="#ffd766"/>
+<circle cx="574" cy="118" r="22" fill="#ffd766" opacity=".25"/>
+<g fill="#fff" opacity=".9">
+  <rect x="200" y="22" width="64" height="16" rx="8"/><circle cx="222" cy="22" r="11"/><circle cx="240" cy="25" r="8"/>
+</g>
+<g fill="#fff" opacity=".8" transform="translate(150 54) scale(.7)">
+  <rect width="64" height="16" rx="8"/><circle cx="22" cy="0" r="11"/><circle cx="40" cy="3" r="8"/>
+</g>
+
+<!-- hills and ground -->
+<path d="M0,200 L0,170 Q90,140 190,164 Q290,184 390,160 Q480,142 600,166 L600,200 Z" fill="#dcead8"/>
+<path d="M0,200 L0,186 Q120,166 250,184 Q380,198 480,180 Q550,170 600,184 L600,200 Z" fill="#c3dcba"/>
+<rect y="200" width="600" height="32" fill="#a9cd97"/>
+<!-- trees -->
+<g><circle cx="22" cy="176" r="12" fill="#79b06a"/><rect x="20" y="182" width="4" height="18" rx="2" fill="#8a6b4d"/></g>
+<g><circle cx="560" cy="180" r="10" fill="#8fbf7a"/><rect x="558" y="186" width="4" height="14" rx="2" fill="#8a6b4d"/></g>
+
+<!-- station with its departure board -->
+<g transform="translate(40 140)">
+  <rect x="6" y="26" width="56" height="34" fill="#f4ecdd"/>
+  <path d="M2,28 L34,8 L66,28 Z" fill="#c50014"/>
+  <circle cx="34" cy="22" r="4.5" fill="#fff" stroke="#646973" stroke-width="1"/>
+  <path d="M34,22 L34,18.8 M34,22 L36.3,22" stroke="#282d37" stroke-width="1" stroke-linecap="round"/>
+  <rect x="16" y="40" width="10" height="20" rx="1.5" fill="#a98a68"/>
+  <rect x="38" y="40" width="13" height="11" rx="1.5" fill="#cde4f2"/>
+</g>
+<g transform="translate(86 118)">
+  <rect width="54" height="18" rx="9" fill="#c50014"/>
+  <path d="M12 18 L18 18 L14 24 Z" fill="#c50014"/>
+  <text x="27" y="13" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">+75 min</text>
+</g>
+
+<!-- track -->
+<path d="M0 208 H600" stroke="#8d8577" stroke-width="5" stroke-dasharray="4 12"/>
+<rect y="204" width="600" height="2.5" fill="#646973"/>
+
+<!-- the train, standing at the station -->
+<g transform="translate(150 128)">
+  <rect x="3" y="31" width="92" height="8" rx="4" fill="#9e0e1c"/>
+  <rect x="6" y="36" width="86" height="28" rx="6" fill="#fdfdfb"/>
+  <rect x="8" y="56" width="82" height="4" fill="#fd1c17"/>
+  <rect x="14" y="42" width="14" height="11" rx="2" fill="#cde4f2"/>
+  <rect x="42" y="42" width="14" height="11" rx="2" fill="#cde4f2"/>
+  <rect x="70" y="42" width="14" height="11" rx="2" fill="#cde4f2"/>
+  <g><circle cx="24" cy="68" r="8" fill="#2f3440"/><path d="M24 61.5 V74.5 M17.5 68 H30.5" stroke="#98a0ab" stroke-width="2"/><circle cx="24" cy="68" r="2.3" fill="#c9ced6"/></g>
+  <g><circle cx="74" cy="68" r="8" fill="#2f3440"/><path d="M74 61.5 V74.5 M67.5 68 H80.5" stroke="#98a0ab" stroke-width="2"/><circle cx="74" cy="68" r="2.3" fill="#c9ced6"/></g>
+  <rect x="92" y="50" width="12" height="4" rx="2" fill="#5a616b"/>
+  <rect x="101" y="31" width="92" height="8" rx="4" fill="#9e0e1c"/>
+  <rect x="104" y="36" width="86" height="28" rx="6" fill="#fdfdfb"/>
+  <rect x="106" y="56" width="82" height="4" fill="#fd1c17"/>
+  <rect x="112" y="42" width="14" height="11" rx="2" fill="#cde4f2"/>
+  <rect x="140" y="42" width="14" height="11" rx="2" fill="#cde4f2"/>
+  <rect x="168" y="42" width="14" height="11" rx="2" fill="#cde4f2"/>
+  <g><circle cx="122" cy="68" r="8" fill="#2f3440"/><path d="M122 61.5 V74.5 M115.5 68 H128.5" stroke="#98a0ab" stroke-width="2"/><circle cx="122" cy="68" r="2.3" fill="#c9ced6"/></g>
+  <g><circle cx="172" cy="68" r="8" fill="#2f3440"/><path d="M172 61.5 V74.5 M165.5 68 H178.5" stroke="#98a0ab" stroke-width="2"/><circle cx="172" cy="68" r="2.3" fill="#c9ced6"/></g>
+  <rect x="190" y="50" width="12" height="4" rx="2" fill="#5a616b"/>
+  <rect x="200" y="14" width="50" height="8" rx="4" fill="#9e0e1c"/>
+  <rect x="204" y="18" width="42" height="46" rx="5" fill="#c50014"/>
+  <rect x="212" y="25" width="26" height="15" rx="3" fill="#cde4f2"/>
+  <rect x="246" y="34" width="64" height="30" rx="15" fill="#fd1c17"/>
+  <rect x="262" y="26" width="14" height="10" rx="5" fill="#9e0e1c"/>
+  <rect x="286" y="12" width="11" height="24" rx="3" fill="#3f4552"/>
+  <rect x="283" y="10" width="17" height="6" rx="3" fill="#3f4552"/>
+  <rect x="304" y="38" width="10" height="22" rx="5" fill="#9e0e1c"/>
+  <circle cx="312" cy="48" r="3" fill="#ffd75e"/>
+  <path d="M304,64 L318,77 L294,77 Z" fill="#3f4552"/>
+  <circle class="smoke" cx="291" cy="8" r="4" fill="#dfe4ea"/>
+  <circle class="smoke smoke-2" cx="291" cy="8" r="4" fill="#dfe4ea"/>
+  <circle class="smoke smoke-3" cx="291" cy="8" r="4" fill="#dfe4ea"/>
+  <g><circle cx="220" cy="66" r="10" fill="#2f3440"/><path d="M220 58 V74 M212 66 H228" stroke="#98a0ab" stroke-width="2"/><circle cx="220" cy="66" r="2.6" fill="#c9ced6"/></g>
+  <g><circle cx="258" cy="68" r="8" fill="#2f3440"/><path d="M258 61.5 V74.5 M251.5 68 H264.5" stroke="#98a0ab" stroke-width="2"/><circle cx="258" cy="68" r="2.3" fill="#c9ced6"/></g>
+  <g><circle cx="288" cy="68" r="8" fill="#2f3440"/><path d="M288 61.5 V74.5 M281.5 68 H294.5" stroke="#98a0ab" stroke-width="2"/><circle cx="288" cy="68" r="2.3" fill="#c9ced6"/></g>
+</g>
+
+<!-- dotted trail: button -> coin -> envelope -->
+<path class="flow" d="M118 62 Q 200 20 280 58" fill="none" stroke="#646973" stroke-width="2" stroke-linecap="round"/>
+<path class="flow" d="M346 56 Q 400 28 446 54" fill="none" stroke="#646973" stroke-width="2" stroke-linecap="round"/>
+
+<!-- the € button on a journey card, pressed by a cursor -->
+<circle class="ripple" cx="92" cy="62" r="26" fill="none" stroke="#fd1c17" stroke-width="2"/>
+<circle class="ripple ripple-2" cx="92" cy="62" r="26" fill="none" stroke="#fd1c17" stroke-width="2"/>
+<g class="press">
+  <rect x="70" y="40" width="44" height="44" rx="6" fill="#fff3f2" stroke="#fd1c17" stroke-width="3"/>
+  <g transform="translate(74 44) scale(1.5)" fill="none" stroke="#fd1c17" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/>
+    <path d="M15 9.2a3.2 3.2 0 1 0 0 5.6"/><path d="M9 11h4.5M9 13h4.5"/>
+  </g>
+</g>
+<path d="M104 74 L104 100 L110 94 L115 105 L119 103 L114 92 L122 92 Z" fill="#fff" stroke="#282d37" stroke-width="2" stroke-linejoin="round"/>
+
+<!-- the coin popping up over the train -->
+<g class="bob">
+  <circle cx="313" cy="60" r="30" fill="url(#coin)" stroke="#d99a1b" stroke-width="3"/>
+  <circle cx="313" cy="60" r="23" fill="none" stroke="#e6a92a" stroke-width="1.5" opacity=".8"/>
+  <text x="313" y="71" font-size="31" font-weight="800" fill="#9a6400" text-anchor="middle">€</text>
+</g>
+<path class="twinkle" d="M352 26 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5 -6 -6 -2.5 6 -2.5 z" fill="#ffd75e"/>
+<path class="twinkle twinkle-2" d="M274 30 l2 4.5 4.5 2 -4.5 2 -2 4.5 -2 -4.5 -4.5 -2 4.5 -2 z" fill="#ffd75e"/>
+<path class="twinkle" d="M286 100 l1.6 3.6 3.6 1.6 -3.6 1.6 -1.6 3.6 -1.6 -3.6 -3.6 -1.6 3.6 -1.6 z" fill="#ffd75e"/>
+
+<!-- the email with the refund -->
+<g class="float">
+  <rect x="452" y="44" width="70" height="48" rx="6" fill="#fff" stroke="#282d37" stroke-width="2"/>
+  <path d="M454 48 L487 72 L520 48" fill="none" stroke="#282d37" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="522" cy="44" r="19" fill="#2a7230"/>
+  <text x="522" y="49" font-size="13" font-weight="800" fill="#fff" text-anchor="middle">25 %</text>
+</g>
+</svg>
