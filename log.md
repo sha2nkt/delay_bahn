@@ -2298,3 +2298,10 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - The ordered coin button no longer fills its icon (`fill: currentColor` now only on the bookmark): filled, the coin hid its €. The three-open-reports error says "denselben Knopf" / "the same button" instead of naming a € button.
 - Busters unchanged from the earlier commit on this branch (app 166, style 144, SHELL_VERSION v131; none deployed yet).
 - Verified: rendered in headless Chrome from a local server at 1000 and 500 px, DE and EN; the inline icon and numbered steps line up. Not verified on a phone.
+
+## 2026-11-17 — Coin button hidden on arrived journeys outside Berlin time
+
+- The card's compensation-reminder button showed on journeys that had already arrived for visitors outside Berlin's time zone: `reportEligible` parsed the leg's `plannedArrival` (Berlin wall-clock, no offset) with `new Date()`, which reads it in the browser's zone. A US visitor searching yesterday's 18:19 München -> Düsseldorf (arrival 23:25 Berlin) still got the button at 00:40 Berlin, and the order came back 422 "journey already arrived" ("Für diese Fahrt ist kein Report möglich").
+- Now compared as strings against Berlin's wall-clock (`berlinStamp`, hoisted from `liveLegQuery`, which already did this).
+- Busters: app 167, SHELL_VERSION v132.
+- Verified: node with TZ=America/Los_Angeles at the press time - old check true, new check false. Not checked: other `new Date(plannedX)` uses; the one remaining (leg duration) is a difference and zone-neutral.

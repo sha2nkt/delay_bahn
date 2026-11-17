@@ -3264,9 +3264,14 @@ function lastTrackedArrival(journey) {
   return tracked.length ? tracked[tracked.length - 1].plannedArrival : null;
 }
 
+// leg stamps are Berlin wall-clock ("2026-09-29T15:37:00"): new Date() would read
+// them in the visitor's own zone, so they are compared as strings with this
+const berlinStamp = (ms) =>
+  new Date(ms).toLocaleString("sv-SE", { timeZone: "Europe/Berlin" }).replace(" ", "T");
+
 function reportEligible(journey) {
   const arrival = lastTrackedArrival(journey);
-  return !!arrival && new Date(arrival) > new Date();
+  return !!arrival && String(arrival).slice(0, 19) > berlinStamp(Date.now());
 }
 
 // the historic median for the teaser: the destination's, or - when the last
@@ -3322,9 +3327,7 @@ function liveNames() {
 // trains by line ("RE 1") - its line on the map and the leg about to leave.
 // S-Bahn legs carry a line label, not a train number, and are skipped
 function liveLegQuery(journey, names) {
-  // leg stamps are Berlin wall-clock ("2026-09-29T15:37:00"), compared as strings
-  const berlin = (ms) => new Date(ms).toLocaleString("sv-SE", { timeZone: "Europe/Berlin" }).replace(" ", "T");
-  const now = berlin(Date.now()), soon = berlin(Date.now() + LIVE_LEAD_MS);
+  const now = berlinStamp(Date.now()), soon = berlinStamp(Date.now() + LIVE_LEAD_MS);
   for (const leg of journey.legs || []) {
     if (leg.walking || UNTRACKED_PRODUCTS.has(leg.line?.product)) continue;
     const dep = String(leg.departure || leg.plannedDeparture || "").slice(0, 19);
