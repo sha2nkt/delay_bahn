@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="132" height="132" role="img" aria-label="A fox holds up a gold euro coin">
+  <ellipse cx="60" cy="106" rx="30" ry="5" fill="#e8eef9"/>
+  <path d="M77 97C101 101 109 81 98 67C97 80 85 78 78 86Z" fill="#e0a21f"/>
+  <path d="M98 67C104 74 105 81 102 87C97 86 93 83 91 79C95 77 97 73 98 67Z" fill="#fde7c4"/>
+  <rect x="38" y="66" width="44" height="38" rx="19" fill="#f5b92e"/>
+  <ellipse cx="60" cy="84" rx="14" ry="17" fill="#fde7c4"/>
+  <ellipse cx="46" cy="102" rx="9" ry="4" fill="#e0a21f"/>
+  <ellipse cx="74" cy="102" rx="9" ry="4" fill="#e0a21f"/>
+  <path d="M30 46L29 20Q29 16 33 19L51 34Z" fill="#f5b92e"/>
+  <path d="M69 34L87 19Q91 16 91 20L90 46Z" fill="#f5b92e"/>
+  <path d="M35 35L34 25L44 34Z" fill="#fde7c4"/>
+  <path d="M76 34L86 25L85 35Z" fill="#fde7c4"/>
+  <path d="M60 30C79 30 93 40 92 54C91 67 74 78 60 79C46 78 29 67 28 54C27 40 41 30 60 30Z" fill="#f5b92e"/>
+  <path d="M30 52C40 49 52 54 60 64C68 54 80 49 90 52C88 64 73 76 60 77C47 76 32 64 30 52Z" fill="#fde7c4"/>
+  <path d="M41 49Q45 45 49 49" fill="none" stroke="#282d37" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M71 49Q75 45 79 49" fill="none" stroke="#282d37" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M56 62Q60 60 64 62Q65 65 60 68Q55 65 56 62Z" fill="#282d37"/>
+  <path d="M54 69Q60 73 66 69Q60 78 54 69Z" fill="#282d37"/>
+  <circle cx="60" cy="90" r="12.5" fill="#ffd95a" stroke="#c98a12" stroke-width="2.5"/>
+  <path d="M65.5 85A7 7 0 1 0 65.5 95" fill="none" stroke="#8a5a00" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M52.5 88.4H61M52.5 91.8H60" fill="none" stroke="#8a5a00" stroke-width="2" stroke-linecap="round"/>
+  <ellipse cx="45" cy="89" rx="7" ry="9" transform="rotate(-25 45 89)" fill="#f5b92e"/>
+  <ellipse cx="75" cy="89" rx="7" ry="9" transform="rotate(25 75 89)" fill="#f5b92e"/>
+</svg>

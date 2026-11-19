@@ -800,6 +800,37 @@ body.past-mode .trip-steps { display: none; }
   padding: 12px 16px; font-size: 15px; font-weight: 700; text-decoration: none;
 }
 .claim-modal-go:hover { filter: brightness(1.12); }
+/* the two ways to claim: DelayBahn's form on top, the bahn.de steps folded under "or" */
+.claim-modal-one { margin-top: 18px; padding: 14px 16px; font-size: 16px; }
+.claim-modal-or {
+  display: flex; align-items: center; gap: 12px; margin: 18px 0 14px;
+  font-size: 12.5px; color: var(--text-muted);
+}
+.claim-modal-or::before, .claim-modal-or::after { content: ""; flex: 1; height: 1px; background: var(--gray-border); }
+.claim-modal-diy summary {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  border: 1px solid var(--gray-border); border-radius: 6px;
+  padding: 11px 16px; font-size: 14.5px; font-weight: 700;
+}
+.claim-modal-diy summary::-webkit-details-marker { display: none; }
+/* a drawn chevron: the font's small triangles sat off the baseline and differed per device */
+.claim-modal-diy summary::after {
+  content: ""; flex: none; width: 7px; height: 7px; margin-top: -4px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(45deg); transition: transform .15s;
+  color: var(--text-muted);
+}
+.claim-modal-diy[open] summary::after { transform: rotate(-135deg); margin-top: 4px; }
+@media (prefers-reduced-motion: reduce) { .claim-modal-diy summary::after { transition: none; } }
+.claim-modal-diy summary:hover { border-color: var(--text-muted); }
+.claim-modal-diy summary:focus-visible { outline: 2px solid var(--brand-red); outline-offset: 2px; }
+.claim-modal-diy .claim-modal-lead { margin-top: 14px; }
+/* a Deutschlandticket journey has no claim to fill in: only the bahn.de steps, unfolded */
+.claim-modal-noform :is(.claim-modal-one, #claim-modal-form-note, .claim-modal-or, .claim-modal-diy summary) { display: none; }
+.claim-modal-noform .claim-modal-diy .claim-modal-lead { margin-top: 6px; }
+/* inside the fold the bahn.de button is the quieter of the two */
+.claim-modal-bahn { background: #fff; color: var(--green); border: 2px solid var(--green); }
 .claim-modal-alt { margin-top: 10px; text-align: center; font-size: 12.5px; color: var(--text-muted); }
 .claim-modal-alt a { color: var(--brand-red); }
 

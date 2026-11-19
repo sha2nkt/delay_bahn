@@ -305,6 +305,10 @@ const I18N = {
     claimMissed: "Anschluss verpasst – Anspruch prüfen →",
     claimAltPre: "Ticket nicht im DB-Konto?",
     claimAltLink: "Zum Fahrgastrechte-Formular",
+    claimFormLink: "Einfach beantragen",
+    claimFormNote: "Wir füllen den Antrag für dich aus – du prüfst ihn und schickst ihn ab. Kostenlos in der Testphase.",
+    claimOr: "oder",
+    claimDiyTitle: "Selbst auf bahn.de beantragen",
     claimModalTitle: "So holst du dir dein Geld zurück",
     claimModalTitlePct: (pct) => `So holst du dir ${pct} % zurück`,
     claimModalLead: "Gleich öffnet sich deine Reiseübersicht auf bahn.de. Melde dich dort an – dann sind es nur diese Schritte:",
@@ -630,6 +634,10 @@ const I18N = {
     claimMissed: "Missed connection – check your claim →",
     claimAltPre: "Ticket not in your DB account?",
     claimAltLink: "Use the passenger rights form",
+    claimFormLink: "Easy apply",
+    claimFormNote: "We fill in the claim for you – you check it and send it. Free during the trial.",
+    claimOr: "or",
+    claimDiyTitle: "Apply on bahn.de yourself",
     claimModalTitle: "How to get your money back",
     claimModalTitlePct: (pct) => `How to get your ${pct}% back`,
     claimModalLead: "You're about to open your trip overview on bahn.de. Log in there – then it's just these steps:",
@@ -3210,6 +3218,16 @@ function populateClaimModal() {
   document.getElementById("claim-modal-go").textContent = t("claimModalGo");
   document.getElementById("claim-modal-alt-pre").textContent = t("claimAltPre");
   document.getElementById("claim-modal-alt").textContent = t("claimAltLink");
+  document.getElementById("claim-modal-form-note").textContent = t("claimFormNote");
+  document.getElementById("claim-modal-or").textContent = t("claimOr");
+  document.getElementById("claim-modal-diy-title").textContent = t("claimDiyTitle");
+  // the Deutschlandticket is outside this compensation: no form to offer,
+  // so the bahn.de steps are all there is; otherwise they start folded away
+  claimModal.classList.toggle("claim-modal-noform", !!j.dticketCovered);
+  document.getElementById("claim-modal-diy").open = !!j.dticketCovered;
+  const form = document.getElementById("claim-modal-form");
+  form.textContent = t("claimFormLink");
+  form.href = state.lang === "en" ? "/en/claim" : "/antrag";
 }
 
 function openClaimModal(journey) {
@@ -3225,6 +3243,14 @@ function openClaimModal(journey) {
 
 document.getElementById("claim-modal-go").href = CLAIM_URL;
 document.getElementById("claim-modal-alt").href = CLAIM_FORM_URL;
+// DelayBahn's own form opens in this tab: the journey and its verdict ride
+// along in sessionStorage, which only this tab can read
+document.getElementById("claim-modal-form").addEventListener("click", () => {
+  try {
+    if (state.claimJourney) sessionStorage.setItem("claimJourney", JSON.stringify(state.claimJourney));
+  } catch (e) { /* the form then starts from the ticket alone */ }
+  track("claim-form", { via: "search" });
+});
 document.getElementById("claim-modal-close").addEventListener("click", () => claimModal.close());
 // a click on the backdrop lands on the dialog element itself (the inner wrapper covers the rest)
 claimModal.addEventListener("click", (e) => { if (e.target === claimModal) claimModal.close(); });

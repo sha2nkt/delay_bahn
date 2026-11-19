@@ -7,7 +7,7 @@
 <!-- an account's own list: nothing here is for a crawler -->
 <meta name="robots" content="noindex, follow">
 <link rel="icon" type="image/png" href="/favicon.png">
-<link rel="stylesheet" href="/style.css?v=144">
+<link rel="stylesheet" href="/style.css?v=145">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -102,13 +102,31 @@
   </section>
 </main>
 
+<!-- the two ways to claim, as on the search (index.html) -->
+<dialog id="claim-modal" class="claim-modal">
+  <div class="claim-modal-inner">
+    <button id="claim-modal-close" class="claim-modal-close" type="button" aria-label="Schließen">✕</button>
+    <h2 id="claim-modal-title" class="claim-modal-title"></h2>
+    <a id="claim-modal-form" class="claim-modal-go claim-modal-one" href="/antrag"></a>
+    <p id="claim-modal-form-note" class="claim-modal-alt"></p>
+    <p id="claim-modal-or" class="claim-modal-or"></p>
+    <details id="claim-modal-diy" class="claim-modal-diy">
+      <summary id="claim-modal-diy-title"></summary>
+      <p id="claim-modal-lead" class="claim-modal-lead"></p>
+      <ol id="claim-modal-steps" class="claim-steps"></ol>
+      <a id="claim-modal-go" class="claim-modal-go claim-modal-bahn" target="_blank" rel="noopener"></a>
+      <p class="claim-modal-alt"><span id="claim-modal-alt-pre"></span> <a id="claim-modal-alt" target="_blank" rel="noopener"></a></p>
+    </details>
+  </div>
+</dialog>
+
 <footer class="site-footer">
   <a href="/" data-i18n="footerBack">← Zur Verbindungssuche</a> ·
   <a href="/geschichten" data-i18n="footerStories">Delay Geschichten</a> ·
   <a href="/impressum.html#datenschutz-fahrten" data-i18n="footerLegal">Impressum &amp; Datenschutz</a> ·
   <a href="mailto:kontakt@delaybahn.com?subject=DelayBahn%20Meine%20Fahrten" data-i18n="footerContact">Kontakt</a>
 </footer>
-<script src="/trips.js?v=12"></script>
+<script src="/trips.js?v=14"></script>
 <script defer src="/nav.js?v=1"></script>
 </body>
 </html>

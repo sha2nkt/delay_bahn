@@ -23,7 +23,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, StringConstraints
 
 from app import (
-    auth, bahn_api, bounces, delays, feedback, leaderboard, live_delays, mailer, profile_heal,
+    auth, bahn_api, bounces, claim, delays, feedback, leaderboard, live_delays, mailer, profile_heal,
     ratelimit, reports, stories, translate, trips,
 )
 from app.config import env_int
@@ -170,6 +170,7 @@ async def lifespan(app: FastAPI):
     await feedback.close()
     await stories.close()
     await translate.close()
+    await claim.close()
     await umami.aclose()
 
 
@@ -179,8 +180,16 @@ app = FastAPI(lifespan=lifespan)
 FEEDBACK_BODY_MAX = 1024 * 1024
 
 
+# the POSTs that carry an image, each with the most its body may weigh
+BODY_LIMITS = {
+    "/api/feedback": FEEDBACK_BODY_MAX,
+    "/api/claim/read-ticket": claim.BODY_MAX_BYTES,
+}
+
+
 class FeedbackBodyLimit:
-    """Refuse oversized POSTs to /api/feedback before their body is read.
+    """Refuse oversized POSTs to the image-carrying endpoints (BODY_LIMITS)
+    before their body is read.
 
     Pydantic's max_length only fires after Starlette has buffered the whole
     body in memory, and Cloudflare forwards bodies up to 100 MB. Content-Length
@@ -195,15 +204,16 @@ class FeedbackBodyLimit:
         if (
             scope["type"] == "http"
             and scope["method"] == "POST"
-            and scope["path"].rstrip("/") == "/api/feedback"
+            and scope["path"].rstrip("/") in BODY_LIMITS
         ):
+            limit = BODY_LIMITS[scope["path"].rstrip("/")]
             length = next(
                 (v for k, v in scope["headers"] if k == b"content-length"), None
             )
             status = 0
             if length is None or not length.isdigit():
                 status = 411
-            elif int(length) > FEEDBACK_BODY_MAX:
+            elif int(length) > limit:
                 status = 413
             if status:
                 await send(
@@ -1056,6 +1066,10 @@ STORIES_ALT = {"de": "Delay Geschichten", "en": "Delay Stories"}
 # the account's booked trips; private, so no meta beyond the title
 TRIPS_PATHS = {"de": "/meine-fahrten", "en": "/en/my-trips"}
 TRIPS_TITLE = {"de": "Meine Fahrten – DelayBahn", "en": "My Trips – DelayBahn"}
+# the claim form the visitor fills in and sends themselves; personal, so no meta either
+CLAIM_FORM_PATHS = {"de": "/antrag", "en": "/en/claim"}
+CLAIM_FORM_TITLE = {"de": "Entschädigung beantragen – DelayBahn",
+                    "en": "Claim compensation – DelayBahn"}
 
 # the section strip under the header (the <nav class="site-nav"> in every page):
 # the same public destinations everywhere, with the current one marked;
@@ -1654,6 +1668,53 @@ def _trips_html(lang: str) -> str:
     return html
 
 
+def _claim_html(lang: str) -> str:
+    """Render one language of the claim form from claim.html: the same page
+    at /antrag and /en/claim. Everything the visitor enters stays in the
+    page, so the markup is the same for everyone."""
+    html = (STATIC_DIR / "claim.html").read_text(encoding="utf-8")
+    html = _site_nav(html, lang, "refund")
+    home = PAGE_PATHS[("future", lang)]
+    subs = [
+        (r'<html lang="[^"]*"', f'<html lang="{lang}"'),
+        (r"<title>[^<]*</title>", f"<title>{CLAIM_FORM_TITLE[lang]}</title>"),
+        (r'(<a href=")[^"]*(" hreflang="de")', rf"\g<1>{CLAIM_FORM_PATHS['de']}\g<2>"),
+        (r'(<a href=")[^"]*(" hreflang="en")', rf"\g<1>{CLAIM_FORM_PATHS['en']}\g<2>"),
+        (r'(<a class="logo-link" href=")[^"]*', rf"\g<1>{home}"),
+        (r'(<a id="auth-name" class="auth-name" href=")[^"]*', rf"\g<1>{TRIPS_PATHS[lang]}"),
+        (r'(<a id="done-trips" class="claim-ghost" href=")[^"]*', rf"\g<1>{TRIPS_PATHS[lang]}"),
+        (r'(<a href=")[^"]*(" data-i18n="footerBack")', rf"\g<1>{home}\g<2>"),
+    ]
+    for pattern, repl in subs:
+        html = re.sub(pattern, repl, html, count=1)
+    if lang == "en":
+        html = html.replace('data-lang="en" class="lang-btn"', 'data-lang="en" class="lang-btn active"')
+        html = html.replace('data-lang="de" class="lang-btn active"', 'data-lang="de" class="lang-btn"')
+        html = _translate(html, "claim.js")
+    return html
+
+
+@app.get("/antrag")
+async def claim_form_de() -> HTMLResponse:
+    return HTMLResponse(_claim_html("de"), headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/en/claim")
+async def claim_form_en() -> HTMLResponse:
+    return HTMLResponse(_claim_html("en"), headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/antrag/")
+@app.get("/claim.html")
+async def claim_form_alias_de() -> RedirectResponse:
+    return RedirectResponse(CLAIM_FORM_PATHS["de"], status_code=301)
+
+
+@app.get("/en/claim/")
+async def claim_form_alias_en() -> RedirectResponse:
+    return RedirectResponse(CLAIM_FORM_PATHS["en"], status_code=301)
+
+
 @app.get("/meine-fahrten")
 async def trips_page_de() -> HTMLResponse:
     return HTMLResponse(_trips_html("de"), headers={"Cache-Control": "no-cache"})
@@ -1760,7 +1821,11 @@ class Feedback(BaseModel):
     # 512 KiB binary cap in base64 clothing plus header slack
     shot: str = Field("", max_length=720_000)
     lang: Literal["de", "en"] = "de"
-    context: Literal["future", "past", "stories", "leaderboard", "train"] = "future"
+    # claim-N: the step of the claim page the box stood under, claim-done its last page
+    context: Literal[
+        "future", "past", "stories", "leaderboard", "train",
+        "claim-1", "claim-2", "claim-3", "claim-4", "claim-5", "claim-done",
+    ] = "future"
 
 
 _tasks: set[asyncio.Task] = set()
@@ -2698,6 +2763,34 @@ async def trips_check(trip_id: int, request: Request) -> dict:
     if verdict is None:
         raise HTTPException(422, "no train legs")
     return verdict
+
+
+class TicketPhoto(BaseModel):
+    image: Annotated[str, StringConstraints(max_length=claim.BODY_MAX_BYTES)]
+
+
+@app.post("/api/claim/read-ticket")
+async def claim_read_ticket(photo: TicketPhoto, request: Request) -> dict:
+    """The fields of a photographed ticket, for the claim form to prefill.
+    The page only posts here after the visitor agreed to the photo being
+    read by the model; a PDF ticket is parsed in the browser and never
+    arrives. Signed-in accounts only, a few reads a day each: the image is
+    passed on in memory and nothing of it or of the answer is kept."""
+    user = await _trips_user(request)
+    if not claim.enabled():
+        raise HTTPException(503, "ticket reading is unavailable")
+    try:
+        mime, payload = claim.decode_image(photo.image)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+    wait = claim.read_limiter.retry_after(user["uid"])
+    if wait is not None:
+        raise HTTPException(429, "too many ticket photos; please type the details in",
+                            headers={"Retry-After": str(wait)})
+    fields = await claim.read_ticket(mime, payload)
+    if fields is None:
+        raise HTTPException(502, "the ticket could not be read")
+    return fields
 
 
 class HtmlNoCacheStatic(StaticFiles):

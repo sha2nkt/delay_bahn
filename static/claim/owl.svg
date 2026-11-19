@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="132" height="132" role="img" aria-label="An owl stands on a small stack of gold coins">
+  <ellipse cx="60" cy="108" rx="32" ry="5" fill="#e8eef9"/>
+  <g stroke="#c98a12" stroke-width="2" fill="#ffd95a">
+    <ellipse cx="60" cy="103" rx="20" ry="5"/>
+    <ellipse cx="60" cy="98" rx="20" ry="5"/>
+    <ellipse cx="60" cy="93" rx="20" ry="5"/>
+  </g>
+  <path d="M34 34L31 17Q39 22 46 27Z" fill="#8d6e53"/>
+  <path d="M86 34L89 17Q81 22 74 27Z" fill="#8d6e53"/>
+  <ellipse cx="60" cy="58" rx="30" ry="34" fill="#8d6e53"/>
+  <ellipse cx="60" cy="68" rx="18" ry="21" fill="#f3e3c8"/>
+  <path d="M51 66Q54 69 57 66M63 66Q66 69 69 66M57 74Q60 77 63 74" fill="none" stroke="#c9ad83" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="47" cy="45" r="12" fill="#fff"/>
+  <circle cx="73" cy="45" r="12" fill="#fff"/>
+  <circle cx="48" cy="46" r="5" fill="#282d37"/>
+  <circle cx="72" cy="46" r="5" fill="#282d37"/>
+  <circle cx="49.6" cy="44.4" r="1.6" fill="#fff"/>
+  <circle cx="73.6" cy="44.4" r="1.6" fill="#fff"/>
+  <path d="M55 53L65 53L60 61Z" fill="#f5b92e"/>
+  <ellipse cx="32" cy="64" rx="7" ry="17" transform="rotate(12 32 64)" fill="#75583f"/>
+  <ellipse cx="88" cy="64" rx="7" ry="17" transform="rotate(-12 88 64)" fill="#75583f"/>
+  <path d="M50 90v-4M54 90v-4M66 90v-4M70 90v-4" stroke="#f5b92e" stroke-width="3" stroke-linecap="round"/>
+</svg>

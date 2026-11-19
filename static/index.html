@@ -66,7 +66,7 @@ try {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DelayBahn">
-<link rel="stylesheet" href="/style.css?v=144">
+<link rel="stylesheet" href="/style.css?v=145">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -479,10 +479,17 @@ try {
   <div class="claim-modal-inner">
     <button id="claim-modal-close" class="claim-modal-close" type="button" aria-label="Schließen">✕</button>
     <h2 id="claim-modal-title" class="claim-modal-title"></h2>
-    <p id="claim-modal-lead" class="claim-modal-lead"></p>
-    <ol id="claim-modal-steps" class="claim-steps"></ol>
-    <a id="claim-modal-go" class="claim-modal-go" target="_blank" rel="noopener"></a>
-    <p class="claim-modal-alt"><span id="claim-modal-alt-pre"></span> <a id="claim-modal-alt" target="_blank" rel="noopener"></a></p>
+    <a id="claim-modal-form" class="claim-modal-go claim-modal-one" href="/antrag"></a>
+    <p id="claim-modal-form-note" class="claim-modal-alt"></p>
+    <p id="claim-modal-or" class="claim-modal-or"></p>
+    <!-- the bahn.de route, folded away under the divider -->
+    <details id="claim-modal-diy" class="claim-modal-diy">
+      <summary id="claim-modal-diy-title"></summary>
+      <p id="claim-modal-lead" class="claim-modal-lead"></p>
+      <ol id="claim-modal-steps" class="claim-steps"></ol>
+      <a id="claim-modal-go" class="claim-modal-go claim-modal-bahn" target="_blank" rel="noopener"></a>
+      <p class="claim-modal-alt"><span id="claim-modal-alt-pre"></span> <a id="claim-modal-alt" target="_blank" rel="noopener"></a></p>
+    </details>
   </div>
 </dialog>
 <dialog id="transport-modal" class="tm-modal">
@@ -797,7 +804,7 @@ try {
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
   <p class="footer-copyright">Copyright © 2026 Shashank Tripathi</p>
 </footer>
-<script src="/app.js?v=170"></script>
+<script src="/app.js?v=172"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {

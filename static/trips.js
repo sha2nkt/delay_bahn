@@ -78,6 +78,24 @@ const I18N = {
     claimNone: "Keine Entschädigung (unter 60 min)",
     claimCanceled: "Ausgefallen – Anspruch prüfen →",
     claimMissed: "Anschluss verpasst – Anspruch prüfen →",
+    claimAltPre: "Ticket nicht im DB-Konto?",
+    claimAltLink: "Zum Fahrgastrechte-Formular",
+    claimFormLink: "Einfach beantragen",
+    claimFormNote: "Wir füllen den Antrag für dich aus – du prüfst ihn und schickst ihn ab. Kostenlos in der Testphase.",
+    claimOr: "oder",
+    claimDiyTitle: "Selbst auf bahn.de beantragen",
+    claimModalTitle: "So holst du dir dein Geld zurück",
+    claimModalTitlePct: (pct) => `So holst du dir ${pct} % zurück`,
+    claimModalLead: "Gleich öffnet sich deine Reiseübersicht auf bahn.de. Melde dich dort an – dann sind es nur diese Schritte:",
+    claimModalStepFind: "Finde diese Reise unter „Vergangene Reisen“:",
+    claimModalStepDetails: "Öffne die Reisedetails:",
+    claimModalStepRequest: "Starte den Entschädigungsantrag:",
+    claimModalStepSubmit: "Prüfe die Angaben und sende den Antrag ab:",
+    bahnBtnDetails: "Reisedetails",
+    bahnBtnRequest: "Entschädigung beantragen",
+    bahnBtnSubmit: "Antrag jetzt senden",
+    claimModalGo: "Weiter zu bahn.de →",
+    claimModalClose: "Schließen",
     claimPending: "Ankunft noch nicht bestätigt – morgen früh prüfen",
     badgeDays: (matched, total) => `(${matched}/${total} Tage)`,
     badgeTooltip: (win, max) => `Mittlere Ankunftsverspätung (Median) der letzten ${win} Tage (max. +${max} min)`,
@@ -174,6 +192,24 @@ const I18N = {
     claimNone: "No compensation (under 60 min)",
     claimCanceled: "Cancelled – check your claim →",
     claimMissed: "Missed connection – check your claim →",
+    claimAltPre: "Ticket not in your DB account?",
+    claimAltLink: "Use the passenger rights form",
+    claimFormLink: "Easy apply",
+    claimFormNote: "We fill in the claim for you – you check it and send it. Free during the trial.",
+    claimOr: "or",
+    claimDiyTitle: "Apply on bahn.de yourself",
+    claimModalTitle: "How to get your money back",
+    claimModalTitlePct: (pct) => `How to get your ${pct}% back`,
+    claimModalLead: "You're about to open your trip overview on bahn.de. Log in there – then it's just these steps:",
+    claimModalStepFind: "Find this journey under “Past trips”:",
+    claimModalStepDetails: "Open the trip details:",
+    claimModalStepRequest: "Start the compensation request:",
+    claimModalStepSubmit: "Check the details and submit:",
+    bahnBtnDetails: "Trip details",
+    bahnBtnRequest: "Submit compensation request",
+    bahnBtnSubmit: "Submit request now",
+    claimModalGo: "Continue to bahn.de →",
+    claimModalClose: "Close",
     claimPending: "Arrival not confirmed yet – check tomorrow morning",
     badgeDays: (matched, total) => `(${matched}/${total} days)`,
     badgeTooltip: (win, max) => `Median arrival delay over the last ${win} days (max. +${max} min)`,
@@ -216,6 +252,10 @@ const STORIES = lang === "en" ? "/stories" : "/geschichten";
 const PROBLEMS = ["delay", "cancelled", "missed", "ac", "wc", "crowding", "wifi", "other"];
 // where a claim is filed: the trip overview on bahn.de, like the search's claim modal
 const CLAIM_URL = "https://www.bahn.de/buchung/reiseuebersicht/vergangene";
+// tickets not bought through a bahn.de account are claimed with DB's own form
+const CLAIM_FORM_URL = "https://www.bahn.de/fahrgastrechte";
+// DelayBahn's claim form, which starts from the checked trip
+const CLAIM_FORM = lang === "en" ? "/en/claim" : "/antrag";
 // products IRIS never covers, as in the search (UNTRACKED_PRODUCTS in app/main.py)
 const UNTRACKED = new Set(["BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG"]);
 const LOGIN = "/login?next=" + encodeURIComponent(SELF) + "&reason=trips";
@@ -385,7 +425,84 @@ function legRow(leg, struck, live) {
   return row;
 }
 
-function buildCheck(data) {
+// --- the claim dialog: the same two ways to claim as on the search (app.js) ---
+
+let claimData = null;  // the checked trip the open dialog is about
+
+function claimEl(tag, className, text) {
+  const el = document.createElement(tag);
+  el.className = className;
+  el.textContent = text;
+  return el;
+}
+
+function openClaimModal(data, dticket) {
+  claimData = data;
+  const legs = (data.legs || []).filter((l) => !l.walking);
+  const first = legs[0], last = legs[legs.length - 1];
+  const pct = data.compensationPct;
+  $("claim-modal-title").textContent = pct != null && pct >= 25 ? t("claimModalTitlePct", pct) : t("claimModalTitle");
+  $("claim-modal-lead").textContent = t("claimModalLead");
+  $("claim-modal-close").setAttribute("aria-label", t("claimModalClose"));
+
+  // replica of the journey's row in the bahn.de past-trips list
+  const journeyEl = document.createElement("div");
+  journeyEl.className = "bahn-journey";
+  const head = document.createElement("div");
+  head.className = "bahn-journey-head";
+  head.append(claimEl("span", "bahn-journey-date", fmtDay(first.plannedDeparture)),
+    claimEl("strong", "", last.destination.name));
+  journeyEl.append(head, claimEl("div", "bahn-journey-sub",
+    `${fmtTime(first.plannedDeparture)} – ${fmtTime(last.plannedArrival)} · ${first.origin.name} → ${last.destination.name}`));
+
+  const list = $("claim-modal-steps");
+  list.textContent = "";
+  [
+    [t("claimModalStepFind"), journeyEl],
+    [t("claimModalStepDetails"), claimEl("span", "bahn-btn", t("bahnBtnDetails"))],
+    [t("claimModalStepRequest"), claimEl("span", "bahn-btn bahn-btn-outline", t("bahnBtnRequest"))],
+    [t("claimModalStepSubmit"), claimEl("span", "bahn-btn", t("bahnBtnSubmit"))],
+  ].forEach(([text, body]) => {
+    const li = document.createElement("li");
+    li.append(claimEl("p", "claim-step-text", text), body);
+    list.append(li);
+  });
+
+  $("claim-modal-go").textContent = t("claimModalGo");
+  $("claim-modal-alt-pre").textContent = t("claimAltPre");
+  $("claim-modal-alt").textContent = t("claimAltLink");
+  $("claim-modal-form").textContent = t("claimFormLink");
+  $("claim-modal-form-note").textContent = t("claimFormNote");
+  $("claim-modal-or").textContent = t("claimOr");
+  $("claim-modal-diy-title").textContent = t("claimDiyTitle");
+  // the Deutschlandticket is outside this compensation: no form to offer,
+  // so the bahn.de steps are all there is; otherwise they start folded away
+  $("claim-modal").classList.toggle("claim-modal-noform", !!dticket);
+  $("claim-modal-diy").open = !!dticket;
+  $("claim-modal").showModal();
+  track("claim-modal", { via: "my-trips", pct: pct ?? "na" });
+}
+
+function wireClaimModal() {
+  const modal = $("claim-modal");
+  $("claim-modal-go").href = CLAIM_URL;
+  $("claim-modal-alt").href = CLAIM_FORM_URL;
+  $("claim-modal-form").href = CLAIM_FORM;
+  $("claim-modal-close").addEventListener("click", () => modal.close());
+  // a click on the backdrop lands on the dialog element itself
+  modal.addEventListener("click", (e) => { if (e.target === modal) modal.close(); });
+  // DelayBahn's own form opens in this tab: the checked trip rides along in
+  // sessionStorage, which only this tab can read
+  $("claim-modal-form").addEventListener("click", () => {
+    try {
+      if (claimData) sessionStorage.setItem("claimJourney", JSON.stringify(claimData));
+    } catch (e) { /* the form then asks for the check first */ }
+    track("claim-form", { via: "my-trips" });
+  });
+  $("claim-modal-go").addEventListener("click", () => track("claim-bahn", { via: "my-trips" }));
+}
+
+function buildCheck(data, trip) {
   const panel = document.createElement("div");
   panel.className = "trip-check";
   // the hand-off to the stories page: shown above the legs while a leg is being picked
@@ -415,14 +532,12 @@ function buildCheck(data) {
   const claimable = (pct != null && pct >= 25) || (pct == null && (canceledish || missed));
   let verdict;
   if (claimable) {
-    verdict = document.createElement("a");
+    verdict = document.createElement("button");
+    verdict.type = "button";
     verdict.className = "claim-btn";
-    verdict.href = CLAIM_URL;
-    verdict.target = "_blank";
-    verdict.rel = "noopener";
     verdict.textContent = pct != null && pct >= 25 ? t("claimPct", pct)
       : canceledish ? t("claimCanceled") : t("claimMissed");
-    verdict.addEventListener("click", () => track("claim-bahn", { via: "my-trips" }));
+    verdict.addEventListener("click", () => openClaimModal(data, trip.dticket));
   } else {
     verdict = document.createElement("span");
     verdict.className = "claim-none";
@@ -664,7 +779,7 @@ async function ensureCheck(trip, card) {
   try {
     const data = await api(`/api/trips/${trip.id}/check`);
     status.remove();
-    const panel = buildCheck(data);
+    const panel = buildCheck(data, trip);
     card.appendChild(panel);
     track("trip-check");
     return panel;
@@ -953,6 +1068,7 @@ function showLogin() {
 
 async function init() {
   applyStatic();
+  wireClaimModal();
   try {
     fb = await import("/firebase.js?v=2");
     if (fb.auth) {

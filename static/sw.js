@@ -11,7 +11,7 @@
  * Bump SHELL_VERSION whenever the precached asset URLs below change (e.g. after a
  * ?v= cache-buster bump in index.html) so old shells are dropped and re-primed.
  */
-const SHELL_VERSION = "v134";
+const SHELL_VERSION = "v136";
 const SHELL_CACHE = `delaybahn-shell-${SHELL_VERSION}`;
 const API_CACHE = `delaybahn-api-${SHELL_VERSION}`;
 
@@ -22,8 +22,8 @@ const API_MAX_AGE = 10 * 60 * 1000; // 10 minutes
 const PRECACHE = [
   "/",
   "/en/",
-  "/style.css?v=144",
-  "/app.js?v=170",
+  "/style.css?v=145",
+  "/app.js?v=172",
   "/manifest.json",
   "/favicon.png",
   "/logo.webp?v=1",
@@ -74,9 +74,35 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+/* The claim page sets a begun claim aside in IndexedDB for the trip to the
+   login (static/claim.js, "the login detour") and deletes it on the way back.
+   One that was never picked up again is removed here, when any page of the
+   site is opened later. */
+const CLAIM_DRAFT_MAX_AGE = 30 * 60 * 1000;
+let claimDraftSwept = 0;
+function sweepClaimDraft() {
+  if (Date.now() - claimDraftSwept < 5 * 60 * 1000) return;
+  claimDraftSwept = Date.now();
+  try {
+    const open = indexedDB.open("delaybahn-claim", 1);
+    open.onupgradeneeded = () => open.result.createObjectStore("draft");
+    open.onsuccess = () => {
+      const db = open.result;
+      const tx = db.transaction("draft", "readwrite");
+      const store = tx.objectStore("draft");
+      const got = store.get("draft");
+      got.onsuccess = () => {
+        if (got.result && Date.now() - got.result.at > CLAIM_DRAFT_MAX_AGE) store.delete("draft");
+      };
+      tx.oncomplete = tx.onabort = () => db.close();
+    };
+  } catch (e) { /* no database here: nothing was set aside either */ }
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
+  if (req.mode === "navigate") sweepClaimDraft();
 
   // Let the browser handle: non-GET (feedback POST, analytics POST), cross-origin,
   // analytics assets, and the service worker script itself.

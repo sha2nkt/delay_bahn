@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entschädigung beantragen – DelayBahn</title>
+<!-- a personal form: nothing here is for a crawler -->
+<meta name="robots" content="noindex, follow">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="stylesheet" href="/style.css?v=145">
+<link rel="stylesheet" href="/claim.css?v=27">
+<script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
+</head>
+<body class="claim-page">
+<header>
+  <div class="header-inner header-account">
+    <a class="logo-link" href="/"><img class="logo" src="/logo.webp?v=1" alt="DelayBahn" width="85" height="60"></a>
+    <span class="header-title"><span data-i18n="headerTitle">Entschädigung beantragen</span><span class="tagline" data-i18n="tagline">Antrag ausfüllen, prüfen, selbst abschicken</span></span>
+    <span class="header-auth">
+      <a id="auth-login" class="auth-link hidden" href="/login" data-i18n="navLogin">Anmelden</a>
+      <span id="auth-user" class="auth-user hidden"><a id="auth-name" class="auth-name" href="/meine-fahrten"><svg class="auth-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.31 0-8 1.66-8 5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-3.34-4.69-5-8-5Z"/></svg><span id="auth-name-text" class="auth-name-text"></span></a><button id="auth-logout" class="auth-logout" type="button" data-i18n="navLogout">Abmelden</button></span>
+    </span>
+    <div class="header-lang">
+      <a href="/antrag" hreflang="de" data-lang="de" class="lang-btn active">DE</a>
+      <a href="/en/claim" hreflang="en" data-lang="en" class="lang-btn">EN</a>
+    </div>
+  </div>
+</header>
+<!-- the section strip, the same on every page: app/main.py fills in the language's paths and marks the current page -->
+<nav class="site-nav" aria-label="Bereiche">
+  <div class="site-nav-inner">
+    <a class="site-nav-link" data-nav="home" href="/"><span class="site-nav-label">Verbindungssuche</span><svg class="site-nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-6h4v6"/></svg></a>
+    <a class="site-nav-link" data-nav="train" href="/wo-ist-mein-zug"><span class="site-nav-label">Wo ist mein Zug?</span><span class="site-nav-new">Neu</span></a>
+    <a class="site-nav-link" data-nav="refund" href="/entschaedigung"><span class="site-nav-label">Entschädigung beantragen</span></a>
+    <a class="site-nav-link" data-nav="leaderboard" href="/rangliste"><span class="site-nav-label">Verspätungs-Rangliste</span></a>
+    <a class="site-nav-link" data-nav="stories" href="/geschichten"><span class="site-nav-label">Delay Geschichten</span></a>
+  </div>
+</nav>
+
+<main class="claim-main">
+  <p class="claim-trial" data-i18n="trial">Kostenlos in der Testphase</p>
+
+  <!-- opened without a checked journey: the form has nothing to stand on, so it points to the check -->
+  <section id="claim-start" class="claim-card claim-done hidden">
+    <h2 data-i18n="startTitle">Prüfe zuerst deine Fahrt</h2>
+    <p class="claim-lead" data-i18n="startLead">Der Antrag baut auf der Verspätung auf, die DelayBahn für deine Fahrt aufgezeichnet hat. Such die Fahrt in der Entschädigungsprüfung und tippe dort auf den grünen Button.</p>
+    <div class="claim-actions"><a id="claim-start-go" class="report-submit" href="/entschaedigung" data-i18n="startGo">Zur Entschädigungsprüfung</a></div>
+  </section>
+
+  <!-- the five stops of the form, drawn as a line: the script marks where the visitor is -->
+  <ol id="claim-line" class="claim-line">
+    <li class="claim-stop" data-step="1"><button type="button" class="claim-stop-btn"><span class="claim-stop-dot"></span><span class="claim-stop-name" data-i18n="stopTicket">Ticket</span></button></li>
+    <li class="claim-stop" data-step="2"><button type="button" class="claim-stop-btn"><span class="claim-stop-dot"></span><span class="claim-stop-name" data-i18n="stopCosts">Kosten</span></button></li>
+    <li class="claim-stop" data-step="3"><button type="button" class="claim-stop-btn"><span class="claim-stop-dot"></span><span class="claim-stop-name" data-i18n="stopYou">Deine Daten</span></button></li>
+    <li class="claim-stop" data-step="4"><button type="button" class="claim-stop-btn"><span class="claim-stop-dot"></span><span class="claim-stop-name" data-i18n="stopReview">Prüfen</span></button></li>
+    <li class="claim-stop" data-step="5"><button type="button" class="claim-stop-btn"><span class="claim-stop-dot"></span><span class="claim-stop-name" data-i18n="stopSend">Senden</span></button></li>
+  </ol>
+
+  <!-- 1: the ticket, and what happened on the day -->
+  <section class="claim-card" data-panel="1">
+    <h2 data-i18n="ticketTitle">Lade dein Ticket hoch</h2>
+    <label id="ticket-drop" class="claim-drop" for="ticket-file">
+      <input id="ticket-file" class="claim-file" type="file" accept="application/pdf,image/jpeg,image/png">
+      <span class="claim-drop-main" data-i18n="ticketDrop">Ticket auswählen oder hierher ziehen</span>
+      <span class="claim-drop-sub" data-i18n="formats">PDF, JPG oder PNG</span>
+      <span class="claim-drop-sub" data-i18n="ticketPrivate">Ein PDF-Ticket verlässt dein Gerät nie.</span>
+    </label>
+    <p id="ticket-status" class="claim-status" aria-live="polite"></p>
+
+    <!-- a photo cannot be read on the device: it goes to the reader only after this is ticked -->
+    <div id="photo-consent" class="claim-consent hidden">
+      <p class="claim-consent-lead" data-i18n="photoLead">Anthropics KI-Modell liest dein Foto. Wir speichern nichts.</p>
+      <p id="photo-note" class="claim-note" data-i18n="photoNote">Ein PDF-Ticket braucht das nicht: Es verlässt dein Gerät nie.</p>
+      <p id="photo-login" class="claim-note hidden"><span data-i18n="photoLoginPre">Dafür musst du angemeldet sein.</span> <a id="photo-login-link" href="/login" data-i18n="navLogin">Anmelden</a></p>
+      <div class="claim-actions">
+        <button id="photo-read" class="report-submit" type="button" disabled data-i18n="photoRead">Foto auslesen</button>
+        <button id="photo-skip" class="claim-ghost" type="button" data-i18n="photoSkip">Lieber selbst eintippen</button>
+      </div>
+    </div>
+
+    <!-- what is already known: the journey picked and what DelayBahn recorded for it -->
+    <div id="trip-summary" class="claim-trip hidden">
+      <div class="claim-trip-head"><p id="trip-route" class="claim-trip-route"></p><span id="trip-late" class="claim-trip-late"></span></div>
+      <dl id="trip-facts" class="claim-facts"></dl>
+      <p id="delay-line" class="claim-delay" aria-live="polite"></p>
+      <label class="claim-check"><input id="r-refund" type="checkbox"><span data-i18n="rRefund">Ich habe die Fahrt wegen der Verspätung oder des Ausfalls nicht gemacht oder abgebrochen: Ticketpreis erstatten statt Entschädigung.</span></label>
+    </div>
+    <div id="journey-fields" class="hidden">
+      <!-- only shown when the ticket did not give them -->
+      <div id="ticket-fields" class="claim-grid hidden">
+        <label class="claim-field span2 req"><span data-i18n="fBooking">Auftragsnummer</span><input id="f-booking" type="text" inputmode="numeric" autocomplete="off"></label>
+        <label class="claim-field"><span data-i18n="fPrice">Ticketpreis (€)</span><input id="f-price" type="text" inputmode="decimal" autocomplete="off"></label>
+      </div>
+
+      <!-- everything the trip and DelayBahn's data already answered: folded away, open to correction -->
+      <details id="journey-edit" class="claim-edit">
+        <summary data-i18n="editTitle">Angaben korrigieren</summary>
+        <h3 data-i18n="plannedTitle">Geplante Fahrt</h3>
+        <div class="claim-grid">
+          <label class="claim-field span3"><span data-i18n="fOperator">Eisenbahnunternehmen</span><input id="f-operator" type="text" value="Deutsche Bahn"></label>
+          <label class="claim-field span3 req"><span data-i18n="fFrom">Abfahrtsbahnhof</span><input id="f-from" type="text"></label>
+          <label class="claim-field span3 req"><span data-i18n="fTo">Zielbahnhof</span><input id="f-to" type="text"></label>
+          <label class="claim-field req"><span data-i18n="fDate">Reisetag</span><input id="f-date" type="date"></label>
+          <label class="claim-field req"><span data-i18n="fDep">Abfahrt laut Plan</span><input id="f-dep" type="time"></label>
+          <label class="claim-field req"><span data-i18n="fArr">Ankunft laut Plan</span><input id="f-arr" type="time"></label>
+          <label class="claim-field span3"><span data-i18n="fTrains">Züge laut Ticket</span><input id="f-trains" type="text" placeholder="ICE 990, MEX12"></label>
+        </div>
+        <h3 data-i18n="actualTitle">Was ist passiert?</h3>
+        <div class="claim-reasons">
+          <label class="claim-check"><input id="r-delay" type="checkbox"><span data-i18n="rDelay">Verspätung</span></label>
+          <label class="claim-check"><input id="r-cancel" type="checkbox"><span data-i18n="rCancel">Zug ausgefallen</span></label>
+          <label class="claim-check"><input id="r-missed" type="checkbox"><span data-i18n="rMissed">Anschluss verpasst</span></label>
+        </div>
+        <div id="actual-fields" class="claim-grid">
+          <label class="claim-field req"><span data-i18n="fActDate">Tatsächlicher Ankunftstag</span><input id="f-act-date" type="date"></label>
+          <label class="claim-field req"><span data-i18n="fActArr">Tatsächliche Ankunft</span><input id="f-act-arr" type="time"></label>
+          <label class="claim-field"><span data-i18n="fActDep">Tatsächliche Abfahrt</span><input id="f-act-dep" type="time"></label>
+          <label class="claim-field span3"><span data-i18n="fActTrains">Züge, mit denen du gefahren bist</span><input id="f-act-trains" type="text"></label>
+        </div>
+        <div class="claim-grid">
+          <label id="missed-field" class="claim-field span3 hidden"><span data-i18n="fMissedAt">Anschluss verpasst in</span><input id="f-missed-at" type="text"></label>
+        </div>
+      </details>
+    </div>
+    <p id="step1-error" class="claim-error" aria-live="polite"></p>
+    <div class="claim-actions">
+      <button id="ticket-manual" class="claim-ghost" type="button" data-i18n="ticketManual">Ohne Ticket-Upload ausfüllen</button>
+      <button class="report-submit claim-next hidden" id="next-1" type="button" data-next="2" data-i18n="next">Weiter</button>
+    </div>
+  </section>
+
+  <!-- 2: extra costs with their receipts -->
+  <section class="claim-card hidden" data-panel="2">
+    <h2 data-i18n="costsTitle">Hattest du zusätzliche Kosten?</h2>
+    <p class="claim-lead" data-i18n="costsLead">Wenn nicht, geh einfach weiter. Belege bleiben wie alles andere auf deinem Gerät.</p>
+    <div class="claim-hint">
+      <p class="claim-hint-title" data-i18n="costsHintTitle">Was die Bahn erstatten kann</p>
+      <div id="hint-items" class="claim-hint-items">
+        <button type="button" class="claim-hint-item" data-hint="costsHintHotel" aria-describedby="hint-text"><svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-8M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="1.6"/></svg><span data-i18n="costHotel">Hotel</span></button>
+        <button type="button" class="claim-hint-item" data-hint="costsHintTaxi" aria-describedby="hint-text"><svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l1.6-4.2A2 2 0 0 1 8.5 6.5h7a2 2 0 0 1 1.9 1.3L19 12"/><rect x="3" y="12" width="18" height="5" rx="1.5"/><path d="M6.5 17v1.5M17.5 17v1.5M10 4h4"/></svg><span data-i18n="costTaxi">Taxi</span></button>
+        <button type="button" class="claim-hint-item" data-hint="costsHintOther" aria-describedby="hint-text"><svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4.5" width="16" height="12.5" rx="2"/><path d="M4 11.5h16M7.5 17v2M16.5 17v2M8 14.3h.01M16 14.3h.01"/></svg><span data-i18n="hintTicket">Bus, Bahn</span></button>
+        <button type="button" class="claim-hint-item" data-hint="costsHintFood" aria-describedby="hint-text"><svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9h11v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 10.5h1.5a2 2 0 0 1 0 4H16M8 3.5v2.5M12 3.5v2.5"/></svg><span data-i18n="hintFood">Essen</span></button>
+      </div>
+      <p id="hint-text" class="claim-hint-text" aria-live="polite" data-i18n="costsHintNote">Tippe auf ein Symbol, um zu sehen, wann es erstattet wird. Heb die Originalbelege auf.</p>
+    </div>
+    <div id="cost-rows" class="claim-costs"></div>
+    <button id="cost-add" class="claim-ghost" type="button" data-i18n="costAdd">+ Kosten hinzufügen</button>
+    <p id="step2-error" class="claim-error" aria-live="polite"></p>
+    <div class="claim-actions">
+      <button class="claim-ghost" type="button" data-next="1" data-i18n="back">Zurück</button>
+      <button class="report-submit" type="button" data-next="3" data-i18n="next">Weiter</button>
+    </div>
+  </section>
+
+  <!-- 3: who gets the money -->
+  <section class="claim-card hidden" data-panel="3">
+    <h2 data-i18n="youTitle">Deine Angaben für den Antrag</h2>
+    <p class="claim-lead" data-i18n="youLead">Diese Angaben stehen nur im Antrag, den du selbst abschickst. Sie werden nicht an DelayBahn übertragen und bleiben auf deinem Gerät.</p>
+    <div class="claim-grid claim-grid-you">
+      <label class="claim-field c3 req"><span data-i18n="fFirst">Vorname</span><input id="f-first" type="text" autocomplete="given-name"></label>
+      <label class="claim-field c3 req"><span data-i18n="fLast">Nachname</span><input id="f-last" type="text" autocomplete="family-name"></label>
+      <label class="claim-field c4 m4 req"><span data-i18n="fStreet">Straße</span><input id="f-street" type="text" autocomplete="address-line1"></label>
+      <label class="claim-field c2 m2"><span data-i18n="fHouse">Nr.</span><input id="f-house" type="text"></label>
+      <label class="claim-field c2 m2 req"><span data-i18n="fZip">PLZ</span><input id="f-zip" type="text" inputmode="numeric" autocomplete="postal-code"></label>
+      <label class="claim-field c4 m4 req"><span data-i18n="fCity">Ort</span><input id="f-city" type="text" autocomplete="address-level2" list="city-options"><datalist id="city-options"></datalist></label>
+      <label class="claim-field c6 req"><span data-i18n="fCountry">Land</span><input id="f-country" type="text" autocomplete="country-name" value="Deutschland"></label>
+      <label class="claim-field c4 req"><span data-i18n="fEmail">E-Mail (am besten die der Buchung)</span><input id="f-email" type="email" autocomplete="email"></label>
+      <label class="claim-field c2"><span data-i18n="fPhone">Telefon (optional)</span><input id="f-phone" type="tel" autocomplete="tel"></label>
+    </div>
+    <h3 data-i18n="payTitle">Auszahlung</h3>
+    <div class="claim-reasons">
+      <label class="claim-check"><input type="radio" name="payout" value="money" checked><span data-i18n="payMoney">Überweisung</span></label>
+      <label class="claim-check"><input type="radio" name="payout" value="voucher"><span data-i18n="payVoucher">Gutschein</span></label>
+    </div>
+    <div id="bank-fields" class="claim-grid claim-grid-you">
+      <label class="claim-field c6 req"><span data-i18n="fIban">IBAN</span><input id="f-iban" type="text" autocomplete="off" spellcheck="false"></label>
+      <label class="claim-field c4 req"><span data-i18n="fHolder">Kontoinhaber</span><input id="f-holder" type="text" autocomplete="off"></label>
+      <label class="claim-field c2"><span data-i18n="fBic">BIC (optional)</span><input id="f-bic" type="text" autocomplete="off" spellcheck="false"></label>
+    </div>
+    <p id="step3-error" class="claim-error" aria-live="polite"></p>
+    <div class="claim-actions">
+      <button class="claim-ghost" type="button" data-next="2" data-i18n="back">Zurück</button>
+      <button class="report-submit" type="button" data-next="4" data-i18n="next">Weiter</button>
+    </div>
+  </section>
+
+  <!-- 4: every page that goes to the railway, to look through -->
+  <section class="claim-card hidden" data-panel="4">
+    <h2 data-i18n="reviewTitle">Das geht an die Bahn</h2>
+    <p class="claim-lead" data-i18n="reviewLead">Tippe ein Dokument an, um es zu vergrößern. Stimmt etwas nicht, geh zurück und ändere es.</p>
+    <p id="review-status" class="claim-status" aria-live="polite"></p>
+    <div id="review-sheets" class="claim-sheets"></div>
+    <p id="review-amount" class="claim-sum"></p>
+    <!-- the two declarations: the first is on by default and changes the form when taken off -->
+    <div class="claim-checklist">
+      <label class="claim-check"><input id="share-ok" type="checkbox" checked><span data-i18n="shareOk">Die Bahn darf meine Daten weitergeben, wenn das für die Bearbeitung nötig ist (z. B. an ein anderes Eisenbahnunternehmen). Empfohlen – so läuft die Bearbeitung reibungsloser.</span></label>
+      <label class="claim-check"><input id="review-ok" type="checkbox"><span data-i18n="reviewOk">Ich habe alle Angaben geprüft, sie sind richtig. DelayBahn ist nur eine Ausfüllhilfe und übernimmt keine Verantwortung für den Antrag oder die Entscheidung der Bahn.</span></label>
+    </div>
+    <div class="claim-actions">
+      <button class="claim-ghost" type="button" data-next="3" data-i18n="back">Zurück</button>
+      <button id="next-4" class="report-submit" type="button" data-next="5" disabled data-i18n="next">Weiter</button>
+    </div>
+  </section>
+
+  <!-- 5: the visitor sends it from their own mailbox -->
+  <section class="claim-card hidden" data-panel="5">
+    <h2 data-i18n="sendTitle">Schick den Antrag an die Bahn</h2>
+    <p class="claim-lead" data-i18n="sendLead">Der Antrag geht von deiner eigenen E-Mail-Adresse an das Servicecenter Fahrgastrechte der Deutschen Bahn.</p>
+    <div id="send-gate" class="claim-gate hidden">
+      <p data-i18n="gateLead">Melde dich an, um den Antrag herunterzuladen. In der Testphase kostenlos.</p>
+      <div class="claim-actions"><a id="gate-login" class="report-submit" href="/login" data-i18n="navLogin">Anmelden</a></div>
+    </div>
+    <ol id="send-steps" class="claim-send-steps">
+      <li id="send-step-download" data-stage="1"><p data-i18n="sendStep1">Lade den Antrag herunter.</p>
+        <div class="claim-actions"><button id="send-download" class="report-submit" type="button" data-i18n="sendDownload">Antrag herunterladen</button></div></li>
+      <li data-stage="2"><p id="send-step-open">Öffne die E-Mail.</p>
+        <div class="claim-actions"><button id="send-share" class="claim-ghost hidden" type="button" data-i18n="sendShare">In Mail-App öffnen</button>
+        <a id="send-mail" class="claim-ghost" href="#" data-i18n="sendMail">E-Mail öffnen</a>
+        <button id="send-copy" class="claim-ghost" type="button" data-copy="body" data-i18n="sendCopy">E-Mail kopieren</button></div>
+        <p id="send-attach-note" class="claim-note"></p>
+        <p id="send-share-note" class="claim-status" aria-live="polite"></p>
+        <div id="send-card" class="claim-mail">
+          <div class="claim-mail-row"><span class="claim-mail-key" data-i18n="sendTo">An</span><span id="send-address" class="claim-mail-val"></span><button class="claim-mail-copy" type="button" data-copy="to" data-i18n-aria="sendCopyOne" aria-label="Kopieren"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 5.5v-1a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h1"/></svg></button></div>
+          <div class="claim-mail-row"><span class="claim-mail-key" data-i18n="sendSubject">Betreff</span><span id="send-subject" class="claim-mail-val"></span><button class="claim-mail-copy" type="button" data-copy="subject" data-i18n-aria="sendCopyOne" aria-label="Kopieren"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 5.5v-1a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h1"/></svg></button></div>
+          <div class="claim-mail-row claim-mail-text"><p id="send-body" class="claim-mail-val"></p><button class="claim-mail-copy" type="button" data-copy="body" data-i18n-aria="sendCopyOne" aria-label="Kopieren"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 5.5v-1a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h1"/></svg></button></div>
+        </div>
+        <button id="send-manual" class="claim-link hidden" type="button" data-i18n="sendManual">Lieber selbst herunterladen und anhängen</button></li>
+      <li data-stage="3"><p data-i18n="sendStepAttach">Prüfe den Anhang, bevor du sendest.</p>
+        <label class="claim-check"><input id="send-attached" type="checkbox"><span data-i18n="sendAttached">Ich habe den Antrag an die E-Mail angehängt.</span></label></li>
+      <li data-stage="4"><p data-i18n="sendStep3">Abgeschickt? Dann bist du fertig.</p>
+        <div class="claim-actions"><button id="send-done" class="claim-ghost" type="button" disabled data-i18n="sendDone">Ich habe den Antrag abgeschickt</button></div></li>
+    </ol>
+    <div class="claim-actions">
+      <button class="claim-ghost" type="button" data-next="4" data-i18n="back">Zurück</button>
+    </div>
+  </section>
+
+  <!-- the end of the line -->
+  <section id="claim-done" class="claim-card claim-done hidden">
+    <img id="done-art" class="claim-done-art" alt="" width="132" height="132">
+    <h2 data-i18n="doneTitle">Eingereicht.</h2>
+    <p id="done-amount" class="claim-done-amount"></p>
+    <p id="done-note" class="claim-done-note"></p>
+    <p id="done-lead" class="claim-lead" data-i18n="doneLead">Die Bahn antwortet dir per E-Mail und überweist auf dein Konto. Hebe Antrag und Originalbelege auf.</p>
+    <div class="claim-refer">
+      <svg class="claim-refer-icon" viewBox="0 0 48 48" width="52" height="52" aria-hidden="true" focusable="false">
+        <path d="M14 30l2.6 9.2a2 2 0 0 0 1.9 1.4h2.2a1.6 1.6 0 0 0 1.5-2.1L19.6 30z" fill="#b01212"/>
+        <path d="M7 19.5v9a2 2 0 0 0 1.7 2l6.3.9 14.6 8.2a1.6 1.6 0 0 0 2.4-1.4V9.8a1.6 1.6 0 0 0-2.4-1.4L15 16.6l-6.3.9a2 2 0 0 0-1.7 2z" fill="#ff1f1f"/>
+        <path d="M15 16.6v14.8" stroke="#fff" stroke-width="1.6" opacity=".55"/>
+        <path d="M36.5 18.5c1.8 3.2 1.8 7.8 0 11M40.8 14c3.6 5.6 3.6 14.4 0 20" fill="none" stroke="#f5b301" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <p class="claim-refer-title" data-i18n="doneAskTitle">Du hast gerade „Einfach beantragen“ in der kostenlosen Testphase genutzt.</p>
+      <p class="claim-refer-text" data-i18n="doneAsk">Hilf uns und erzähl deinen Freunden von DelayBahn.</p>
+      <div class="claim-refer-row">
+        <button id="done-refer" class="report-submit hidden" type="button" data-i18n="referBtn">Freunden schicken</button>
+        <a id="refer-whatsapp" class="claim-refer-via claim-refer-whatsapp" href="https://wa.me/" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><path d="M12 3.6a8.3 8.3 0 0 0-7.1 12.6L3.7 20.4l4.3-1.1A8.3 8.3 0 1 0 12 3.6z" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"/><path d="M9.1 7.9c-.5.2-1 .9-1 1.8 0 1.300.9 2.900 2.300 4.200s3.100 2.200 4.200 2.200c.9 0 1.600-.5 1.800-1.100.1-.3.1-.6 0-.7l-1.900-.9c-.2-.1-.4 0-.5.1l-.7.9c-.1.100-.3.200-.5.100-1-.400-2.200-1.500-2.700-2.500-.1-.2 0-.4.100-.5l.7-.8c.1-.100.1-.300.100-.5L9.900 8.100c-.1-.3-.5-.3-.8-.2z" fill="#fff"/></svg></a>
+        <a id="refer-mail" class="claim-refer-via claim-refer-mail" href="mailto:" data-i18n-aria="referMail" aria-label="Per E-Mail schicken" title="E-Mail"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.500" y="5.500" width="17" height="13" rx="2.200"/><path d="M4.200 7.200 12 13l7.800-5.800"/></svg></a>
+        <a id="refer-telegram" class="claim-refer-via claim-refer-telegram" href="https://t.me/share/url" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram"><svg viewBox="0 0 24 24" width="25" height="25" aria-hidden="true" focusable="false"><path d="M19.300 5.300 4.200 11.100c-.8.300-.8.900-.1 1.100l3.800 1.200 1.500 4.600c.2.500.6.600 1 .2l2.200-2.100 4 2.900c.6.400 1.100.2 1.300-.6l2.600-12.100c.2-.9-.4-1.400-1.200-1zM9.100 13l7.200-4.500c.3-.2.600 0 .3.200l-5.900 5.400-.3 2.900z" fill="#fff"/></svg></a>
+        <button id="refer-copy" class="claim-refer-via claim-refer-copy" type="button" data-i18n-aria="referCopy" aria-label="Nachricht kopieren" title="Kopieren"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 5.5v-1a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h1"/></svg></button>
+      </div>
+      <p id="refer-status" class="claim-status" aria-live="polite"></p>
+    </div>
+    <div class="claim-actions">
+      <a id="done-trips" class="claim-ghost" href="/meine-fahrten" data-i18n="doneTrips">Zu meinen Fahrten</a>
+    </div>
+  </section>
+
+  <div id="feedback-nudge" class="feedback-nudge hidden" aria-live="polite">
+    <div class="feedback-row">
+      <span id="feedback-lead">War dieser Schritt klar?</span>
+      <button class="feedback-vote" data-vote="up" type="button" data-i18n-aria="feedbackYes" aria-label="Ja">👍</button>
+      <button class="feedback-vote" data-vote="down" type="button" data-i18n-aria="feedbackNo" aria-label="Nein">👎</button>
+      <button id="feedback-skip" class="feedback-skip" type="button" data-i18n-aria="feedbackDismiss" aria-label="Ausblenden">✕</button>
+    </div>
+    <form id="feedback-form" class="feedback-form hidden">
+      <textarea id="feedback-text" rows="4" maxlength="1000" data-i18n-placeholder="feedbackPlaceholder" placeholder="Was war hilfreich, was hat gefehlt oder gestört? Je konkreter, desto besser."></textarea>
+      <button type="submit" class="feedback-send" data-i18n="feedbackSend">Senden</button>
+    </form>
+  </div>
+</main>
+
+<dialog id="sheet-view" class="claim-view">
+  <button id="sheet-close" class="claim-view-close" type="button" data-i18n-aria="close" aria-label="Schließen">✕</button>
+  <button id="sheet-prev" class="claim-view-nav claim-view-prev" type="button" data-i18n-aria="sheetPrev" aria-label="Vorherige Seite"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button id="sheet-next" class="claim-view-nav claim-view-next" type="button" data-i18n-aria="sheetNext" aria-label="Nächste Seite"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+  <div id="sheet-view-body" class="claim-view-body"></div>
+  <p class="claim-view-bar"><span id="sheet-caption"></span><span id="sheet-count"></span></p>
+</dialog>
+
+<footer class="site-footer">
+  <a href="/" data-i18n="footerBack">← Zur Verbindungssuche</a> ·
+  <a href="/impressum.html#datenschutz-antrag" data-i18n="footerLegal">Impressum &amp; Datenschutz</a> ·
+  <a href="mailto:kontakt@delaybahn.com?subject=DelayBahn%20Antrag" data-i18n="footerContact">Kontakt</a>
+</footer>
+<script src="/claim.js?v=53"></script>
+<script defer src="/nav.js?v=1"></script>
+</body>
+</html>

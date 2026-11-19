@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="132" height="132" role="img" aria-label="A rabbit waves a train ticket">
+  <ellipse cx="60" cy="106" rx="30" ry="5" fill="#e8eef9"/>
+  <ellipse cx="47" cy="22" rx="8" ry="21" transform="rotate(-8 47 22)" fill="#ded7cc"/>
+  <ellipse cx="73" cy="22" rx="8" ry="21" transform="rotate(8 73 22)" fill="#ded7cc"/>
+  <ellipse cx="47" cy="23" rx="3.6" ry="14" transform="rotate(-8 47 23)" fill="#f4b8b8"/>
+  <ellipse cx="73" cy="23" rx="3.6" ry="14" transform="rotate(8 73 23)" fill="#f4b8b8"/>
+  <rect x="38" y="66" width="44" height="38" rx="19" fill="#ded7cc"/>
+  <ellipse cx="60" cy="87" rx="13" ry="15" fill="#fff"/>
+  <ellipse cx="46" cy="102" rx="9" ry="4" fill="#c7beb0"/>
+  <ellipse cx="74" cy="102" rx="9" ry="4" fill="#c7beb0"/>
+  <ellipse cx="60" cy="54" rx="26" ry="23" fill="#ded7cc"/>
+  <ellipse cx="60" cy="62" rx="12" ry="9" fill="#fff"/>
+  <circle cx="48" cy="51" r="3.5" fill="#282d37"/>
+  <circle cx="72" cy="51" r="3.5" fill="#282d37"/>
+  <path d="M57 58Q60 56.5 63 58Q63 61 60 62.5Q57 61 57 58Z" fill="#e78f8f"/>
+  <path d="M55 65Q60 69 65 65" fill="none" stroke="#282d37" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="41" cy="60" r="4" fill="#f4b8b8" opacity=".7"/>
+  <circle cx="79" cy="60" r="4" fill="#f4b8b8" opacity=".7"/>
+  <ellipse cx="44" cy="88" rx="7" ry="9" transform="rotate(-25 44 88)" fill="#ded7cc"/>
+  <g transform="rotate(14 88 66)">
+    <rect x="74" y="56" width="30" height="19" rx="3" fill="#fff" stroke="#c9d0d8" stroke-width="2"/>
+    <rect x="74" y="56" width="30" height="6" rx="3" fill="#d93b30"/>
+    <path d="M95 63V74" stroke="#c9d0d8" stroke-width="1.6" stroke-dasharray="2 2"/>
+    <path d="M79 67H90M79 71H87" stroke="#9aa3ad" stroke-width="1.8" stroke-linecap="round"/>
+  </g>
+  <ellipse cx="78" cy="78" rx="7" ry="10" transform="rotate(-35 78 78)" fill="#ded7cc"/>
+</svg>
