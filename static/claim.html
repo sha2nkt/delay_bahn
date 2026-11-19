@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex, follow">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="/style.css?v=145">
-<link rel="stylesheet" href="/claim.css?v=30">
+<link rel="stylesheet" href="/claim.css?v=31">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body class="claim-page">
@@ -211,25 +211,20 @@
       <div class="claim-actions"><a id="gate-login" class="report-submit" href="/login" data-i18n="navLogin">Anmelden</a></div>
     </div>
     <ol id="send-steps" class="claim-send-steps">
-      <li id="send-step-download" data-stage="1"><p id="send-step-download-title">Lade den Antrag herunter.</p>
+      <li id="send-step-download" data-stage="1"><p data-i18n="sendStep1">Lade den Antrag herunter.</p>
         <div class="claim-actions"><button id="send-download" class="report-submit" type="button" data-i18n="sendDownload">Antrag herunterladen</button></div></li>
-      <li data-stage="2"><p id="send-step-open">Öffne die E-Mail.</p>
-        <button id="send-address-copy" class="claim-to hidden" type="button">
-          <span class="claim-to-key" data-i18n="sendTo">An</span><span id="send-address-show" class="claim-to-val"></span><span id="send-address-state" class="claim-to-state" aria-live="polite"></span>
-        </button>
-        <div class="claim-actions"><button id="send-share" class="claim-ghost hidden" type="button" data-i18n="sendShare">In Mail-App öffnen</button>
-        <a id="send-mail" class="claim-ghost" href="#" data-i18n="sendMail">E-Mail öffnen</a>
+      <li data-stage="2"><p data-i18n="sendStepMail">Öffne die E-Mail.</p>
+        <div class="claim-actions"><a id="send-mail" class="claim-ghost" href="#" data-i18n="sendMail">E-Mail öffnen</a>
         <button id="send-copy" class="claim-ghost" type="button" data-copy="body" data-i18n="sendCopy">E-Mail kopieren</button></div>
         <p id="send-attach-note" class="claim-note"></p>
-        <p id="send-share-note" class="claim-status" aria-live="polite"></p>
         <div id="send-card" class="claim-mail">
           <div class="claim-mail-row"><span class="claim-mail-key" data-i18n="sendTo">An</span><span id="send-address" class="claim-mail-val"></span><button class="claim-mail-copy" type="button" data-copy="to" data-i18n-aria="sendCopyOne" aria-label="Kopieren"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 5.5v-1a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h1"/></svg></button></div>
           <div class="claim-mail-row"><span class="claim-mail-key" data-i18n="sendSubject">Betreff</span><span id="send-subject" class="claim-mail-val"></span><button class="claim-mail-copy" type="button" data-copy="subject" data-i18n-aria="sendCopyOne" aria-label="Kopieren"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 5.5v-1a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h1"/></svg></button></div>
           <div class="claim-mail-row claim-mail-text"><p id="send-body" class="claim-mail-val"></p><button class="claim-mail-copy" type="button" data-copy="body" data-i18n-aria="sendCopyOne" aria-label="Kopieren"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 5.5v-1a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h1"/></svg></button></div>
         </div></li>
-      <li id="send-step-attach" data-stage="3"><p data-i18n="sendStepAttach">Prüfe den Anhang, bevor du sendest.</p>
+      <li data-stage="3"><p data-i18n="sendStepAttach">Prüfe den Anhang, bevor du sendest.</p>
         <label class="claim-check"><input id="send-attached" type="checkbox"><span data-i18n="sendAttached">Ich habe den Antrag an die E-Mail angehängt.</span></label></li>
-      <li data-stage="4"><p id="send-step-done-title">Abgeschickt? Dann bist du fertig.</p>
+      <li data-stage="4"><p data-i18n="sendStep3">Abgeschickt? Dann bist du fertig.</p>
         <div class="claim-actions"><button id="send-done" class="claim-ghost" type="button" disabled data-i18n="sendDone">Ich habe den Antrag abgeschickt</button></div></li>
     </ol>
     <div class="claim-actions">
@@ -294,7 +289,7 @@
   <a href="/impressum.html#datenschutz-antrag" data-i18n="footerLegal">Impressum &amp; Datenschutz</a> ·
   <a href="mailto:kontakt@delaybahn.com?subject=DelayBahn%20Antrag" data-i18n="footerContact">Kontakt</a>
 </footer>
-<script src="/claim.js?v=60"></script>
+<script src="/claim.js?v=61"></script>
 <script defer src="/nav.js?v=1"></script>
 </body>
 </html>

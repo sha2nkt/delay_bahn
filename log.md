@@ -2339,3 +2339,10 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Desktop is unchanged: download, open email (`mailto:` with the address), attach, sent.
 - Busters: `claim.js?v=60`, `claim.css?v=30` (53 / 27 before). The claim page is neither precached nor a tab page, so `SHELL_VERSION` stays at v136.
 - Verified: headless Chrome with a simulated share sheet and a stand-in login - download, copy (address on the clipboard), share, dismissed share, failed share with fallback, both desktop cases; no page errors. Not verified on a real phone.
+
+## 2026-11-19 — Easy apply: phones send by mail link, the share sheet is gone
+
+- Tried on an iPhone, the share sheet delivered only the attachment: Apple Mail got no subject (the `title` passed to `navigator.share` is ignored), Gmail took the file name as subject and dropped the line breaks of the text, and the recipient is never carried. A web page cannot open a mail app with recipient and attachment together.
+- Phones now use the desktop flow: download, open email (`mailto:` with recipient, subject and text), tick "I have attached the claim", sent. One code path; `sendMode`, the `sharing` flag, the address copy field and the one-word phone headings from this morning are removed.
+- Busters: `claim.js?v=61`, `claim.css?v=31` (60 / 30 before); `SHELL_VERSION` stays v136.
+- Verified: headless Chrome at desktop and phone size, DE and EN, on a browser that offers a share sheet - none is used, the mail link carries address, subject and the text with its line breaks, the flow reaches the last page; no page errors. Not verified on a real phone: that the default mail app opens with all three fields, and how attaching the downloaded file goes there.

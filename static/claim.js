@@ -162,15 +162,8 @@ const I18N = {
     sendLead: "Der Antrag geht von deiner eigenen E-Mail-Adresse an das Servicecenter Fahrgastrechte der Deutschen Bahn.",
     sendStep1: "Lade den Antrag herunter.",
     sendStepMail: "Öffne die E-Mail.",
-    sendShort1: "Herunterladen",
-    sendShort2: "Senden",
-    sendShort3: "Abgeschickt?",
-    sendAddressByHand: "Bitte von Hand kopieren",
     sendDownload: "Antrag herunterladen",
-    sendShare: "In Mail-App öffnen",
-    sendShared: "Angehängt. Füge die Adresse bei „An“ ein.",
     sendAttachNote: (name) => `Hänge die heruntergeladene Datei ${name} an die E-Mail an.`,
-    sendShareFailed: "Dieser Browser konnte die Datei nicht übergeben. Lade den Antrag herunter und hänge ihn selbst an.",
     sendStepAttach: "Prüfe den Anhang, bevor du sendest.",
     sendAttached: "Ich habe den Antrag an die E-Mail angehängt.",
     sendSubject: "Betreff",
@@ -389,15 +382,8 @@ const I18N = {
     sendLead: "The claim goes from your own email address to Deutsche Bahn's passenger rights service centre.",
     sendStep1: "Download the claim.",
     sendStepMail: "Open the email.",
-    sendShort1: "Download",
-    sendShort2: "Send",
-    sendShort3: "Sent?",
-    sendAddressByHand: "Copy it by hand",
     sendDownload: "Download the claim",
-    sendShare: "Open in mail app",
-    sendShared: "Attached. Paste the address into To.",
     sendAttachNote: (name) => `Attach the downloaded file ${name} to the email.`,
-    sendShareFailed: "This browser could not hand the file over. Download the claim and attach it yourself.",
     sendStepAttach: "Check the attachment before you send.",
     sendAttached: "I have attached the claim to the email.",
     sendSubject: "Subject",
@@ -1582,42 +1568,16 @@ const packetFile = () => new File([packet.bytes], packetName(), { type: "applica
 /* The send page asks for one thing at a time: the step that is next carries
    the red button, the ones behind it are ticked off, the ones ahead wait. */
 let sendAt = 1;
-// by share sheet: the file attaches itself, so a phone has no attach step to confirm
-let sharing = false;
 function sendStage(to) {
-  if (to === 3 && sharing) to = 4;
   sendAt = Math.max(sendAt, to);
-  [["send-download", 1], ["send-mail", 2], ["send-share", 2], ["send-done", 4]].forEach(([id, stage]) => {
+  [["send-download", 1], ["send-mail", 2], ["send-done", 4]].forEach(([id, stage]) => {
     $(id).classList.toggle("report-submit", stage === sendAt);
     $(id).classList.toggle("claim-ghost", stage !== sendAt);
   });
-  if (sharing && sendAt === 4) $("send-done").disabled = false;
   document.querySelectorAll("#send-steps li").forEach((li) => {
     li.classList.toggle("done", Number(li.dataset.stage) < sendAt);
     li.classList.toggle("current", Number(li.dataset.stage) === sendAt);
   });
-}
-
-// by share sheet (the file attaches itself) or by hand (download, mail link, attach)
-function sendMode(share) {
-  sharing = share;
-  $("send-share").classList.toggle("hidden", !share);
-  // the share sheet cannot fill in the recipient: the address stands ready to copy
-  $("send-address-copy").classList.toggle("hidden", !share);
-  $("send-address-copy").classList.remove("copied");
-  // on a narrow screen the address may break after the @, nowhere else
-  const [box, domain] = DB_ADDRESS.split("@");
-  $("send-address-show").replaceChildren(`${box}@`, document.createElement("wbr"), domain);
-  $("send-address-state").textContent = t("sendCopyOne");
-  $("send-step-attach").classList.toggle("hidden", share);
-  ["send-mail", "send-attach-note"].forEach((id) => $(id).classList.toggle("hidden", share));
-  $("send-step-download-title").textContent = t(share ? "sendShort1" : "sendStep1");
-  $("send-step-open").textContent = t(share ? "sendShort2" : "sendStepMail");
-  $("send-step-done-title").textContent = t(share ? "sendShort3" : "sendStep3");
-  $("send-attach-note").textContent = t("sendAttachNote", packetName());
-  // a share sheet that failed leaves the download done: the way on is the mail link
-  sendAt = Math.min(sendAt, 2);
-  sendStage(sendAt);
 }
 
 function enterSend() {
@@ -1636,11 +1596,12 @@ function enterSend() {
   $("send-attached").checked = false;
   $("send-done").disabled = true;
   $("send-mail").href = `mailto:${DB_ADDRESS}?subject=${encodeURIComponent(DB_SUBJECT)}&body=${encodeURIComponent(body)}`;
-  // a mail link cannot carry a file, the share sheet can; desktop browsers offer one too, but it drops the recipient
-  let shareable = false;
-  try { shareable = !!navigator.canShare && navigator.canShare({ files: [packetFile()] }); } catch (e) { shareable = false; }
-  sendMode(shareable && matchMedia("(pointer: coarse)").matches);
-  setStatus("send-share-note", "");
+  /* Phones send like desktops: the mail link fills in recipient, subject and
+     text, and the visitor attaches the download. The share sheet could attach
+     the file, but on real phones it lost the subject (Apple Mail), the line
+     breaks (Gmail) and always the recipient. */
+  $("send-attach-note").textContent = t("sendAttachNote", packetName());
+  sendStage(1);
 }
 
 function download() {
@@ -1956,24 +1917,6 @@ function wire() {
   });
   $("sheet-view").addEventListener("click", (e) => { if (e.target === $("sheet-view")) $("sheet-view").close(); });
   $("send-download").addEventListener("click", () => { download(); sendStage(2); });
-  $("send-share").addEventListener("click", async () => {
-    if (!me) return;
-    // subject and text ride along; the share sheet has no field for the recipient (the field above copies it)
-    try {
-      await navigator.share({ files: [packetFile()], title: DB_SUBJECT, text: $("send-body").textContent });
-      track("claim-share");
-      // the share sheet carries the file itself
-      $("send-attached").checked = true;
-      $("send-done").disabled = false;
-      setStatus("send-share-note", t("sendShared"));
-      sendStage(4);
-    } catch (e) {
-      // dismissing the sheet is fine; anything else means it does not work here
-      if (e.name === "AbortError") return;
-      sendMode(false);
-      setStatus("send-share-note", t("sendShareFailed"), true);
-    }
-  });
   // each part of the email copies on its own; the button at the top copies the message text
   document.querySelectorAll("[data-copy]").forEach((button) => button.addEventListener("click", async () => {
     // the email itself only unfolds for someone who wants to copy it
@@ -1992,16 +1935,6 @@ function wire() {
     } catch (e) { /* the text is on the page and can be selected by hand */ }
   }));
   $("send-mail").addEventListener("click", () => { track("claim-mail"); sendStage(3); });
-  $("send-address-copy").addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(DB_ADDRESS);
-      $("send-address-copy").classList.add("copied");
-      $("send-address-state").textContent = t("sendCopied");
-    } catch (e) {
-      // no clipboard here: the address can be selected in the field
-      $("send-address-state").textContent = t("sendAddressByHand");
-    }
-  });
   $("send-attached").addEventListener("change", () => {
     $("send-done").disabled = !$("send-attached").checked;
     if ($("send-attached").checked) sendStage(4);
