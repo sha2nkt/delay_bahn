@@ -2329,3 +2329,13 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Verified: 346 tests pass. In headless Chrome, with stand-ins for the login module and login page: every step in DE and EN at desktop and phone width, the real Online-Ticket PDF and invoice PDF, the claim through a same-tab login round trip, the stale-copy sweep, the share targets' links. The photo reader was run directly against the model with a real image.
 - Not verified: a real login round trip; a real phone (share sheet, mail hand-over, WhatsApp / Telegram links opening with the text); the photo read through the page with a real account; cancelled or ended-early journeys on the record page. A sign-up confirmed in a different browser, or taking over 30 min, returns to an empty claim.
 - Open: the form's "actual arrival" and "trains used" are prefilled from the next realistic journey without asking; the refund box is not checked against the delay; a ticket for a different journey than the claim is not flagged; the WhatsApp and Telegram icons are drawn, not the official artwork; ticket price is optional.
+
+## 2026-11-19 — Easy apply: three send steps on phones
+
+- The send step on phones (share sheet available, coarse pointer) is now three steps with one-word headings: "Download" (the visitor keeps a copy, as on desktop), "Send", "Sent?". Before it was the share sheet first, an attachment checkbox and no download.
+- "Send" holds the recipient as a field of its own (`#send-address-copy`, `.claim-to`): one tap copies EUAntragFGR@deutschebahn.com, the border turns green and it says "Copied". The share sheet cannot fill in a recipient, and a mail link cannot carry the attachment; a web page gets one or the other. "Open in mail app" no longer copies the address silently.
+- The attachment checkbox is gone on phones (the share sheet attaches the file; `sendStage` skips stage 3 while `sharing`). It stays on desktop and in the fallback after a failed share sheet, which now keeps the download ticked off.
+- Removed the link "Download and attach it myself instead" under the phone's mail button. Each visit to the send step starts at the download again, since the claim may have been rebuilt.
+- Desktop is unchanged: download, open email (`mailto:` with the address), attach, sent.
+- Busters: `claim.js?v=60`, `claim.css?v=30` (53 / 27 before). The claim page is neither precached nor a tab page, so `SHELL_VERSION` stays at v136.
+- Verified: headless Chrome with a simulated share sheet and a stand-in login - download, copy (address on the clipboard), share, dismissed share, failed share with fallback, both desktop cases; no page errors. Not verified on a real phone.

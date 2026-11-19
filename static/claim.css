@@ -253,6 +253,18 @@
 .claim-send-steps li > p:first-child { font-size: 15px; font-weight: 600; line-height: 1.35; }
 .claim-send-steps li:not(.current):not(.done) > p:first-child { color: var(--text-muted); }
 .claim-send-steps .claim-actions { margin-top: 10px; }
+/* the recipient as a field of its own: one tap copies it, and says so */
+.claim-to {
+  display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 10px; padding: 11px 12px; text-align: left;
+  border: 1.5px solid var(--paper-edge); border-radius: 8px; background: #fff; font: inherit; color: var(--text); cursor: pointer;
+}
+.claim-to.hidden { display: none; }
+.claim-to-key { flex: none; font-size: 13px; color: var(--text-muted); }
+.claim-to-val { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.claim-to-state { flex: none; font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
+.claim-to.copied { border-color: var(--green); }
+.claim-to.copied .claim-to-state { color: var(--green); }
+.claim-to:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 /* the email as a mail program would show it: every part a line of its own, each with its copy button */
 .claim-mail { margin-top: 10px; border: 1px solid var(--gray-border); border-radius: 10px; background: #fff; overflow: hidden; }
 .claim-send-steps a.report-submit { text-decoration: none; }
