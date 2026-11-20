@@ -75,6 +75,7 @@ const I18N = {
     simEndedEarly: (train, station, time) => `${train} endete vorzeitig in ${station} (an ${time})`,
     missedBadge: "⛔ Anschluss verpasst",
     claimPct: (pct) => `${pct} % zurückholen →`,
+    claimNew: "Neu",
     claimNone: "Keine Entschädigung (unter 60 min)",
     claimCanceled: "Ausgefallen – Anspruch prüfen →",
     claimMissed: "Anschluss verpasst – Anspruch prüfen →",
@@ -189,6 +190,7 @@ const I18N = {
     simEndedEarly: (train, station, time) => `${train} ended early at ${station} (arr. ${time})`,
     missedBadge: "⛔ Missed connection",
     claimPct: (pct) => `Get ${pct}% back →`,
+    claimNew: "New",
     claimNone: "No compensation (under 60 min)",
     claimCanceled: "Cancelled – check your claim →",
     claimMissed: "Missed connection – check your claim →",
@@ -436,6 +438,19 @@ function claimEl(tag, className, text) {
   return el;
 }
 
+// the sheen plays once per button, when it scrolls into view
+const claimSheenObserver = "IntersectionObserver" in window
+  ? new IntersectionObserver((entries, obs) => {
+    for (const e of entries) {
+      if (e.isIntersecting) { e.target.classList.add("seen"); obs.unobserve(e.target); }
+    }
+  }, { threshold: 0.6 })
+  : null;
+function watchClaimSheen(btn) {
+  if (claimSheenObserver) claimSheenObserver.observe(btn);
+  else btn.classList.add("seen");
+}
+
 function openClaimModal(data, dticket) {
   claimData = data;
   const legs = (data.legs || []).filter((l) => !l.walking);
@@ -535,6 +550,8 @@ function buildCheck(data, trip) {
     verdict = document.createElement("button");
     verdict.type = "button";
     verdict.className = "claim-btn";
+    verdict.dataset.new = t("claimNew");
+    watchClaimSheen(verdict);
     verdict.textContent = pct != null && pct >= 25 ? t("claimPct", pct)
       : canceledish ? t("claimCanceled") : t("claimMissed");
     verdict.addEventListener("click", () => openClaimModal(data, trip.dticket));

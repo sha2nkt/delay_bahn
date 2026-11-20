@@ -300,6 +300,7 @@ const I18N = {
     claimPending: "Ankunft noch nicht bestätigt – morgen früh prüfen",
     thatDayTooltip: "Tatsächliche Ankunftsverspätung an diesem Tag",
     claimPct: (pct) => `${pct} % zurückholen →`,
+    claimNew: "Neu",
     claimNone: "Keine Entschädigung (unter 60 min)",
     claimCanceled: "Ausgefallen – Anspruch prüfen →",
     claimMissed: "Anschluss verpasst – Anspruch prüfen →",
@@ -629,6 +630,7 @@ const I18N = {
     claimPending: "Arrival not confirmed yet – check tomorrow morning",
     thatDayTooltip: "Actual arrival delay on this day",
     claimPct: (pct) => `Get ${pct}% back →`,
+    claimNew: "New",
     claimNone: "No compensation (under 60 min)",
     claimCanceled: "Cancelled – check your claim →",
     claimMissed: "Missed connection – check your claim →",
@@ -3707,19 +3709,24 @@ function tripButton(journeys, url) {
    scroll for 2s, counted from the results landing or the last scroll — the
    unfiled bookmark nearest the middle of the viewport pulses to say it is
    there to be pressed. Each bookmark pulses at most once per render, so a
-   reader pausing on every journey isn't strobed at. */
+   reader pausing on every journey isn't strobed at. On the compensation
+   check the claim button gets the nudge instead, as its one-time sheen,
+   after a 1s pause. */
 const TRIP_PULSE_DWELL_MS = 2000;
+const CLAIM_SHEEN_DWELL_MS = 1000;
 let tripPulseTimer = null;
 
 function armTripPulse() {
   clearTimeout(tripPulseTimer);
-  tripPulseTimer = setTimeout(pulseTripBtn, TRIP_PULSE_DWELL_MS);
+  tripPulseTimer = setTimeout(pulseTripBtn,
+    state.mode === "past" ? CLAIM_SHEEN_DWELL_MS : TRIP_PULSE_DWELL_MS);
 }
 
 function pulseTripBtn() {
+  const past = state.mode === "past";
   const mid = window.innerHeight / 2;
   let best = null, bestDist = Infinity;
-  document.querySelectorAll(".trip-btn[data-trip-keys]").forEach((btn) => {
+  document.querySelectorAll(past ? ".claim-btn" : ".trip-btn[data-trip-keys]").forEach((btn) => {
     if (btn.classList.contains("on") || btn.disabled || btn.dataset.pulsed) return;
     const r = btn.getBoundingClientRect();
     if (r.bottom < 0 || r.top > window.innerHeight || r.width === 0) return;
@@ -3728,6 +3735,7 @@ function pulseTripBtn() {
   });
   if (!best) return;
   best.dataset.pulsed = "1";
+  if (past) { best.classList.add("seen"); return; }
   best.classList.add("pulse");
   best.addEventListener("animationend", () => best.classList.remove("pulse"), { once: true });
 }
@@ -4196,6 +4204,7 @@ function render() {
         action = document.createElement("button");
         action.type = "button";
         action.className = "claim-btn";
+        action.dataset.new = t("claimNew");
         action.textContent = pct != null && pct >= 25 ? t("claimPct", pct)
           : canceledish ? t("claimCanceled")
           : t("claimMissed");
