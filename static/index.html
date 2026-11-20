@@ -66,7 +66,7 @@ try {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DelayBahn">
-<link rel="stylesheet" href="/style.css?v=146">
+<link rel="stylesheet" href="/style.css?v=147">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -452,7 +452,28 @@ try {
       <li data-i18n-icon="launchCompF2">Bei deiner gewählten Verbindung auf den Knopf drücken</li>
       <li data-i18n="launchCompF3">Nach der Fahrt sagen wir dir per E-Mail, ob du Geld zurückbekommst</li>
     </ul>
-    <button id="launch-comp-search" class="claim-modal-go launch-cta" type="button" data-i18n="launchCompCta">Verbindung suchen</button>
+    <button class="claim-modal-go launch-cta launch-search" type="button" data-i18n="launchCompCta">Verbindung suchen</button>
+    <button class="launch-later" type="button" data-i18n="launchLater">Später</button>
+  </div>
+</dialog>
+<dialog id="launch-easy-modal" class="claim-modal launch-modal" aria-labelledby="launch-easy-title">
+  <button class="claim-modal-close launch-close" type="button" data-i18n-aria="launchClose" data-i18n-title="launchClose" aria-label="Schließen">✕</button>
+  <div class="launch-shot"><img src="/launch-easy-apply-de.webp" data-src-en="/launch-easy-apply-en.webp" width="1120" height="476" alt="" loading="lazy"></div>
+  <div class="launch-body">
+    <span class="launch-badge" data-i18n="launchBadge">Neu</span>
+    <h2 id="launch-easy-title" class="launch-title" data-i18n="launchEasyTitle">Einfach beantragen ist da!</h2>
+    <p class="launch-lead" data-i18n="launchEasyLead">Nie wieder Entschädigung verschenken.</p>
+    <ul class="launch-list launch-perks">
+      <li class="launch-perk-ticket" data-i18n="launchEasyF1">Ticket hochladen</li>
+      <li class="launch-perk-form" data-i18n="launchEasyF2">Wir bereiten deinen Antrag vor</li>
+      <li class="launch-perk-money" data-i18n="launchEasyF3">Du holst dir dein Geld zurück</li>
+    </ul>
+    <!-- the way in: a stand-in for the button on a delayed trip; data-pulsed keeps the result list's nudge off it -->
+    <div class="launch-start">
+      <p class="launch-rally" data-i18n="launchEasyRally">Macht Verspätungen teuer!</p>
+      <p class="launch-start-hint" data-i18n="launchEasyHint">Fahrt suchen, dann auf diesen Knopf tippen:</p>
+      <button class="claim-btn launch-search" type="button" data-pulsed="1"></button>
+    </div>
     <button class="launch-later" type="button" data-i18n="launchLater">Später</button>
   </div>
 </dialog>
@@ -804,7 +825,7 @@ try {
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
   <p class="footer-copyright">Copyright © 2026 Shashank Tripathi</p>
 </footer>
-<script src="/app.js?v=173"></script>
+<script src="/app.js?v=174"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {

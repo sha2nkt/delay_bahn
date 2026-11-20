@@ -884,6 +884,30 @@ button.launch-cta { width: 100%; border: 0; font-family: inherit; cursor: pointe
   width: 26px; height: 26px; margin: -3px 2px 0;
   background: #fff; color: var(--text-muted); border: 2px solid var(--gray-border); border-radius: 4px;
 }
+/* what the feature does: one small picture per line in place of the bullets */
+.launch-perks li { padding-left: 34px; margin-top: 10px; min-height: 24px; font-size: 15px; }
+.launch-perks li::before {
+  left: 0; top: 50%; margin-top: -12px; width: 24px; height: 24px; border-radius: 0;
+  background: no-repeat center / contain;
+}
+.launch-perks .launch-perk-ticket::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13.5 1.5L4 14h6.5l-1.2 8.5L19.5 9.5h-6.8z' fill='%23ffc832' stroke='%23e6a50f' stroke-width='1.2' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.launch-perks .launch-perk-form::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fd1c17' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.5h8l4.5 4.5v14.5h-12.5z' fill='%23fff0ee'/%3E%3Cpath d='M14 2.5V7h4.5M9 12h6.5M9 15.5h6.5M9 19h4'/%3E%3C/svg%3E"); }
+.launch-perks .launch-perk-money::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10.5' fill='%23ffd75e' stroke='%23d99a1b' stroke-width='1.6'/%3E%3Cpath d='M15.6 8.2a4.6 4.6 0 1 0 0 7.6M6.8 10.8h6.4M6.8 13.3h5.6' fill='none' stroke='%239a6400' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E"); }
+/* the rallying call as a picket sign, and the trip button to look for */
+@font-face {
+  font-family: "Anton"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("/fonts/anton-latin.woff2") format("woff2");
+}
+.launch-start { margin-top: 30px; padding: 0 16px 18px; border-radius: 10px; background: var(--gray-bg); text-align: center; }
+.launch-rally {
+  display: inline-block; max-width: 100%; margin-top: -14px; padding: 9px 18px 7px;
+  font-family: "Anton", Impact, Haettenschweiler, "Arial Narrow", sans-serif; font-weight: 400;
+  font-size: clamp(23px, 6.6vw, 33px); line-height: 1.08; letter-spacing: .02em; text-transform: uppercase;
+  text-wrap: balance; color: #fff; background: var(--brand-red);
+  transform: rotate(-2deg); box-shadow: 4px 4px 0 var(--text);
+}
+.launch-start-hint { margin-top: 14px; font-size: 13.5px; color: var(--text-muted); }
+.launch-start .claim-btn { margin-top: 16px; font-size: 16px; padding: 9px 22px; }
 .launch-later {
   display: block; margin: 8px auto 0; background: none; border: none; font: inherit;
   font-size: 13.5px; color: var(--text-muted); cursor: pointer; padding: 6px 12px; border-radius: 6px;

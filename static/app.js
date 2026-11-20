@@ -363,6 +363,13 @@ const I18N = {
     launchCompF2: "Bei deiner gewählten Verbindung auf {icon} drücken",
     launchCompF3: "Nach der Fahrt sagen wir dir per E-Mail, ob du Geld zurückbekommst",
     launchCompCta: "Verbindung suchen",
+    launchEasyTitle: "Einfach beantragen ist da!",
+    launchEasyLead: "Nie wieder Entschädigung verschenken.",
+    launchEasyF1: "Ticket hochladen",
+    launchEasyF2: "Wir bereiten deinen Antrag vor",
+    launchEasyF3: "Du holst dir dein Geld zurück",
+    launchEasyRally: "Macht Verspätungen teuer!",
+    launchEasyHint: "Fahrt suchen, dann auf diesen Knopf tippen:",
     launchClose: "Schließen",
     reportBellTitle: "Entschädigungs-Erinnerung nach der Fahrt erhalten",
     reportBellOnTitle: "Report bestellt – zum Abbestellen klicken",
@@ -693,6 +700,13 @@ const I18N = {
     launchCompF2: "Press {icon} next to your chosen journey",
     launchCompF3: "After the journey we email you whether you get money back",
     launchCompCta: "Search a connection",
+    launchEasyTitle: "Easy apply is here!",
+    launchEasyLead: "Never miss compensation again.",
+    launchEasyF1: "Upload your ticket",
+    launchEasyF2: "We prepare your claim",
+    launchEasyF3: "You get your money back",
+    launchEasyRally: "Make delays expensive!",
+    launchEasyHint: "Search your trip, then tap this button:",
     launchClose: "Close",
     reportBellTitle: "Get a compensation reminder after your journey",
     reportBellOnTitle: "Report ordered – click to cancel",
@@ -4569,16 +4583,15 @@ const LAUNCHES = {
   // the live train map, 2026-09-29 to 2026-11-17
   trainMap: { modal: "launch-modal", seenKey: "launchTrainMapSeen", event: "launch-train-map" },
   compReminder: { modal: "launch-comp-modal", seenKey: "launchCompReminderSeen", event: "launch-comp-reminder" },
+  easyApply: { modal: "launch-easy-modal", seenKey: "launchEasyApplySeen", event: "launch-easy-apply" },
 };
-const ACTIVE_LAUNCH = "compReminder";
+// the compensation page announces its own claim form; every other page the reminder
+const ACTIVE_LAUNCH = PAST_PAGE ? "easyApply" : "compReminder";
 
 (function initLaunchModal() {
   const launch = LAUNCHES[ACTIVE_LAUNCH];
   const modal = document.getElementById(launch.modal);
   if (!modal?.showModal || window.langRedirect) return;
-  // the compensation reminder is ordered from search results, which the
-  // compensation page does not have
-  if (ACTIVE_LAUNCH === "compReminder" && PAST_PAGE) return;
   try { if (localStorage.getItem(launch.seenKey)) return; } catch (e) { return; }
 
   let how = "dismiss";
@@ -4603,7 +4616,14 @@ const ACTIVE_LAUNCH = "compReminder";
     icon.innerHTML = BELL_SVG;
     el.replaceChildren(before, icon, after);
   });
-  document.getElementById("launch-comp-search")?.addEventListener("click", () => {
+  // art with words in it comes once per language
+  if (state.lang === "en") modal.querySelectorAll("img[data-src-en]").forEach((img) => { img.src = img.dataset.srcEn; });
+  // the stand-in claim button reads like the real one on a delayed trip
+  modal.querySelectorAll(".claim-btn").forEach((btn) => {
+    btn.dataset.new = t("claimNew");
+    btn.textContent = t("claimPct", 25);
+  });
+  modal.querySelector(".launch-search")?.addEventListener("click", () => {
     close("search");
     document.getElementById("from").focus();
   });
