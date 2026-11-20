@@ -495,6 +495,11 @@ async def _next_connection(origin: dict, dest: dict, ready, window: int, live: b
             fd = _departure_info(rtrain[0], live)
             if fd and fd["canceled"]:
                 continue
+            # left the boarding stop but served nothing after it: the walk would
+            # count it as cancelled and re-plan from here onto the same train
+            d0 = rtrain[0].get("delayOnDate")
+            if d0 and d0["canceled"] and _ended_early(rtrain[0], live) is None:
+                continue
             fdelay = fd["delayMin"] if fd and fd["delayMin"] is not None else 0
             slack = (first_dep + timedelta(minutes=fdelay) - ready).total_seconds() / 60
             if slack <= TRANSFER_TOLERANCE_MIN:
