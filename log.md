@@ -2373,3 +2373,13 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Backend only, no busters.
 - Verified: the journey replayed through `_past_verdict` on this box with the live site's recorded answers for the Hannover and Bielefeld re-plans (this box cannot reach bahn.de): ICE 654 to Bielefeld, then RE6 10:00, arrival 12:09, +58 min, 0 %. The test suite passes (346). Not verified before the deploy against bahn.de itself.
 - Not changed: the search still ranks candidates by the planned itinerary's arrival, so a later leg that was cancelled can still be picked and costs a re-plan.
+
+## 2026-11-20 — Easy apply: remember my details on this device
+
+- The details step of the claim form (`/antrag`, `/en/claim`) has one checkbox above Continue: "Meine Angaben auf diesem Gerät merken" / "Remember my details on this device", unticked by default. Ticked, Continue writes name, address, email, phone, IBAN, account holder, BIC and the payout choice to `localStorage` (`claimDetails`); the next claim opens pre-filled with the box ticked. Unticking and continuing deletes the copy. Nothing reaches the server, so the step's "stays on your device" line still holds.
+- Logout: the claim page's own logout deletes the copy at once. A logout on another page deletes it the next time the claim page opens - the copy notes that it was kept under an account, and the `account` hint is gone by then. Deleting it at once from every page would mean changing `firebase.js` and bumping the busters of the five scripts that import it; not done.
+- No expiry. Safari clears script-written storage itself after 7 days without a visit (not for the installed app).
+- Decided on the way: unticked by default - a pre-ticked box is no consent for optional storage on the device (TDDDG §25), and on a shared computer it would leave name, address and IBAN behind for whoever continues without reading.
+- Buster: `claim.js` 61 -> 62. The claim page is not in the service worker's shell, so `SHELL_VERSION` stays.
+- Verified in headless Chrome on `/en/claim`: tick and Continue stores the details, a reload pre-fills them with the box ticked, untick and Continue deletes them, a copy kept under an account is dropped on load once the hint is gone. Not verified: the logout button itself (no login in the test), the German page, and the final state after the default went ticked and back (syntax check only).
+- Known wart: the pre-filled country is saved as written, so a copy saved on the English page shows "Germany" on the German one.

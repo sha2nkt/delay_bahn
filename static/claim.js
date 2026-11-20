@@ -138,6 +138,7 @@ const I18N = {
     payVoucher: "Gutschein",
     fIban: "IBAN",
     fBic: "BIC (optional)",
+    keepDetails: "Meine Angaben auf diesem Gerät merken",
     fHolder: "Kontoinhaber",
     shareOk: "Die Bahn darf meine Daten weitergeben, wenn das für die Bearbeitung nötig ist (z. B. an ein anderes Eisenbahnunternehmen). Empfohlen – so läuft die Bearbeitung reibungsloser.",
     needIban: "Diese IBAN ist nicht gültig. Bitte prüfe sie.",
@@ -358,6 +359,7 @@ const I18N = {
     payVoucher: "Voucher",
     fIban: "IBAN",
     fBic: "BIC (optional)",
+    keepDetails: "Remember my details on this device",
     fHolder: "Account holder",
     shareOk: "Deutsche Bahn may pass on my data where that is needed to process the claim (e.g. to another railway company). Recommended – it keeps processing smooth.",
     needIban: "This IBAN is not valid. Please check it.",
@@ -1782,6 +1784,7 @@ function go(to) {
       }
       setStatus(`step${s}-error`, "");
     }
+    if (step <= 3 && to > 3) keepDetails();
   }
   show(to);
 }
@@ -1960,10 +1963,56 @@ function wire() {
       await fb.signOut(fb.auth);
     } catch (e) { /* the SDK may still hold the user: the page treats them as signed out either way */ }
     fb.remember(false);
+    dropDetails();
     me = null;
     renderAuth();
   });
   wireFeedback();
+}
+
+/* --- remembered details ---
+   Name, address and payout stay in this browser for the next claim when the
+   visitor ticks the box. A logout drops them: here at once, and one made on
+   another page the next time this page opens - the copy notes that it was
+   kept under an account, and the account hint is gone by then. */
+const KEEP = "claimDetails";
+const KEEP_FIELDS = ["f-first", "f-last", "f-street", "f-house", "f-zip", "f-city", "f-country", "f-email", "f-phone", "f-iban", "f-holder", "f-bic"];
+
+function hinted() {
+  try { return localStorage.getItem("account") === "1"; } catch (e) { return false; }
+}
+
+function keepDetails() {
+  try {
+    if (!$("keep-details").checked) { localStorage.removeItem(KEEP); return; }
+    const fields = {};
+    KEEP_FIELDS.forEach((id) => { fields[id] = $(id).value; });
+    localStorage.setItem(KEEP, JSON.stringify({ account: hinted(), payout: payout(), fields }));
+  } catch (e) { /* storage refused: the claim goes on, nothing is remembered */ }
+}
+
+function dropDetails() {
+  $("keep-details").checked = false;
+  try { localStorage.removeItem(KEEP); } catch (e) { /* nothing was kept */ }
+}
+
+function loadDetails() {
+  let kept = null;
+  try { kept = JSON.parse(localStorage.getItem(KEEP)); } catch (e) { kept = null; }
+  if (!kept || !kept.fields) return;
+  if (kept.account && !hinted()) { dropDetails(); return; }
+  for (const [id, value] of Object.entries(kept.fields)) if (KEEP_FIELDS.includes(id) && value) $(id).value = value;
+  const pay = document.querySelector(`input[name="payout"][value="${kept.payout}"]`);
+  if (pay) { pay.checked = true; pay.dispatchEvent(new Event("change")); }
+  $("keep-details").checked = true;
+}
+
+// a copy kept before the login now belongs to the account: its logout drops it
+function adoptDetails() {
+  try {
+    const kept = JSON.parse(localStorage.getItem(KEEP));
+    if (kept && !kept.account) localStorage.setItem(KEEP, JSON.stringify({ ...kept, account: true }));
+  } catch (e) { /* nothing was kept */ }
 }
 
 /* --- the login detour ---
@@ -2074,6 +2123,7 @@ function renderAuth() {
   if (me) {
     $("auth-name-text").textContent = me.name;
     if (me.user.email && !val("f-email")) $("f-email").value = me.user.email;
+    adoptDetails();
   }
   renderGate();
 }
@@ -2113,6 +2163,7 @@ async function init() {
   applyStatic();
   wire();
   show(1, true);
+  loadDetails();
   // a claim set aside for the login comes back, unless this tab has moved on to another journey
   let saved = draftWaiting() ? await takeDraft() : null;
   let here = null;
@@ -2133,9 +2184,7 @@ async function init() {
   }
   if (saved && record) await applyDraft(saved);
   // the SDK is only worth loading for a browser that has signed in before
-  let known = false;
-  try { known = localStorage.getItem("account") === "1"; } catch (e) { known = false; }
-  if (known) watchAuth(); else renderAuth();
+  if (hinted()) watchAuth(); else renderAuth();
 }
 
 init();
