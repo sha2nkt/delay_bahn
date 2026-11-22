@@ -2416,3 +2416,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Busters: `claim.js?v=65`, `claim.css?v=34` (64 / 33 in the commit before, not yet live).
 - Verified in headless Chrome with a stand-in for `/firebase.js`, EN desktop and DE phone signed out, EN desktop signed in: stages visible on entry with the three controls inactive; a signed-out download opens the login box and downloads nothing; signed in, the download starts and the controls come alive; no page errors.
 - Not verified: a real login round trip back to step 5; a real phone.
+
+## 2026-11-22 — Delay Stories: pushes with an umlaut or arrow in the title went missing
+
+- `stories.notify` put the title into an HTTP header as written; httpx refuses anything outside ASCII, the `UnicodeEncodeError` is not an `httpx.HTTPError`, so the task died and the push never left. Every new story with a destination carries "→" in its title, and names like "München" fail on their own: seen in the journal on 2026-11-08 and 2026-11-18.
+- Fix: a non-ASCII title goes as RFC 2047 (`_header`, `=?UTF-8?B?…?=`), which ntfy decodes. Checked against ntfy.sh: the stored title reads "München Hbf → Köln Hbf". Feedback pushes were never affected, their titles are ASCII.
+- Test added in `tests/test_stories.py`; 347 pass.
