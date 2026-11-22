@@ -480,9 +480,8 @@ const LOGIN = "/login?next=" + encodeURIComponent(SELF);
 const DB_ADDRESS = "EUAntragFGR@deutschebahn.com";
 const DB_SUBJECT = "Fahrgastrechte: EU-Antragsformular";
 const FORM_URL = `/claim/eu-form-${lang}.pdf?v=1`;
-// what DB takes as an attachment; anything else is turned away at the picker
-const ACCEPTED = { "application/pdf": "pdf", "image/jpeg": "jpg", "image/png": "png" };
-const MAX_FILE = 10 * 1024 * 1024;
+// reading a ticket is shared with the compensation check (ticket-read.js)
+const { MAX_FILE, DB_MARK, INVOICE_MARK, fileKind, pdfRows, parseTicket, photoDataUrl } = window.TicketRead;
 // DB pays nothing below this, per ticket
 const MIN_PAYOUT = 4;
 const ART = ["fox", "bear", "rabbit", "owl"];
@@ -542,11 +541,8 @@ function loadScript(src) {
 // the two PDF libraries are only fetched once a file is actually in play
 function loadLibs() {
   libs = libs || Promise.all([
-    loadScript("/claim/pdf.min.js?v=1"), loadScript("/claim/pdf-lib.min.js?v=1"),
-  ]).then(() => {
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = "/claim/pdf.worker.min.js?v=1";
-    return { pdfjs: window.pdfjsLib, PDFLib: window.PDFLib };
-  });
+    window.TicketRead.loadPdfjs(), loadScript("/claim/pdf-lib.min.js?v=1"),
+  ]).then(([pdfjs]) => ({ pdfjs, PDFLib: window.PDFLib }));
   return libs;
 }
 
@@ -742,115 +738,8 @@ function renderDelay() {
 
 // --- reading a PDF ticket, on the device ---
 
-/* The text of a DB online ticket, as rows of positioned words. The journey
-   table is read by its column headers, since a row has no platform when the
-   leg is a bus and words alone cannot tell "14 ICE 990" from "Bus 5". */
-async function pdfRows(bytes) {
-  const { pdfjs } = await loadLibs();
-  const doc = await pdfjs.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise;
-  const rows = [];
-  for (let p = 1; p <= Math.min(doc.numPages, 4); p++) {
-    const page = await doc.getPage(p);
-    const content = await page.getTextContent();
-    const byY = new Map();
-    for (const item of content.items) {
-      if (!item.str.trim()) continue;
-      const y = Math.round(item.transform[5] / 3);
-      if (!byY.has(y)) byY.set(y, []);
-      byY.get(y).push({ x: item.transform[4], text: item.str.trim() });
-    }
-    [...byY.entries()].sort((a, b) => b[0] - a[0]).forEach(([y, items]) => {
-      items.sort((a, b) => a.x - b.x);
-      rows.push({ page: p, y, items, text: items.map((i) => i.text).join(" ") });
-    });
-  }
-  return rows;
-}
-
 // products that are not trains, as in the trips page (UNTRACKED_PRODUCTS in app/main.py)
 const NOT_TRACKED = new Set(["BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG", "ERSATZVERKEHR"]);
-const NOT_RAIL = /^(bus|str|tram|u\s?\d|u-bahn|fuß|fussweg|schiff|ast|rufbus|sev)/i;
-
-function parseTicket(rows, wantDate) {
-  const out = {};
-  const all = rows.map((r) => r.text).join("\n");
-  out.booking = (all.match(/Auftragsnummer:?\s*(\d{6,14})/) || [])[1] || "";
-  out.price = (all.match(/Gesamtpreis:?\s*([\d.,]+)\s*€/) || [])[1] || "";
-
-  // the traveller's name is printed right above the order number, in the same column
-  const orderRow = rows.find((r) => /Auftragsnummer/.test(r.text));
-  if (orderRow) {
-    const anchor = orderRow.items.find((i) => /Auftragsnummer/.test(i.text));
-    const above = rows.filter((r) => r.page === orderRow.page && r.y > orderRow.y)
-      .filter((r) => r.items.some((i) => Math.abs(i.x - anchor.x) < 12))
-      .sort((a, b) => a.y - b.y)[0];
-    const name = above ? above.items.filter((i) => i.x > anchor.x - 12).map((i) => i.text).join(" ") : "";
-    if (/^[\p{L} .'-]{3,60}$/u.test(name)) out.name = name;
-  }
-
-  // one table per direction, each under its own "… am 07.07.2026" heading
-  const sections = [];
-  let cur = null;
-  for (const row of rows) {
-    const head = row.text.match(/Reiseverbindung.*?am\s+(\d{2})\.(\d{2})\.(\d{4})/);
-    if (head) { cur = { date: `${head[3]}-${head[2]}-${head[1]}`, cols: null, rows: [] }; sections.push(cur); continue; }
-    if (!cur) continue;
-    if (!cur.cols && /Halt/.test(row.text) && /Zeit/.test(row.text)) {
-      cur.cols = {};
-      for (const item of row.items) {
-        const key = item.text.split(/\s/)[0];
-        if (["Halt", "Datum", "Zeit", "Gleis", "Produkte", "Reservierung"].includes(key)) cur.cols[key] = item.x;
-      }
-      continue;
-    }
-    if (cur.cols) {
-      if (/^Wichtige|^Ihre Reiseverbindung/.test(row.text)) { cur = null; continue; }
-      cur.rows.push(row);
-    }
-  }
-  const section = sections.find((s) => s.date === wantDate) || sections[0];
-  if (!section || !section.cols) return out;
-
-  const { cols } = section;
-  const edge = (name, fallback) => (cols[name] != null ? cols[name] - 4 : fallback);
-  const xDate = edge("Datum", 200), xTime = edge("Zeit", 270);
-  const xGleis = edge("Gleis", 330), xProd = edge("Produkte", 370), xRes = edge("Reservierung", 450);
-  const cell = (row, from, to) => row.items.filter((i) => i.x >= from && i.x < to).map((i) => i.text).join(" ");
-  const stops = [];
-  for (const row of section.rows) {
-    const time = cell(row, xTime, xProd).match(/\b(ab|an)\s+(\d{1,2}:\d{2})/);
-    const product = cell(row, xProd, xRes).trim();
-    if (!time) continue;
-    const day = cell(row, xDate, xTime).match(/(\d{2})\.(\d{2})\./);
-    stops.push({
-      station: cell(row, 0, xDate).trim(), kind: time[1], time: time[2].padStart(5, "0"),
-      day: day ? `${day[2]}-${day[1]}` : null, product,
-    });
-  }
-  // a departure row and the arrival row under it make one leg; the train
-  // number in brackets sits on the arrival row and belongs to the same train
-  const legs = [];
-  for (let i = 0; i + 1 < stops.length; i++) {
-    const a = stops[i], b = stops[i + 1];
-    if (a.kind !== "ab" || b.kind !== "an") continue;
-    const product = [a.product, /^\(\d+\)$/.test(b.product) ? b.product : ""].join(" ").trim();
-    legs.push({ from: a.station, to: b.station, dep: a.time, arr: b.time, product });
-  }
-  const rail = legs.filter((l) => l.product && !NOT_RAIL.test(l.product));
-  if (!rail.length) return out;
-  out.date = section.date;
-  out.from = rail[0].from;
-  out.to = rail[rail.length - 1].to;
-  out.dep = rail[0].dep;
-  out.arr = rail[rail.length - 1].arr;
-  out.trains = rail.map((l) => l.product).join(", ");
-  return out;
-}
-
-// what every DB online ticket prints somewhere on its first pages
-const DB_MARK = /Deutsche Bahn|DB AG|DB Fernverkehr|DB Regio|DB Vertrieb|bahn\.de/i;
-const INVOICE_MARK = /Rechnungsnummer|Dieses Dokument berechtigt nicht zur Fahrt/;
-
 // another railway's ticket: said plainly, and the upload is not kept
 function refuseTicket(why) {
   ticket = null;
@@ -902,14 +791,6 @@ function askTicketGaps() {
   if (ticket && (!val("f-booking") || !val("f-price"))) $("ticket-fields").classList.remove("hidden");
 }
 
-function fileKind(file) {
-  const kind = ACCEPTED[file.type];
-  if (kind) return kind;
-  // some systems hand over files without a type: fall back to the name
-  const ext = (file.name.split(".").pop() || "").toLowerCase();
-  return { pdf: "pdf", jpg: "jpg", jpeg: "jpg", png: "png" }[ext] || null;
-}
-
 /* The gate every upload passes: DB only takes PDF, JPG and PNG, so another
    format is refused here with a message instead of failing at DB. */
 function checkFile(file, errorId) {
@@ -919,14 +800,32 @@ function checkFile(file, errorId) {
   return true;
 }
 
+// the upload, kept for the packet and named in the drop
+function holdTicket(file) {
+  ticket = { file, kind: fileKind(file) };
+  $("ticket-drop").classList.add("claim-drop-has");
+  $("ticket-drop").querySelector(".claim-drop-main").textContent = file.name;
+}
+
+/* A ticket uploaded at the compensation check comes along, when this claim is
+   for the journey it was searched for. A PDF is read again here; a photo's
+   fields come with it, since reading it again would ask and count again. */
+async function adoptKept() {
+  const had = await window.TicketRead.kept();
+  if (!had || !had.file || had.pending || had.date !== record.date) return;
+  if (!had.fields) { await onTicket(had.file); return; }
+  holdTicket(had.file);
+  applyFields(had.fields);
+  askTicketGaps();
+  setStatus("ticket-status", t(fileKind(had.file) === "pdf" ? "scanDone" : "photoDone"));
+}
+
 async function onTicket(file) {
   if (!file || !checkFile(file, "ticket-status")) { $("ticket-file").value = ""; return; }
   const kind = fileKind(file);
-  ticket = { file, kind };
+  holdTicket(file);
   packet = null;
   $("photo-consent").classList.add("hidden");
-  $("ticket-drop").classList.add("claim-drop-has");
-  $("ticket-drop").querySelector(".claim-drop-main").textContent = file.name;
   if (kind !== "pdf") { askPhoto(file); return; }
   setStatus("ticket-status", t("ticketReading"));
   try {
@@ -967,32 +866,6 @@ function askPhoto(file) {
   $("photo-read").textContent = photoWord("Read");
   $("photo-login").classList.toggle("hidden", !!me);
   $("photo-read").disabled = !me;
-}
-
-// a phone photo is several megabytes; the reader needs far less than that
-async function photoDataUrl(file) {
-  let source;
-  if (fileKind(file) === "pdf") {
-    const { pdfjs } = await loadLibs();
-    const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false }).promise;
-    const page = await doc.getPage(1);
-    const viewport = page.getViewport({ scale: 2 });
-    source = document.createElement("canvas");
-    source.width = viewport.width;
-    source.height = viewport.height;
-    await page.render({ canvasContext: source.getContext("2d"), viewport }).promise;
-  } else {
-    source = await createImageBitmap(file);
-  }
-  const scale = Math.min(1, 1800 / Math.max(source.width, source.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(source.width * scale);
-  canvas.height = Math.round(source.height * scale);
-  const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", 0.85);
 }
 
 async function readPhoto() {
@@ -2181,9 +2054,7 @@ async function applyDraft(draft) {
     onTicket(draft.ticket);
   } else {
     if (draft.ticket) {
-      ticket = { file: draft.ticket, kind: fileKind(draft.ticket) };
-      $("ticket-drop").classList.add("claim-drop-has");
-      $("ticket-drop").querySelector(".claim-drop-main").textContent = draft.ticket.name;
+      holdTicket(draft.ticket);
       askTicketGaps();
     }
   }
@@ -2284,6 +2155,7 @@ async function init() {
     $("claim-start").classList.remove("hidden");
   }
   if (saved && record) await applyDraft(saved);
+  else if (record) await adoptKept();
   // the SDK is only worth loading for a browser that has signed in before
   if (hinted()) watchAuth(); else renderAuth();
 }

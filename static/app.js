@@ -288,6 +288,30 @@ const I18N = {
     pastLead: "Gib deine Reise ein, um zu sehen, wie sie tatsächlich verlief – mit Verspätungen, verpassten Anschlüssen und deinem Entschädigungsanspruch.",
     pastCoverageLabel: "Daten verfügbar:",
     pastExit: "← Zur Verbindungssuche",
+    ticketUpload: "Ticket hochladen",
+    ticketUploadSub: "PDF, Screenshot oder Foto – wir suchen deine Fahrt heraus.",
+    ticketOr: "oder Reise eingeben",
+    ticketReading: "Lese das Ticket …",
+    ticketFound: "Ticket gelesen.",
+    ticketFoundPdf: "Ticket gelesen. Die Datei hat dein Gerät nicht verlassen.",
+    ticketPick: "Auf deinem Ticket stehen mehrere Fahrten. Welche möchtest du prüfen?",
+    ticketNotDb: "Das sieht nicht nach einem Ticket der Deutschen Bahn aus. Bitte lade dein DB-Ticket hoch (PDF, JPG oder PNG).",
+    ticketInvoice: "Das ist die Rechnung, nicht das Ticket. Bitte lade das Ticket selbst hoch.",
+    ticketBadFormat: "Dieses Dateiformat können wir nicht lesen. Bitte lade ein PDF, JPG oder PNG hoch.",
+    ticketTooBig: "Die Datei ist zu groß (höchstens 10 MB).",
+    ticketFailed: "Das Ticket ließ sich nicht lesen. Bitte gib deine Reise unten ein.",
+    ticketNoJourney: "Auf dem Ticket steht keine Zugverbindung. Bitte gib deine Reise unten ein.",
+    ticketStationUnknown: "Wir konnten die Bahnhöfe vom Ticket nicht zuordnen. Bitte wähle sie unten aus der Vorschlagsliste.",
+    ticketPhotoLead: "Anthropics KI-Modell liest dein Foto. Wir speichern nichts.",
+    ticketScanLead: "Anthropics KI-Modell liest den Scan. Wir speichern nichts.",
+    ticketPhotoNote: "Ein PDF-Ticket braucht das nicht: Es verlässt dein Gerät nie.",
+    ticketPhotoLogin: "Dafür musst du angemeldet sein.",
+    ticketLogin: "Anmelden",
+    ticketPhotoRead: "Foto auslesen",
+    ticketScanRead: "Scan auslesen",
+    ticketPhotoSkip: "Lieber selbst eintippen",
+    ticketPhotoReading: "Lese das Ticket … das dauert ein paar Sekunden.",
+    ticketPhotoBusy: "Gerade zu viele Anfragen – bitte versuche es in ein paar Minuten noch einmal oder gib deine Reise unten ein.",
     pastDateHintTitle: "Dieses Datum liegt in der Vergangenheit",
     pastDateHint: "Sieh dir an, wie eine Fahrt tatsächlich lief und was du zurückbekommst.",
     pastDateHintLink: "Entschädigung beantragen →",
@@ -626,6 +650,30 @@ const I18N = {
     pastLead: "Enter your journey to see the trip you actually took – including delays, missed connections and what you can claim back.",
     pastCoverageLabel: "Data available:",
     pastExit: "← Back to connection search",
+    ticketUpload: "Upload your ticket",
+    ticketUploadSub: "PDF, screenshot or photo – we look up your journey.",
+    ticketOr: "or enter your journey",
+    ticketReading: "Reading the ticket …",
+    ticketFound: "Ticket read.",
+    ticketFoundPdf: "Ticket read. The file never left your device.",
+    ticketPick: "Your ticket lists several journeys. Which one do you want to check?",
+    ticketNotDb: "This does not look like a Deutsche Bahn ticket. Please upload your DB ticket (PDF, JPG or PNG).",
+    ticketInvoice: "This is the invoice, not the ticket. Please upload the ticket itself.",
+    ticketBadFormat: "We cannot read this file format. Please upload a PDF, JPG or PNG.",
+    ticketTooBig: "The file is too large (10 MB at most).",
+    ticketFailed: "We could not read the ticket. Please enter your journey below.",
+    ticketNoJourney: "The ticket names no train connection. Please enter your journey below.",
+    ticketStationUnknown: "We could not match the stations on the ticket. Please pick them from the suggestion list below.",
+    ticketPhotoLead: "Anthropic's AI model reads your photo. We store nothing.",
+    ticketScanLead: "Anthropic's AI model reads the scan. We store nothing.",
+    ticketPhotoNote: "A PDF ticket does not need this: it never leaves your device.",
+    ticketPhotoLogin: "You need to be logged in for this.",
+    ticketLogin: "Log in",
+    ticketPhotoRead: "Read the photo",
+    ticketScanRead: "Read the scan",
+    ticketPhotoSkip: "I'd rather type it in",
+    ticketPhotoReading: "Reading the ticket … this takes a few seconds.",
+    ticketPhotoBusy: "Too many requests right now – please try again in a few minutes or enter your journey below.",
     pastDateHintTitle: "This date is in the past",
     pastDateHint: "See how a journey actually went and what you can claim back.",
     pastDateHintLink: "Claim compensation →",
@@ -1957,6 +2005,207 @@ async function initPastPage() {
   }
 }
 
+// --- the compensation check from an uploaded ticket ---
+
+/* The ticket is read by ticket-read.js, fetched on the first upload: a PDF on
+   the device, a photo by the server once the visitor says so. The journey on
+   it fills the search and runs it. The file is set aside in this browser for
+   the claim form, which then does not ask for it a second time. */
+const ticketCheck = { file: null, lib: null, searched: null };
+const tcEl = (id) => document.getElementById("ticket-check-" + id);
+
+function ticketLib() {
+  ticketCheck.lib = ticketCheck.lib || new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "/ticket-read.js?v=1";
+    s.onload = () => resolve(window.TicketRead);
+    s.onerror = () => { ticketCheck.lib = null; reject(new Error("ticket-read")); };
+    document.head.append(s);
+  });
+  return ticketCheck.lib;
+}
+
+function ticketStatus(key, error) {
+  tcEl("status").textContent = key ? t(key) : "";
+  tcEl("status").classList.toggle("error", !!error);
+}
+
+function showTicketFile(file) {
+  ticketCheck.file = file;
+  tcEl("drop").classList.toggle("ticket-check-has", !!file);
+  tcEl("main").textContent = file ? file.name : t("ticketUpload");
+  tcEl("consent").hidden = true;
+  tcEl("pick").hidden = true;
+}
+
+// the upload is let go: refused, given up, or another journey was searched
+function dropTicket(key) {
+  showTicketFile(null);
+  ticketCheck.searched = null;
+  ticketStatus(key, !!key);
+  if (window.TicketRead) window.TicketRead.forget();
+}
+
+async function onCheckTicket(file) {
+  if (!file) return;
+  let TR;
+  try { TR = await ticketLib(); } catch { ticketStatus("ticketFailed", true); return; }
+  const kind = TR.fileKind(file);
+  if (!kind || file.size > TR.MAX_FILE) { dropTicket(kind ? "ticketTooBig" : "ticketBadFormat"); return; }
+  showTicketFile(file);
+  ticketCheck.searched = null;
+  if (kind !== "pdf") { askTicketPhoto(file); return; }
+  ticketStatus("ticketReading");
+  try {
+    const rows = await TR.pdfRows(new Uint8Array(await file.arrayBuffer()));
+    // a scan has pages but no text: it is a photo in a PDF wrapper
+    if (rows.length < 5) { askTicketPhoto(file); return; }
+    const text = rows.map((r) => r.text).join("\n");
+    if (TR.INVOICE_MARK.test(text)) { dropTicket("ticketInvoice"); return; }
+    if (!TR.DB_MARK.test(text)) { dropTicket("ticketNotDb"); return; }
+    const journeys = TR.parseJourneys(rows).sections.map((s) => s.journey).filter(Boolean);
+    if (!journeys.length) { dropTicket("ticketNoJourney"); return; }
+    track("check-ticket", { kind: "pdf", journeys: journeys.length });
+    offerJourneys(journeys, null);
+  } catch { dropTicket("ticketFailed"); }
+}
+
+// a return ticket prints both directions: the visitor says which one to check
+function offerJourneys(journeys, fields) {
+  if (journeys.length === 1) { searchTicket(journeys[0], fields); return; }
+  tcEl("pick").replaceChildren(...journeys.map((j) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    const route = document.createElement("strong");
+    route.textContent = `${j.from} → ${j.to}`;
+    btn.append(route, `${fmtDateFull(j.date)} · ${j.dep}`);
+    btn.addEventListener("click", () => searchTicket(j, fields));
+    return btn;
+  }));
+  tcEl("pick").hidden = false;
+  ticketStatus("ticketPick");
+}
+
+// the station a ticket names, as the search knows it
+async function ticketStation(name) {
+  try {
+    const resp = await fetch(`/api/locations?query=${encodeURIComponent(name)}`);
+    if (!resp.ok) return null;
+    const items = await resp.json();
+    return items.find((it) => it.name.toLowerCase() === name.toLowerCase()) || items[0] || null;
+  } catch { return null; }
+}
+
+/* The search as the visitor would have typed it from the ticket. `fields` is
+   what a photo read gave: it rides along to the claim form, which would
+   otherwise have to ask for the photo to be read again. */
+async function searchTicket(j, fields) {
+  const file = ticketCheck.file;
+  const [from, to] = await Promise.all([ticketStation(j.from), ticketStation(j.to)]);
+  if (ticketCheck.file !== file) return;
+  state.from = from;
+  state.to = to;
+  document.getElementById("from").value = from ? from.name : j.from;
+  document.getElementById("to").value = to ? to.name : j.to;
+  document.getElementById("date").value = j.date;
+  if (/^\d{2}:\d{2}$/.test(j.dep || "")) document.getElementById("time").value = j.dep;
+  if (!from || !to) { ticketStatus("ticketStationUnknown", true); return; }
+  ticketCheck.searched = { from: from.id, to: to.id, date: j.date };
+  // set aside before the search runs: the claim form opens from its results
+  try { await window.TicketRead.keep({ file, fields, ...ticketCheck.searched }); } catch { /* the form asks for it again */ }
+  ticketStatus(fields ? "ticketFound" : "ticketFoundPdf");
+  search();
+}
+
+// a search for another journey than the ticket's: the ticket no longer belongs to it
+function releaseTicket() {
+  const s = ticketCheck.searched;
+  if (s && (s.from !== state.from.id || s.to !== state.to.id || s.date !== document.getElementById("date").value)) dropTicket();
+}
+
+// a photo (or a scan in a PDF) leaves the device to be read, so it is asked for first
+async function askTicketPhoto(file) {
+  const scan = window.TicketRead.fileKind(file) === "pdf";
+  ticketStatus("");
+  tcEl("lead").textContent = t(scan ? "ticketScanLead" : "ticketPhotoLead");
+  tcEl("note").hidden = scan;
+  tcEl("read").textContent = t(scan ? "ticketScanRead" : "ticketPhotoRead");
+  tcEl("read").disabled = true;
+  tcEl("login").hidden = true;
+  tcEl("consent").hidden = false;
+  let account = null;
+  try { account = await currentAccount(); } catch { account = null; }
+  if (ticketCheck.file !== file) return;
+  const ok = !!(account && account.verified);
+  tcEl("login").hidden = ok;
+  tcEl("read").disabled = !ok;
+}
+
+async function readTicketPhoto() {
+  const file = ticketCheck.file;
+  if (!file) return;
+  tcEl("read").disabled = true;
+  ticketStatus("ticketPhotoReading");
+  try {
+    const account = await currentAccount();
+    const image = await window.TicketRead.photoDataUrl(file);
+    const resp = await fetch("/api/claim/read-ticket", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + await account.user.getIdToken() },
+      body: JSON.stringify({ image }),
+    });
+    if (ticketCheck.file !== file) return;
+    if (resp.status === 429) { tcEl("read").disabled = false; ticketStatus("ticketPhotoBusy", true); return; }
+    if (!resp.ok) throw new Error("http " + resp.status);
+    const read = await resp.json();
+    if (read.invoice) { dropTicket("ticketInvoice"); return; }
+    if (!read.db) { dropTicket("ticketNotDb"); return; }
+    if (!read.from || !read.to || !/^\d{4}-\d{2}-\d{2}$/.test(read.date)) { dropTicket("ticketNoJourney"); return; }
+    tcEl("consent").hidden = true;
+    track("check-ticket", { kind: "photo" });
+    searchTicket({ date: read.date, from: read.from, to: read.to, dep: read.dep }, read);
+  } catch { dropTicket("ticketFailed"); }
+}
+
+async function initTicketCheck() {
+  const input = tcEl("file"), drop = tcEl("drop");
+  input.addEventListener("change", () => {
+    const file = input.files[0];
+    input.value = "";  // the same file can be picked again
+    onCheckTicket(file);
+  });
+  drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("ticket-check-over"); });
+  drop.addEventListener("dragleave", () => drop.classList.remove("ticket-check-over"));
+  drop.addEventListener("drop", (e) => {
+    e.preventDefault();
+    drop.classList.remove("ticket-check-over");
+    onCheckTicket(e.dataTransfer.files[0]);
+  });
+  tcEl("read").addEventListener("click", readTicketPhoto);
+  tcEl("skip").addEventListener("click", () => { dropTicket(); document.getElementById("from").focus(); });
+  // the login leaves the page: the photo waits in this browser for the way back
+  const login = tcEl("login-link");
+  login.href = "/login?next=" + encodeURIComponent(location.pathname);
+  login.addEventListener("click", async (e) => {
+    e.preventDefault();
+    try { await window.TicketRead.keep({ file: ticketCheck.file, pending: true }); } catch { /* picked again after the login */ }
+    location.assign(login.href);
+  });
+  // a reload, or the way back from the login: this tab's upload is still there
+  let flag = null;
+  try { flag = sessionStorage.getItem("claimTicket"); } catch { flag = null; }
+  if (!flag) return;
+  try {
+    const TR = await ticketLib();
+    const had = await TR.kept();
+    if (!had || !had.file) { TR.forget(); return; }
+    showTicketFile(had.file);
+    if (had.pending) askTicketPhoto(had.file);
+    else ticketCheck.searched = { from: had.from, to: had.to, date: had.date };
+  } catch { /* the page works without it */ }
+}
+if (PAST_PAGE) initTicketCheck();
+
 document.getElementById("refund-cta").addEventListener("click", () => track("refund-cta"));
 document.getElementById("stories-cta").addEventListener("click", () => track("stories-cta"));
 document.querySelectorAll(".site-nav-link").forEach((a) => {
@@ -2199,6 +2448,7 @@ async function search() {
   saveRecent(state.to);
   viaKeys.forEach((k) => { if (state[k]) saveRecent(state[k]); });
   if (state.mode === "past") {
+    releaseTicket();
     await ensureCoverage();
     const day = document.getElementById("date").value;
     const latest = latestPastDay();

@@ -11,7 +11,7 @@
  * Bump SHELL_VERSION whenever the precached asset URLs below change (e.g. after a
  * ?v= cache-buster bump in index.html) so old shells are dropped and re-primed.
  */
-const SHELL_VERSION = "v140";
+const SHELL_VERSION = "v141";
 const SHELL_CACHE = `delaybahn-shell-${SHELL_VERSION}`;
 const API_CACHE = `delaybahn-api-${SHELL_VERSION}`;
 
@@ -22,8 +22,8 @@ const API_MAX_AGE = 10 * 60 * 1000; // 10 minutes
 const PRECACHE = [
   "/",
   "/en/",
-  "/style.css?v=147",
-  "/app.js?v=176",
+  "/style.css?v=148",
+  "/app.js?v=177",
   "/manifest.json",
   "/favicon.png",
   "/logo.webp?v=1",
@@ -79,6 +79,7 @@ self.addEventListener("activate", (event) => {
    One that was never picked up again is removed here, when any page of the
    site is opened later. */
 const CLAIM_DRAFT_MAX_AGE = 30 * 60 * 1000;
+const CLAIM_TICKET_MAX_AGE = 2 * 60 * 60 * 1000;
 let claimDraftSwept = 0;
 function sweepClaimDraft() {
   if (Date.now() - claimDraftSwept < 5 * 60 * 1000) return;
@@ -93,6 +94,11 @@ function sweepClaimDraft() {
       const got = store.get("draft");
       got.onsuccess = () => {
         if (got.result && Date.now() - got.result.at > CLAIM_DRAFT_MAX_AGE) store.delete("draft");
+      };
+      // a ticket uploaded at the compensation check (static/ticket-read.js) that never reached the claim
+      const kept = store.get("ticket");
+      kept.onsuccess = () => {
+        if (kept.result && Date.now() - kept.result.at > CLAIM_TICKET_MAX_AGE) store.delete("ticket");
       };
       tx.oncomplete = tx.onabort = () => db.close();
     };

@@ -513,6 +513,8 @@ function wireClaimModal() {
   $("claim-modal-form").addEventListener("click", () => {
     try {
       if (claimData) sessionStorage.setItem("claimJourney", JSON.stringify(claimData));
+      // a ticket uploaded at the compensation check belongs to the journey searched there
+      sessionStorage.removeItem("claimTicket");
     } catch (e) { /* the form then asks for the check first */ }
     track("claim-form", { via: "my-trips" });
   });

@@ -720,6 +720,47 @@ body.past-mode .past-banner { display: flex; }
   font-weight: 600; cursor: pointer; padding: 0; font-family: inherit; text-decoration: none;
 }
 .past-exit:hover { text-decoration: underline; }
+/* the compensation check from an uploaded ticket, above the typed search */
+.ticket-check { display: none; flex-basis: 100%; flex-direction: column; gap: 10px; }
+body.past-mode .ticket-check { display: flex; }
+.ticket-check-drop {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer;
+  border: 1.5px dashed var(--gray-border); border-radius: 8px; background: var(--gray-bg);
+}
+.ticket-check-drop:hover, .ticket-check-over { border-color: var(--brand-red); background: #fff; }
+.ticket-check-drop:focus-within { outline: 2px solid var(--text); outline-offset: 2px; }
+.ticket-check-has { border-style: solid; background: #fff; }
+.ticket-check-icon { flex: none; color: var(--brand-red); }
+.ticket-check-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ticket-check-text strong { font-size: 15px; overflow-wrap: anywhere; }
+.ticket-check-text span { font-size: 12.5px; line-height: 1.4; color: var(--text-muted); }
+/* the picker is reached through its label; the input stays focusable */
+.ticket-check-file { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.ticket-check-status { font-size: 13px; line-height: 1.45; color: var(--green); }
+.ticket-check-status.error { color: var(--red); }
+.ticket-check-status:empty { display: none; }
+.ticket-check-consent {
+  display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 8px;
+  background: #fff8e6; border: 1px solid #f0d58a; font-size: 13px; line-height: 1.45;
+}
+.ticket-check-consent[hidden], .ticket-check-pick[hidden], .ticket-check-consent [hidden] { display: none; }
+.ticket-check-consent strong { font-size: 14px; }
+.ticket-check-consent a { color: var(--text); font-weight: 600; }
+.ticket-check-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.ticket-check-go, .ticket-check-skip, .ticket-check-pick button {
+  font: inherit; font-size: 14px; font-weight: 600; padding: 9px 14px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--gray-border); background: #fff; color: var(--text);
+}
+.ticket-check-go { background: var(--brand-red); border-color: var(--brand-red); color: #fff; }
+.ticket-check-go:disabled { opacity: .5; cursor: default; }
+.ticket-check-pick { display: flex; flex-direction: column; gap: 8px; }
+.ticket-check-pick button { text-align: left; font-weight: 500; }
+.ticket-check-pick button:hover { border-color: var(--brand-red); }
+.ticket-check-pick button strong { display: block; font-weight: 600; }
+.ticket-check-or {
+  display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--text-muted);
+}
+.ticket-check-or::before, .ticket-check-or::after { content: ""; flex: 1; border-top: 1px solid var(--gray-border); }
 body.past-mode .field-window { display: none; }
 /* neither prices, the D-Ticket filter nor a minimum transfer time figure in
    the compensation check, so the whole advanced panel goes */

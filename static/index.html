@@ -66,7 +66,7 @@ try {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DelayBahn">
-<link rel="stylesheet" href="/style.css?v=147">
+<link rel="stylesheet" href="/style.css?v=148">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -126,6 +126,30 @@ try {
       <span class="past-coverage"><span data-i18n="pastCoverageLabel">Daten verfügbar:</span> <span id="past-coverage"></span></span>
       <a id="past-exit" class="past-exit" href="/" data-i18n="pastExit">← Zur Verbindungssuche</a>
       <p class="past-lead" data-i18n="pastLead">Gib deine Reise ein, um zu sehen, wie sie tatsächlich verlief – mit Verspätungen, verpassten Anschlüssen und deinem Entschädigungsanspruch.</p>
+    </div>
+    <!-- the compensation check from the ticket itself: read here, the search filled in from it -->
+    <div id="ticket-check" class="ticket-check">
+      <label id="ticket-check-drop" class="ticket-check-drop" for="ticket-check-file">
+        <input id="ticket-check-file" class="ticket-check-file" type="file" accept="application/pdf,image/jpeg,image/png">
+        <svg class="ticket-check-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        <span class="ticket-check-text">
+          <strong id="ticket-check-main" data-i18n="ticketUpload">Ticket hochladen</strong>
+          <span data-i18n="ticketUploadSub">PDF, Screenshot oder Foto – wir suchen deine Fahrt heraus.</span>
+        </span>
+      </label>
+      <p id="ticket-check-status" class="ticket-check-status" role="status"></p>
+      <!-- a photo cannot be read on the device: it goes to the reader only on this button -->
+      <div id="ticket-check-consent" class="ticket-check-consent" hidden>
+        <strong id="ticket-check-lead"></strong>
+        <span id="ticket-check-note" data-i18n="ticketPhotoNote">Ein PDF-Ticket braucht das nicht: Es verlässt dein Gerät nie.</span>
+        <span id="ticket-check-login"><span data-i18n="ticketPhotoLogin">Dafür musst du angemeldet sein.</span> <a id="ticket-check-login-link" href="/login" data-i18n="ticketLogin">Anmelden</a></span>
+        <div class="ticket-check-actions">
+          <button id="ticket-check-read" class="ticket-check-go" type="button" disabled></button>
+          <button id="ticket-check-skip" class="ticket-check-skip" type="button" data-i18n="ticketPhotoSkip">Lieber selbst eintippen</button>
+        </div>
+      </div>
+      <div id="ticket-check-pick" class="ticket-check-pick" hidden></div>
+      <div class="ticket-check-or"><span data-i18n="ticketOr">oder Reise eingeben</span></div>
     </div>
     <div class="field autocomplete-wrap">
       <label for="from" data-i18n="from">Von</label>
@@ -825,7 +849,7 @@ try {
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
   <p class="footer-copyright">Copyright © 2026 Shashank Tripathi</p>
 </footer>
-<script src="/app.js?v=176"></script>
+<script src="/app.js?v=177"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
