@@ -280,7 +280,9 @@
 .claim-mail-copy.copied { color: var(--brand-red); }
 .claim-mail-copy:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
 .claim-send-steps .claim-check { margin-top: 10px; }
-.claim-send-steps button:disabled { opacity: .45; cursor: default; }
+.claim-send-steps button:disabled, .claim-send-steps a[aria-disabled="true"] { opacity: .45; cursor: default; }
+.claim-send-steps a[aria-disabled="true"] { pointer-events: none; }
+.claim-send-steps .claim-gate { margin-top: 12px; }
 
 /* --- the end of the line --- */
 .claim-done { text-align: center; padding: 30px 22px 26px; }

@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex, follow">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="/style.css?v=147">
-<link rel="stylesheet" href="/claim.css?v=33">
+<link rel="stylesheet" href="/claim.css?v=34">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body class="claim-page">
@@ -207,13 +207,14 @@
   <section class="claim-card hidden" data-panel="5">
     <h2 data-i18n="sendTitle">Schick den Antrag an die Bahn</h2>
     <p class="claim-lead" data-i18n="sendLead">Der Antrag geht von deiner eigenen E-Mail-Adresse an das Servicecenter Fahrgastrechte der Deutschen Bahn.</p>
-    <div id="send-gate" class="claim-gate hidden">
-      <p data-i18n="gateLead">Melde dich an, um den Antrag herunterzuladen. In der Testphase kostenlos.</p>
-      <div class="claim-actions"><a id="gate-login" class="report-submit" href="/login" data-i18n="navLogin">Anmelden</a></div>
-    </div>
     <ol id="send-steps" class="claim-send-steps">
       <li id="send-step-download" data-stage="1"><p data-i18n="sendStep1">Lade den Antrag herunter.</p>
-        <div class="claim-actions"><button id="send-download" class="report-submit" type="button" data-i18n="sendDownload">Antrag herunterladen</button></div></li>
+        <div class="claim-actions"><button id="send-download" class="report-submit" type="button" data-i18n="sendDownload">Antrag herunterladen</button></div>
+        <!-- the claim is handed out to accounts only: asked for at the download, not before -->
+        <div id="send-gate" class="claim-gate hidden" aria-live="polite">
+          <p data-i18n="gateLead">Einfach beantragen ist für Mitglieder kostenlos. Dafür bitten wir dich nur um ein kostenloses DelayBahn-Konto. Dein Antrag bleibt genau so, wie du ihn ausgefüllt hast.</p>
+          <div class="claim-actions"><a id="gate-login" class="report-submit" href="/login" data-i18n="navLogin">Anmelden</a></div>
+        </div></li>
       <li data-stage="2"><p data-i18n="sendStepMail">Öffne die E-Mail.</p>
         <div class="claim-actions"><a id="send-mail" class="claim-ghost" href="#" data-i18n="sendMail">E-Mail öffnen</a>
         <button id="send-copy" class="claim-ghost" type="button" data-copy="body" data-i18n="sendCopy">E-Mail kopieren</button></div>
@@ -290,7 +291,7 @@
   <a href="/impressum.html#datenschutz-antrag" data-i18n="footerLegal">Impressum &amp; Datenschutz</a> ·
   <a href="mailto:kontakt@delaybahn.com?subject=DelayBahn%20Antrag" data-i18n="footerContact">Kontakt</a>
 </footer>
-<script src="/claim.js?v=64"></script>
+<script src="/claim.js?v=65"></script>
 <script defer src="/nav.js?v=1"></script>
 </body>
 </html>

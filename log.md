@@ -2407,3 +2407,12 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Busters: `claim.js?v=64`, `claim.css?v=33` (63 / 32 before, live and in every worktree). The claim page is not precached, `SHELL_VERSION` unchanged.
 - Verified in headless Chrome against a fixture journey, DE at desktop width and EN at phone width: journey, upload box and Continue shown on load, order number and price hidden; Continue without a ticket asks for it; a non-DB PDF is refused and does not open the way; a real Online-Ticket PDF fills order number and price and reaches step 2; the built packet holds form, delay record and ticket, with 3.3.2 filled; the page without a journey still points to the check; no page errors.
 - Not verified: the photo path and the login round trip after this change; a real phone.
+
+## 2026-11-22 — Easy apply: the send step is shown without a login
+
+- The send step (step 5) shows its four stages to everyone; before, a signed-out visitor saw only a login box. Asked for by the one written complaint about the step (2026-11-20, `claim-5`).
+- "Antrag herunterladen" / "Download the claim" is where the login is asked for: pressed without an account, the login box (`#send-gate`) with the reason in it - "Einfach beantragen ist für Mitglieder kostenlos. Dafür bitten wir dich nur um ein kostenloses DelayBahn-Konto. Dein Antrag bleibt genau so, wie du ihn ausgefüllt hast." / "Easy apply is free for members. All we ask in return is a free DelayBahn account. Your claim stays exactly as you left it." - opens under the button and nothing is downloaded (event `claim-gate`). The login keeps the claim through the same-tab round trip as before.
+- Until the claim has been downloaded - which takes an account - "E-Mail öffnen", "E-Mail kopieren" and the attachment checkbox are inactive (`aria-disabled` on the mail link, `disabled` on the others), so the last page cannot be reached without the download.
+- Busters: `claim.js?v=65`, `claim.css?v=34` (64 / 33 in the commit before, not yet live).
+- Verified in headless Chrome with a stand-in for `/firebase.js`, EN desktop and DE phone signed out, EN desktop signed in: stages visible on entry with the three controls inactive; a signed-out download opens the login box and downloads nothing; signed in, the download starts and the controls come alive; no page errors.
+- Not verified: a real login round trip back to step 5; a real phone.

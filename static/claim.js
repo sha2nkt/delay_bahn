@@ -48,7 +48,7 @@ const I18N = {
     lPlan: "Laut Fahrplan",
     lTrains: "Züge",
     navLogout: "Abmelden",
-    gateLead: "Melde dich an, um den Antrag herunterzuladen. In der Testphase kostenlos.",
+    gateLead: "Einfach beantragen ist für Mitglieder kostenlos. Dafür bitten wir dich nur um ein kostenloses DelayBahn-Konto. Dein Antrag bleibt genau so, wie du ihn ausgefüllt hast.",
     lActual: "Tatsächlich angekommen",
     lTook: "Nächste realistische Verbindung",
     lMissed: "Anschluss verpasst in",
@@ -271,7 +271,7 @@ const I18N = {
     lPlan: "Scheduled",
     lTrains: "Trains",
     navLogout: "Logout",
-    gateLead: "Log in to download your claim. Free during the trial.",
+    gateLead: "Easy apply is free for members. All we ask in return is a free DelayBahn account. Your claim stays exactly as you left it.",
     lActual: "Actually arrived",
     lTook: "Next realistic journey",
     lMissed: "Connection missed at",
@@ -1666,9 +1666,15 @@ function sendStage(to) {
     li.classList.toggle("done", Number(li.dataset.stage) < sendAt);
     li.classList.toggle("current", Number(li.dataset.stage) === sendAt);
   });
+  // nothing to mail or tick off before the claim has been downloaded
+  const held = sendAt < 2;
+  $("send-copy").disabled = held;
+  $("send-attached").disabled = held;
+  $("send-mail").setAttribute("aria-disabled", String(held));
 }
 
 function enterSend() {
+  gateAsked = false;
   renderGate();
   // fetched now, so the picture is there the moment the last page opens
   if (!$("done-art").getAttribute("src")) {
@@ -2006,7 +2012,11 @@ function wire() {
     if (e.key === "ArrowRight") showSheet(viewer.at + 1);
   });
   $("sheet-view").addEventListener("click", (e) => { if (e.target === $("sheet-view")) $("sheet-view").close(); });
-  $("send-download").addEventListener("click", () => { download(); sendStage(2); });
+  $("send-download").addEventListener("click", () => {
+    if (!me) { gateAsked = true; renderGate(); track("claim-gate"); return; }
+    download();
+    sendStage(2);
+  });
   // each part of the email copies on its own; the button at the top copies the message text
   document.querySelectorAll("[data-copy]").forEach((button) => button.addEventListener("click", async () => {
     // the email itself only unfolds for someone who wants to copy it
@@ -2024,7 +2034,11 @@ function wire() {
       sendStage(3);
     } catch (e) { /* the text is on the page and can be selected by hand */ }
   }));
-  $("send-mail").addEventListener("click", () => { track("claim-mail"); sendStage(3); });
+  $("send-mail").addEventListener("click", (e) => {
+    if (sendAt < 2) { e.preventDefault(); return; }
+    track("claim-mail");
+    sendStage(3);
+  });
   $("send-attached").addEventListener("change", () => {
     $("send-done").disabled = !$("send-attached").checked;
     if ($("send-attached").checked) sendStage(4);
@@ -2215,10 +2229,10 @@ function renderAuth() {
   renderGate();
 }
 
-// the claim is handed out to accounts only: without one, the send step shows the way to the login
+// the claim is handed out to accounts only: a download without one shows the way to the login
+let gateAsked = false;
 function renderGate() {
-  $("send-gate").classList.toggle("hidden", !!me);
-  $("send-steps").classList.toggle("hidden", !me);
+  $("send-gate").classList.toggle("hidden", !!me || !gateAsked);
   // a login in the other tab reaches this one through the listener
   if (!me && step === 5) watchAuth();
 }
