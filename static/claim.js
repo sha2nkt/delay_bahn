@@ -37,8 +37,9 @@ const I18N = {
     tripTitle: "Deine Fahrt",
     ticketTitle: "Dein Ticket",
     ticketFormats: "PDF, Screenshot oder Foto (JPG, PNG)",
-    ticketRequired: "Die Deutsche Bahn verlangt das Ticket im Antrag.",
+    ticketRequired: "Die Deutsche Bahn verlangt das Ticket im Antrag. Du kannst es auch später hinzufügen.",
     ticketDrop: "Ticket hochladen oder hierher ziehen",
+    ticketOr: "oder Angaben selbst eintragen",
     ticketReading: "Lese das Ticket …",
     ticketRead: (name) => `Ticket gelesen: ${name}. Die Datei hat dein Gerät nicht verlassen.`,
     ticketPartial: "Wir konnten nicht alles lesen. Bitte ergänze die fehlenden Felder.",
@@ -58,7 +59,6 @@ const I18N = {
     lTicket: "Ticket",
     vActual: (day, time) => `${time} Uhr, ${day}`,
     vLate: (min) => `+${min} min`,
-    needTicket: "Bitte lade dein Ticket hoch. Die Deutsche Bahn verlangt es im Antrag.",
     ticketNotDb: "Das sieht nicht nach einem Ticket der Deutschen Bahn aus. Bitte lade dein DB-Ticket hoch (PDF, JPG oder PNG).",
     ticketInvoice: "Das ist die Rechnung, nicht das Ticket. Bitte lade das Ticket selbst hoch.",
     photoLead: "Anthropics KI-Modell liest dein Foto. Wir speichern nichts.",
@@ -141,7 +141,7 @@ const I18N = {
     fBic: "BIC (optional)",
     keepDetails: "Meine Angaben auf diesem Gerät merken",
     fHolder: "Kontoinhaber",
-    shareOk: "Die Bahn darf meine Daten weitergeben, wenn das für die Bearbeitung nötig ist (z. B. an ein anderes Eisenbahnunternehmen). Empfohlen – so läuft die Bearbeitung reibungsloser.",
+    shareOk: "Die Bahn darf meine Daten weitergeben, wenn das für die Bearbeitung nötig ist (z. B. an ein anderes Eisenbahnunternehmen). Empfohlen für eine reibungslosere Bearbeitung.",
     needIban: "Diese IBAN ist nicht gültig. Bitte prüfe sie.",
     reviewTitle: "Das geht an die Bahn",
     reviewLead: "Tippe ein Dokument an, um es zu vergrößern. Stimmt etwas nicht, geh zurück und ändere es.",
@@ -155,6 +155,8 @@ const I18N = {
     sheetNext: "Nächste Seite",
     sheetRecord: "Verspätungsnachweis",
     sheetTicket: "Ticket",
+    sheetTicketAdd: "Ticket hinzufügen",
+    sheetTicketNeed: "Die Bahn verlangt es im Antrag",
     sheetReceipt: (kind) => `Beleg: ${kind}`,
     sumLine: (total) => `Du beantragst voraussichtlich ${total}*`,
     sumNote: (pct, comp, costs) => `*Schätzung: ${pct ? `${pct} % des Ticketpreises (${comp})` : "keine Entschädigung nach Ticketpreis"}${costs ? ` plus ${costs} zusätzliche Kosten` : ""}.`,
@@ -176,7 +178,7 @@ const I18N = {
     sendTo: "An",
     sendStep3: "Abgeschickt? Dann bist du fertig.",
     sendDone: "Ich habe den Antrag abgeschickt",
-    mailBody: (name, booking) => `Sehr geehrte Damen und Herren,\n\nim Anhang erhalten Sie meinen Antrag auf Entschädigung/Erstattung nach der Verordnung (EU) 2021/782 auf dem einheitlichen EU-Formular, zusammen mit Fahrkarte und Belegen.\n\nAuftragsnummer: ${booking}\n\nMit freundlichen Grüßen\n${name}`,
+    mailBody: (name, booking, withTicket) => `Sehr geehrte Damen und Herren,\n\nim Anhang erhalten Sie meinen Antrag auf Entschädigung/Erstattung nach der Verordnung (EU) 2021/782 auf dem einheitlichen EU-Formular${withTicket ? ", zusammen mit Fahrkarte und Belegen" : ""}.\n\nAuftragsnummer: ${booking}\n\nMit freundlichen Grüßen\n${name}`,
     doneTitle: "Eingereicht.",
     doneAmount: (total) => `Beantragt: ${total}*`,
     doneLead: "Die Bahn antwortet dir per E-Mail und überweist auf dein Konto. Hebe Antrag und Originalbelege auf.",
@@ -260,8 +262,9 @@ const I18N = {
     tripTitle: "Your journey",
     ticketTitle: "Your ticket",
     ticketFormats: "PDF, screenshot or photo (JPG, PNG)",
-    ticketRequired: "Deutsche Bahn requires the ticket with your claim.",
+    ticketRequired: "Deutsche Bahn requires the ticket with your claim. You can also add it later.",
     ticketDrop: "Upload your ticket or drop it here",
+    ticketOr: "or enter the details yourself",
     ticketReading: "Reading the ticket …",
     ticketRead: (name) => `Ticket read: ${name}. The file never left your device.`,
     ticketPartial: "We could not read everything. Please fill in the missing fields.",
@@ -281,7 +284,6 @@ const I18N = {
     lTicket: "Ticket",
     vActual: (day, time) => `${time}, ${day}`,
     vLate: (min) => `+${min} min`,
-    needTicket: "Please upload your ticket. Deutsche Bahn requires it with your claim.",
     ticketNotDb: "This does not look like a Deutsche Bahn ticket. Please upload your DB ticket (PDF, JPG or PNG).",
     ticketInvoice: "This is the invoice, not the ticket. Please upload the ticket itself.",
     photoLead: "Anthropic's AI model reads your photo. We store nothing.",
@@ -364,7 +366,7 @@ const I18N = {
     fBic: "BIC (optional)",
     keepDetails: "Remember my details on this device",
     fHolder: "Account holder",
-    shareOk: "Deutsche Bahn may pass on my data where that is needed to process the claim (e.g. to another railway company). Recommended – it keeps processing smooth.",
+    shareOk: "Deutsche Bahn may share my data where needed to process the claim (e.g. with another railway). Recommended for smoother processing.",
     needIban: "This IBAN is not valid. Please check it.",
     reviewTitle: "This goes to Deutsche Bahn",
     reviewLead: "Tap a document to enlarge it. If something is wrong, go back and change it.",
@@ -378,6 +380,8 @@ const I18N = {
     sheetNext: "Next page",
     sheetRecord: "Delay record",
     sheetTicket: "Ticket",
+    sheetTicketAdd: "Add your ticket",
+    sheetTicketNeed: "Deutsche Bahn requires it",
     sheetReceipt: (kind) => `Receipt: ${kind}`,
     sumLine: (total) => `You are claiming an estimated ${total}*`,
     sumNote: (pct, comp, costs) => `*Estimate: ${pct ? `${pct}% of the ticket price (${comp})` : "no compensation on the ticket price"}${costs ? ` plus ${costs} in extra costs` : ""}.`,
@@ -399,7 +403,7 @@ const I18N = {
     sendTo: "To",
     sendStep3: "Sent? Then you are done.",
     sendDone: "I have sent the claim",
-    mailBody: (name, booking) => `Dear Sir or Madam,\n\nplease find attached my claim for compensation/reimbursement under Regulation (EU) 2021/782 on the common EU form, together with my ticket and receipts.\n\nOrder number: ${booking}\n\nKind regards\n${name}`,
+    mailBody: (name, booking, withTicket) => `Dear Sir or Madam,\n\nplease find attached my claim for compensation/reimbursement under Regulation (EU) 2021/782 on the common EU form${withTicket ? ", together with my ticket and receipts" : ""}.\n\nOrder number: ${booking}\n\nKind regards\n${name}`,
     doneTitle: "Submitted.",
     doneAmount: (total) => `Claimed: ${total}*`,
     doneLead: "Deutsche Bahn replies by email and pays into your bank account. Keep the claim and your original receipts.",
@@ -749,6 +753,7 @@ function refuseTicket(why) {
   $("ticket-drop").querySelector(".claim-drop-main").textContent = t("ticketDrop");
   $("photo-consent").classList.add("hidden");
   setStatus("ticket-status", t(why || "ticketNotDb"), true);
+  askTicketGaps();
   track(why === "ticketInvoice" ? "claim-invoice" : "claim-not-db");
 }
 
@@ -786,9 +791,10 @@ function applyFields(data) {
   renderDelay();
 }
 
-// what the uploaded ticket left open is asked for under it
+// order number and price: typed in without a ticket, asked for when the ticket left them open
 function askTicketGaps() {
-  if (ticket && (!val("f-booking") || !val("f-price"))) $("ticket-fields").classList.remove("hidden");
+  $("ticket-fields").classList.toggle("hidden", !!ticket && !!val("f-booking") && !!val("f-price"));
+  $("ticket-or").classList.toggle("hidden", !!ticket);
 }
 
 /* The gate every upload passes: DB only takes PDF, JPG and PNG, so another
@@ -1154,7 +1160,6 @@ const firstEmpty = (ids) => { const id = ids.find((f) => !val(f)); return id ? {
    still to fill - optionally with a key of its own when it is filled wrongly. */
 function validate(from) {
   if (from === 1) {
-    if (!ticket) return "needTicket";
     const gap = firstEmpty(["f-booking", "f-from", "f-to", "f-date", "f-dep", "f-arr"]);
     if (gap) return gap;
     if (!$("r-delay").checked && !$("r-cancel").checked && !$("r-missed").checked) return "needReason";
@@ -1411,7 +1416,7 @@ function waitingSheets() {
   if (record) labels.push([t("sheetRecord")]);
   if (ticket) labels.push([t("sheetTicket")]);
   costs.forEach((cost) => { if (cost.file) labels.push([t("sheetReceipt", t(cost.kind))]); });
-  $("review-sheets").replaceChildren(...labels.map(([text, stack]) => {
+  const sheets = labels.map(([text, stack]) => {
     const sheet = document.createElement("div");
     sheet.className = "claim-sheet claim-sheet-wait" + (stack ? " claim-sheet-stack" : "");
     const cover = document.createElement("span");
@@ -1421,7 +1426,53 @@ function waitingSheets() {
     label.textContent = text;
     sheet.append(cover, label);
     return sheet;
-  }));
+  });
+  if (!ticket) sheets.splice(record ? 2 : 1, 0, ticketGap());
+  $("review-sheets").replaceChildren(...sheets);
+}
+
+/* No ticket yet: an empty page where it goes, which is itself the picker.
+   DB wants the ticket, so the gap says so; the claim can still go without it. */
+function ticketGap() {
+  const sheet = document.createElement("label");
+  sheet.className = "claim-sheet claim-sheet-gap";
+  const input = document.createElement("input");
+  input.type = "file";
+  input.className = "claim-file";
+  input.accept = "application/pdf,image/jpeg,image/png";
+  input.addEventListener("change", () => lateTicket(input.files[0]));
+  const cover = document.createElement("span");
+  cover.className = "claim-sheet-page";
+  cover.innerHTML = '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+  cover.append(Object.assign(document.createElement("span"), { textContent: t("sheetTicketAdd") }));
+  const label = Object.assign(document.createElement("span"), { className: "claim-sheet-label", textContent: t("sheetTicket") });
+  const need = Object.assign(document.createElement("span"), { className: "claim-sheet-count claim-sheet-need", textContent: t("sheetTicketNeed") });
+  sheet.append(input, cover, label, need);
+  return sheet;
+}
+
+// a ticket added at the review: a PDF is read as in the first step, a photo only attached
+async function lateTicket(file) {
+  if (!file || !checkFile(file, "review-status")) return;
+  if (fileKind(file) === "pdf") {
+    await onTicket(file);
+    // refused: the packet is made again without it, and the review says why
+    if (!ticket) {
+      packet = null;
+      await enterReview(true);
+      setStatus("review-status", $("ticket-status").textContent, true);
+      return;
+    }
+    // a scan is attached unread here, like a photo
+    pendingPhoto = null;
+    $("photo-consent").classList.add("hidden");
+  } else {
+    holdTicket(file);
+    setStatus("ticket-status", "");
+  }
+  packet = null;
+  askTicketGaps();
+  await enterReview(true);
 }
 
 async function renderSheets() {
@@ -1456,6 +1507,7 @@ async function renderSheets() {
     });
     sheets.push(sheet);
   });
+  if (!ticket) sheets.splice(record ? 2 : 1, 0, ticketGap());
   $("review-sheets").replaceChildren(...sheets);
 }
 
@@ -1558,7 +1610,7 @@ function enterSend() {
   sendAt = 1;
   $("send-address").textContent = DB_ADDRESS;
   $("send-subject").textContent = DB_SUBJECT;
-  const body = t("mailBody", `${val("f-first")} ${val("f-last")}`, val("f-booking"));
+  const body = t("mailBody", `${val("f-first")} ${val("f-last")}`, val("f-booking"), !!ticket);
   $("send-body").textContent = body;
   $("send-attached").checked = false;
   $("send-done").disabled = true;
@@ -1743,7 +1795,7 @@ function go(to) {
         if (s !== step) show(s);
         // the complaint is about something folded away: bring it into view
         if (problem.field === "f-booking") $("ticket-fields").classList.remove("hidden");
-        else if (s === 1 && problem !== "needTicket") $("journey-edit").open = true;
+        else if (s === 1) $("journey-edit").open = true;
         setStatus(`step${s}-error`, complain(problem), true);
         return;
       }

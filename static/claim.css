@@ -111,6 +111,9 @@
 .claim-drop-main { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
 .claim-drop-sub { font-size: 12.5px; color: var(--text-muted); }
 .claim-drop:focus-within { outline: 2px solid var(--text); outline-offset: 2px; }
+/* "or": a word on a rule between the upload and the typed-in fields */
+.claim-or { display: flex; align-items: center; gap: 12px; margin-top: 18px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.claim-or::before, .claim-or::after { content: ""; flex: 1; border-top: 1px solid var(--gray-border); }
 /* the picker is reached through its label; the input stays focusable */
 .claim-file { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
 
@@ -214,6 +217,15 @@
 .claim-sheet-label, .claim-sheet-count { margin-right: 6px; text-align: center; overflow-wrap: anywhere; }
 .claim-sheet-label { margin-top: 8px; font-size: 12.5px; font-weight: 600; line-height: 1.3; color: var(--text); }
 .claim-sheet-count { margin-top: 1px; font-size: 11.5px; line-height: 1.3; color: var(--text-muted); }
+/* the ticket not yet added: an empty dashed page that opens the picker */
+.claim-sheet-gap { cursor: pointer; }
+.claim-sheet-gap .claim-sheet-page {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 8px;
+  border: 2px dashed var(--brand-red); box-shadow: none; color: var(--brand-red-dark);
+  font-size: 12.5px; font-weight: 600; line-height: 1.3; text-align: center;
+}
+.claim-sheet-gap:focus-within .claim-sheet-page { outline: 2px solid var(--text); outline-offset: 2px; }
+.claim-sheet-need { color: var(--brand-red-dark); }
 .claim-sum { margin-top: 18px; display: flex; flex-direction: column; gap: 4px; }
 .claim-sum strong { font-size: 17px; }
 .claim-sum span { font-size: 12.5px; line-height: 1.45; color: var(--text-muted); }

@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex, follow">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="/style.css?v=148">
-<link rel="stylesheet" href="/claim.css?v=34">
+<link rel="stylesheet" href="/claim.css?v=36">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body class="claim-page">
@@ -118,8 +118,9 @@
       </div>
     </div>
 
-    <!-- only shown when the uploaded ticket did not give them -->
-    <div id="ticket-fields" class="claim-grid hidden">
+    <!-- typed in without a ticket; hidden once an uploaded ticket gave both -->
+    <p id="ticket-or" class="claim-or" data-i18n="ticketOr">oder Angaben selbst eintragen</p>
+    <div id="ticket-fields" class="claim-grid">
       <label class="claim-field span2 req"><span data-i18n="fBooking">Auftragsnummer</span><input id="f-booking" type="text" inputmode="numeric" autocomplete="off"></label>
       <label class="claim-field"><span data-i18n="fPrice">Ticketpreis (€)</span><input id="f-price" type="text" inputmode="decimal" autocomplete="off"></label>
     </div>
@@ -194,7 +195,7 @@
     <p id="review-amount" class="claim-sum"></p>
     <!-- the two declarations: the first is on by default and changes the form when taken off -->
     <div class="claim-checklist">
-      <label class="claim-check"><input id="share-ok" type="checkbox" checked><span data-i18n="shareOk">Die Bahn darf meine Daten weitergeben, wenn das für die Bearbeitung nötig ist (z. B. an ein anderes Eisenbahnunternehmen). Empfohlen – so läuft die Bearbeitung reibungsloser.</span></label>
+      <label class="claim-check"><input id="share-ok" type="checkbox" checked><span data-i18n="shareOk">Die Bahn darf meine Daten weitergeben, wenn das für die Bearbeitung nötig ist (z. B. an ein anderes Eisenbahnunternehmen). Empfohlen für eine reibungslosere Bearbeitung.</span></label>
       <label class="claim-check"><input id="review-ok" type="checkbox"><span data-i18n="reviewOk">Ich habe alle Angaben geprüft, sie sind richtig. DelayBahn ist nur eine Ausfüllhilfe und übernimmt keine Verantwortung für den Antrag oder die Entscheidung der Bahn.</span></label>
     </div>
     <div class="claim-actions">
@@ -292,7 +293,7 @@
   <a href="mailto:kontakt@delaybahn.com?subject=DelayBahn%20Antrag" data-i18n="footerContact">Kontakt</a>
 </footer>
 <script src="/ticket-read.js?v=1"></script>
-<script src="/claim.js?v=67"></script>
+<script src="/claim.js?v=69"></script>
 <script defer src="/nav.js?v=1"></script>
 </body>
 </html>
