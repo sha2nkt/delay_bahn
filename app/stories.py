@@ -13,6 +13,7 @@ the only trace of one here is the opaque Firebase uid on its votes and taps
 per-IP throttles live in memory.
 """
 
+import base64
 import logging
 import os
 import sqlite3
@@ -650,6 +651,14 @@ def forget_account(uid: str, name: str | None) -> None:
 _warned_no_topic = False
 
 
+def _header(value: str) -> str:
+    """A header value ntfy reads back as written: HTTP headers are ASCII, so a
+    station name with an umlaut or the arrow between two goes as RFC 2047."""
+    if value.isascii():
+        return value
+    return "=?UTF-8?B?" + base64.b64encode(value.encode("utf-8")).decode("ascii") + "?="
+
+
 async def notify(title: str, body: str) -> None:
     """Push a new post to ntfy so moderation-worthy content is seen the moment
     it lands. Never raises and stays a no-op when NTFY_TOPIC is unset - same
@@ -666,7 +675,7 @@ async def notify(title: str, body: str) -> None:
         resp = await _ntfy.post(
             f"{base}/{topic}",
             content=body.encode("utf-8"),
-            headers={"Title": title, "Tags": "speech_balloon"},
+            headers={"Title": _header(title), "Tags": "speech_balloon"},
         )
         resp.raise_for_status()
     except httpx.HTTPError as exc:

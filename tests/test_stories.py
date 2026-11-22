@@ -511,3 +511,30 @@ def test_my_reports_come_back_in_board_order():
 def test_an_unknown_tile_cannot_be_tapped():
     assert tap(user("Max"), "teleported") is None
     assert stories.count_problems("all") == dict.fromkeys(stories.PROBLEMS, 0)
+
+
+def test_a_push_title_with_an_umlaut_or_arrow_is_sent_as_ascii():
+    import asyncio
+
+    import httpx
+
+    seen = []
+
+    def handler(request):
+        seen.append(request.headers["Title"])
+        return httpx.Response(200)
+
+    old, stories._ntfy = stories._ntfy, httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    os_topic = stories.os.environ.get("NTFY_TOPIC")
+    stories.os.environ["NTFY_TOPIC"] = "test-topic"
+    try:
+        asyncio.run(stories.notify("DelayBahn story: München Hbf → Köln Hbf (Max)", "text"))
+        asyncio.run(stories.notify("DelayBahn comment on story #3 (Max)", "text"))
+    finally:
+        stories._ntfy = old
+        if os_topic is None:
+            del stories.os.environ["NTFY_TOPIC"]
+        else:
+            stories.os.environ["NTFY_TOPIC"] = os_topic
+    assert seen[0].isascii() and seen[0].startswith("=?UTF-8?B?")
+    assert seen[1] == "DelayBahn comment on story #3 (Max)"

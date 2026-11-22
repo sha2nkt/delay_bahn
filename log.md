@@ -2394,3 +2394,9 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Verified: Easy apply in headless Chrome against fixture journeys served from the worktree's `static/` (missed connection with onward legs, plain delay, cancellation, arrival cancelled with no flagged leg, refund ticked, corrected field, untracked leg, DE and EN, wide and narrow). The test suite passes (346). Not verified before the deploy: the search card's struck times in the running app, and `departureOnDate` against real delay data.
 - Tried and undone on the way: a shared-column grid for the leg rows (aligned arrows, two lines a train on narrow screens); the user saw no difference and asked for it back out.
 - Not changed: My trips draws the same leg rows and still shows planned times only. A leg with no delay record gets no badge in Easy apply, where the search card shows a grey "no data".
+
+## 2026-11-22 — Delay Stories: pushes with an umlaut or arrow in the title went missing
+
+- `stories.notify` put the title into an HTTP header as written; httpx refuses anything outside ASCII, the `UnicodeEncodeError` is not an `httpx.HTTPError`, so the task died and the push never left. Every new story with a destination carries "→" in its title, and names like "München" fail on their own: seen in the journal on 2026-11-08 and 2026-11-18.
+- Fix: a non-ASCII title goes as RFC 2047 (`_header`, `=?UTF-8?B?…?=`), which ntfy decodes. Checked against ntfy.sh: the stored title reads "München Hbf → Köln Hbf". Feedback pushes were never affected, their titles are ASCII.
+- Test added in `tests/test_stories.py`; 347 pass.
