@@ -2430,3 +2430,16 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Cost: a real outage pages about two minutes later than before.
 - Verified with `DRY_RUN=1` against a local stand-in server and a throwaway `HOME`: four failures then healthy stays silent; failing throughout pages DOWN once, the next healthy run pages recovered; a dry run against the live site reads `/health` and runs the other three checks as before.
 - Installed on ps083 (`~/.local/bin/delaybahn-watchdog.sh`); the systemd OnFailure alerts on hetzner3 are untouched.
+
+## 2026-11-22 — Watchdog: restart-aware, so a real outage pages on the old timing
+
+- The 150 s wait of the entry above delayed every DOWN page by two minutes. Now the check retries once after 30 s as it always did, and only then asks the server over ssh for the `delaybahn` unit's state and how long it has been active (`service_state`): active for less than `RESTART_GRACE` (180 s), or mid stop/start, is a restart and gets the long wait (five tries in all, 150 s); up for longer, failed, stopped, or no answer over ssh pages at once. The alert names which of these it was.
+- A page that ntfy did not take no longer counts as sent: "down" is recorded only after the DOWN page has gone out, so the next run pages again. Before, a failed send recorded "down" and the outage was never paged.
+- Test hooks: `SERVICE_STATE` (stands in for the ssh), `SERVICE_UNIT`, `NTFY_URL`, `ALERT_PREFIX`.
+- Verified, all with a stand-in for `/health`:
+  - 18 cases with `SERVICE_STATE`: healthy, a blip and three kinds of restart that come back stay silent; every case that stays down pages - restart never returning, crash loop, age at and around the grace, hung app, failed, stopped, dead ssh, and five malformed ssh answers (missing, non-numeric or negative age, banner text, extra words).
+  - The real ssh query against throwaway systemd units on hetzner3 in each state (running and young, `activating/start`, `activating/auto-restart`, failed, nonexistent) and against `delaybahn` itself; units removed afterwards.
+  - A restart with the real timings (502 for 95 s, unit started at the same moment), the watchdog started 0, 30, 60 and 90 s into it: silent each time. The same with a restart that never completes: paged after 150 s.
+  - A page that cannot be sent: state left alone, paged on the next run, no second page while still down.
+  - One real page through ntfy.sh with a `[TEST]` title, DOWN at priority 5 and the recovery after it, read back from the topic.
+  - Worst case, every request timing out with the long wait: 270 s, under the cron period.

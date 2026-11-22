@@ -5,13 +5,17 @@
 # failures alike. curl -4 because ps083 advertises broken IPv6.
 #
 # Three independent checks:
-#   1. DOWN: /health unreachable / non-200, and still so after
-#      DOWN_RETRIES more tries DOWN_RETRY_SECONDS apart. A restart (deploy or
-#      the daily pipeline) answers 502 for about 95 s while the timetables are
-#      restored; the single 30 s retry this had paged on every restart the
-#      cron happened to land in. The span has to outlast that, and the whole
-#      run has to stay under the 5-min cron period (6 tries of at most 20 s
-#      plus 150 s of waiting).
+#   1. DOWN: /health unreachable / non-200, and still so on a retry
+#      DOWN_RETRY_SECONDS later. A restart (deploy or the daily pipeline) also
+#      answers 502, for about 95 s while the timetables are restored, and used
+#      to page every time the cron landed in it. So before paging, the server
+#      is asked over ssh how long the delaybahn unit has been up: started less
+#      than RESTART_GRACE seconds ago (or mid stop/start) is a restart, and the
+#      check keeps retrying, DOWN_RETRIES tries in all, until it answers.
+#      Anything else - up for longer and still failing, failed, stopped, or no
+#      answer over ssh - pages at once, on the old 30 s timing. The whole run
+#      stays under the 5-min cron period (6 tries of at most 20 s, 150 s of
+#      waiting, 12 s for the ssh).
 #   2. UPSTREAM BLOCKED: bahn.de (Akamai) hard-blocking the server IP, detected
 #      from /health's own counters: upstream_403 rising while upstream_200 stays
 #      flat. During the 2026-08-19 OPS_BLOCKED incident the app stayed healthy
@@ -66,7 +70,12 @@ EMPTY_WINDOWS=${EMPTY_WINDOWS:-4}
 BLOCK_REMIND_SECONDS=${BLOCK_REMIND_SECONDS:-600}
 DOWN_RETRIES=${DOWN_RETRIES:-5}
 DOWN_RETRY_SECONDS=${DOWN_RETRY_SECONDS:-30}
+RESTART_GRACE=${RESTART_GRACE:-180}
 HEALTH_URL=${HEALTH_URL:-https://delaybahn.com/health}
+# for tests: another unit to ask about, another ntfy server, a marker in the title
+SERVICE_UNIT=${SERVICE_UNIT:-delaybahn}
+NTFY_URL=${NTFY_URL:-https://ntfy.sh}
+ALERT_PREFIX=${ALERT_PREFIX:-}
 # ssh alias, resolved in ~/.ssh/config — the origin IP is deliberately not
 # recorded here: delaybahn.com is fronted by a Cloudflare tunnel, and naming
 # the origin in a public repo would hand out a way around it
@@ -83,8 +92,9 @@ notify() {  # $1 title, $2 priority, $3 tags, $4 body
     echo "delaybahn-watchdog: no ntfy topic configured (~/.config/delaybahn/ntfy-topic or NTFY_TOPIC); DROPPED alert: $1 :: $4" >&2
     exit 78   # EX_CONFIG
   else
-    curl -4 -s -m 10 -d "$4" -H "Title: $1" -H "Priority: $2" -H "Tags: $3" \
-      "https://ntfy.sh/$TOPIC" >/dev/null
+    # -f: a page ntfy refused counts as not sent, so the caller can try again
+    curl -4 -s -f -m 10 -d "$4" -H "Title: $ALERT_PREFIX$1" -H "Priority: $2" -H "Tags: $3" \
+      "$NTFY_URL/$TOPIC" >/dev/null
   fi
 }
 
@@ -99,14 +109,43 @@ else
     code=${out##*$'\n'}
     body=${out%$'\n'*}
   }
+  # "<ActiveState> <seconds since the unit became active>", empty when the
+  # server does not answer; SERVICE_STATE stands in for the ssh in tests
+  service_state() {
+    if [ -n "${SERVICE_STATE+x}" ]; then echo "$SERVICE_STATE"; return; fi
+    timeout 12 ssh -o BatchMode=yes -o ConnectTimeout=8 "root@$SERVER" \
+      "u=$SERVICE_UNIT;"' s=$(systemctl show "$u" -p ActiveState --value); t=$(systemctl show "$u" -p ActiveEnterTimestampMonotonic --value); echo "$s $(( $(cut -d. -f1 /proc/uptime) - t / 1000000 ))"' 2>/dev/null
+  }
   probe
-  # ride out a restart, and transient network/DNS flakes on this box
-  tries=0
-  while [ "$code" != "200" ] && [ "$tries" -lt "$DOWN_RETRIES" ]; do
+  # one retry rides out transient network/DNS flakes on this box
+  why=""; restarting=""
+  if [ "$code" != "200" ]; then
     sleep "$DOWN_RETRY_SECONDS"
-    tries=$((tries + 1))
     probe
-  done
+  fi
+  if [ "$code" != "200" ]; then
+    read -r unit age <<<"$(service_state)"
+    case "$unit" in
+      activating|deactivating|reloading) restarting=1 ;;
+      # an age that is not a plain number is no evidence of a restart
+      active) case "$age" in ''|*[!0-9]*) ;; *) [ "$age" -lt "$RESTART_GRACE" ] && restarting=1 ;; esac ;;
+    esac
+    if [ -n "$restarting" ]; then
+      tries=1
+      while [ "$code" != "200" ] && [ "$tries" -lt "$DOWN_RETRIES" ]; do
+        sleep "$DOWN_RETRY_SECONDS"
+        tries=$((tries + 1))
+        probe
+      done
+      why="the service was restarted and has not come back after $((DOWN_RETRIES * DOWN_RETRY_SECONDS)) s"
+    elif [ -z "$unit" ]; then
+      why="the server does not answer over ssh either"
+    elif [ "$unit" = "active" ]; then
+      why="the service has been running for ${age} s, so this is not a restart"
+    else
+      why="the service is $unit"
+    fi
+  fi
 fi
 
 # ---------------------------------------------------------------- check 1: down
@@ -118,11 +157,14 @@ if [ "$code" = "200" ]; then
   fi
   echo up > "$STATE"
 else
-  if [ "$prev" != "down" ]; then
-    notify "delaybahn.com DOWN" urgent rotating_light \
-      "delaybahn.com health check has failed for $((DOWN_RETRIES * DOWN_RETRY_SECONDS)) s (HTTP $code), longer than a restart takes. Check: ssh $SERVER 'systemctl status delaybahn cloudflared-delaybahn'"
+  # "down" is only recorded once the page has gone out: a page ntfy did not
+  # take leaves the state as it was, and the next run pages again
+  if [ "$prev" = "down" ] || notify "delaybahn.com DOWN" urgent rotating_light \
+      "delaybahn.com health check failed (HTTP $code): ${why:-no detail}. Check: ssh $SERVER 'systemctl status delaybahn cloudflared-delaybahn'"; then
+    echo down > "$STATE"
+  else
+    echo "delaybahn-watchdog: the DOWN page could not be sent; retrying on the next run" >&2
   fi
-  echo down > "$STATE"
   exit 0   # counters unavailable; nothing for check 2 to do
 fi
 
