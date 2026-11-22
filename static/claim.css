@@ -98,6 +98,9 @@
 .claim-edit summary:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
 /* --- the ticket drop --- */
+/* the journey opens the card now: its heading is rule enough */
+.claim-card h2 + .claim-trip { margin-top: 14px; padding-top: 0; border-top: 0; }
+.claim-card h3.claim-ticket-title { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--gray-border); }
 .claim-drop {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   margin-top: 16px; padding: 26px 16px; text-align: center; cursor: pointer;

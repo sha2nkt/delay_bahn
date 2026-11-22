@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex, follow">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="stylesheet" href="/style.css?v=147">
-<link rel="stylesheet" href="/claim.css?v=32">
+<link rel="stylesheet" href="/claim.css?v=33">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body class="claim-page">
@@ -56,14 +56,54 @@
     <li class="claim-stop" data-step="5"><button type="button" class="claim-stop-btn"><span class="claim-stop-dot"></span><span class="claim-stop-name" data-i18n="stopSend">Senden</span></button></li>
   </ol>
 
-  <!-- 1: the ticket, and what happened on the day -->
+  <!-- 1: the journey as checked, then the ticket: uploaded or typed in -->
   <section class="claim-card" data-panel="1">
-    <h2 data-i18n="ticketTitle">Lade dein Ticket hoch</h2>
+    <h2 data-i18n="tripTitle">Deine Fahrt</h2>
+    <!-- what is already known: the journey picked and what DelayBahn recorded for it -->
+    <div id="trip-summary" class="claim-trip hidden">
+      <div class="claim-trip-head"><p id="trip-route" class="claim-trip-route"></p><span id="trip-late" class="claim-trip-late"></span></div>
+      <p id="trip-times" class="claim-trip-times"></p>
+      <div id="trip-legs" class="legs claim-trip-legs"></div>
+      <dl id="trip-facts" class="claim-facts"></dl>
+      <p id="delay-line" class="claim-delay" aria-live="polite"></p>
+      <label class="claim-check"><input id="r-refund" type="checkbox"><span data-i18n="rRefund">Ich habe die Fahrt wegen der Verspätung oder des Ausfalls nicht gemacht oder abgebrochen: Ticketpreis erstatten statt Entschädigung.</span></label>
+    </div>
+    <!-- everything the trip and DelayBahn's data already answered: folded away, open to correction -->
+    <details id="journey-edit" class="claim-edit">
+      <summary data-i18n="editTitle">Angaben korrigieren</summary>
+      <h3 data-i18n="plannedTitle">Geplante Fahrt</h3>
+      <div class="claim-grid">
+        <label class="claim-field span3"><span data-i18n="fOperator">Eisenbahnunternehmen</span><input id="f-operator" type="text" value="Deutsche Bahn"></label>
+        <label class="claim-field span3 req"><span data-i18n="fFrom">Abfahrtsbahnhof</span><input id="f-from" type="text"></label>
+        <label class="claim-field span3 req"><span data-i18n="fTo">Zielbahnhof</span><input id="f-to" type="text"></label>
+        <label class="claim-field req"><span data-i18n="fDate">Reisetag</span><input id="f-date" type="date"></label>
+        <label class="claim-field req"><span data-i18n="fDep">Abfahrt laut Plan</span><input id="f-dep" type="time"></label>
+        <label class="claim-field req"><span data-i18n="fArr">Ankunft laut Plan</span><input id="f-arr" type="time"></label>
+        <label class="claim-field span3"><span data-i18n="fTrains">Züge laut Ticket</span><input id="f-trains" type="text" placeholder="ICE 990, MEX12"></label>
+      </div>
+      <h3 data-i18n="actualTitle">Was ist passiert?</h3>
+      <div class="claim-reasons">
+        <label class="claim-check"><input id="r-delay" type="checkbox"><span data-i18n="rDelay">Verspätung</span></label>
+        <label class="claim-check"><input id="r-cancel" type="checkbox"><span data-i18n="rCancel">Zug ausgefallen</span></label>
+        <label class="claim-check"><input id="r-missed" type="checkbox"><span data-i18n="rMissed">Anschluss verpasst</span></label>
+      </div>
+      <div id="actual-fields" class="claim-grid">
+        <label class="claim-field req"><span data-i18n="fActDate">Tatsächlicher Ankunftstag</span><input id="f-act-date" type="date"></label>
+        <label class="claim-field req"><span data-i18n="fActArr">Tatsächliche Ankunft</span><input id="f-act-arr" type="time"></label>
+        <label class="claim-field"><span data-i18n="fActDep">Tatsächliche Abfahrt</span><input id="f-act-dep" type="time"></label>
+        <label class="claim-field span3"><span data-i18n="fActTrains">Züge, mit denen du gefahren bist</span><input id="f-act-trains" type="text"></label>
+      </div>
+      <div class="claim-grid">
+        <label id="missed-field" class="claim-field span3 hidden"><span data-i18n="fMissedAt">Anschluss verpasst in</span><input id="f-missed-at" type="text"></label>
+      </div>
+    </details>
+
+    <h3 class="claim-ticket-title" data-i18n="ticketTitle">Dein Ticket</h3>
     <label id="ticket-drop" class="claim-drop" for="ticket-file">
       <input id="ticket-file" class="claim-file" type="file" accept="application/pdf,image/jpeg,image/png">
-      <span class="claim-drop-main" data-i18n="ticketDrop">Ticket auswählen oder hierher ziehen</span>
-      <span class="claim-drop-sub" data-i18n="formats">PDF, JPG oder PNG</span>
-      <span class="claim-drop-sub" data-i18n="ticketPrivate">Ein PDF-Ticket verlässt dein Gerät nie.</span>
+      <span class="claim-drop-main" data-i18n="ticketDrop">Ticket hochladen oder hierher ziehen</span>
+      <span class="claim-drop-sub" data-i18n="ticketFormats">PDF, Screenshot oder Foto (JPG, PNG)</span>
+      <span class="claim-drop-sub" data-i18n="ticketRequired">Die Deutsche Bahn verlangt das Ticket im Antrag.</span>
     </label>
     <p id="ticket-status" class="claim-status" aria-live="polite"></p>
 
@@ -78,56 +118,14 @@
       </div>
     </div>
 
-    <!-- what is already known: the journey picked and what DelayBahn recorded for it -->
-    <div id="trip-summary" class="claim-trip hidden">
-      <div class="claim-trip-head"><p id="trip-route" class="claim-trip-route"></p><span id="trip-late" class="claim-trip-late"></span></div>
-      <p id="trip-times" class="claim-trip-times"></p>
-      <div id="trip-legs" class="legs claim-trip-legs"></div>
-      <dl id="trip-facts" class="claim-facts"></dl>
-      <p id="delay-line" class="claim-delay" aria-live="polite"></p>
-      <label class="claim-check"><input id="r-refund" type="checkbox"><span data-i18n="rRefund">Ich habe die Fahrt wegen der Verspätung oder des Ausfalls nicht gemacht oder abgebrochen: Ticketpreis erstatten statt Entschädigung.</span></label>
-    </div>
-    <div id="journey-fields" class="hidden">
-      <!-- only shown when the ticket did not give them -->
-      <div id="ticket-fields" class="claim-grid hidden">
-        <label class="claim-field span2 req"><span data-i18n="fBooking">Auftragsnummer</span><input id="f-booking" type="text" inputmode="numeric" autocomplete="off"></label>
-        <label class="claim-field"><span data-i18n="fPrice">Ticketpreis (€)</span><input id="f-price" type="text" inputmode="decimal" autocomplete="off"></label>
-      </div>
-
-      <!-- everything the trip and DelayBahn's data already answered: folded away, open to correction -->
-      <details id="journey-edit" class="claim-edit">
-        <summary data-i18n="editTitle">Angaben korrigieren</summary>
-        <h3 data-i18n="plannedTitle">Geplante Fahrt</h3>
-        <div class="claim-grid">
-          <label class="claim-field span3"><span data-i18n="fOperator">Eisenbahnunternehmen</span><input id="f-operator" type="text" value="Deutsche Bahn"></label>
-          <label class="claim-field span3 req"><span data-i18n="fFrom">Abfahrtsbahnhof</span><input id="f-from" type="text"></label>
-          <label class="claim-field span3 req"><span data-i18n="fTo">Zielbahnhof</span><input id="f-to" type="text"></label>
-          <label class="claim-field req"><span data-i18n="fDate">Reisetag</span><input id="f-date" type="date"></label>
-          <label class="claim-field req"><span data-i18n="fDep">Abfahrt laut Plan</span><input id="f-dep" type="time"></label>
-          <label class="claim-field req"><span data-i18n="fArr">Ankunft laut Plan</span><input id="f-arr" type="time"></label>
-          <label class="claim-field span3"><span data-i18n="fTrains">Züge laut Ticket</span><input id="f-trains" type="text" placeholder="ICE 990, MEX12"></label>
-        </div>
-        <h3 data-i18n="actualTitle">Was ist passiert?</h3>
-        <div class="claim-reasons">
-          <label class="claim-check"><input id="r-delay" type="checkbox"><span data-i18n="rDelay">Verspätung</span></label>
-          <label class="claim-check"><input id="r-cancel" type="checkbox"><span data-i18n="rCancel">Zug ausgefallen</span></label>
-          <label class="claim-check"><input id="r-missed" type="checkbox"><span data-i18n="rMissed">Anschluss verpasst</span></label>
-        </div>
-        <div id="actual-fields" class="claim-grid">
-          <label class="claim-field req"><span data-i18n="fActDate">Tatsächlicher Ankunftstag</span><input id="f-act-date" type="date"></label>
-          <label class="claim-field req"><span data-i18n="fActArr">Tatsächliche Ankunft</span><input id="f-act-arr" type="time"></label>
-          <label class="claim-field"><span data-i18n="fActDep">Tatsächliche Abfahrt</span><input id="f-act-dep" type="time"></label>
-          <label class="claim-field span3"><span data-i18n="fActTrains">Züge, mit denen du gefahren bist</span><input id="f-act-trains" type="text"></label>
-        </div>
-        <div class="claim-grid">
-          <label id="missed-field" class="claim-field span3 hidden"><span data-i18n="fMissedAt">Anschluss verpasst in</span><input id="f-missed-at" type="text"></label>
-        </div>
-      </details>
+    <!-- only shown when the uploaded ticket did not give them -->
+    <div id="ticket-fields" class="claim-grid hidden">
+      <label class="claim-field span2 req"><span data-i18n="fBooking">Auftragsnummer</span><input id="f-booking" type="text" inputmode="numeric" autocomplete="off"></label>
+      <label class="claim-field"><span data-i18n="fPrice">Ticketpreis (€)</span><input id="f-price" type="text" inputmode="decimal" autocomplete="off"></label>
     </div>
     <p id="step1-error" class="claim-error" aria-live="polite"></p>
     <div class="claim-actions">
-      <button id="ticket-manual" class="claim-ghost" type="button" data-i18n="ticketManual">Ohne Ticket-Upload ausfüllen</button>
-      <button class="report-submit claim-next hidden" id="next-1" type="button" data-next="2" data-i18n="next">Weiter</button>
+      <button class="report-submit claim-next" id="next-1" type="button" data-next="2" data-i18n="next">Weiter</button>
     </div>
   </section>
 
@@ -292,7 +290,7 @@
   <a href="/impressum.html#datenschutz-antrag" data-i18n="footerLegal">Impressum &amp; Datenschutz</a> ·
   <a href="mailto:kontakt@delaybahn.com?subject=DelayBahn%20Antrag" data-i18n="footerContact">Kontakt</a>
 </footer>
-<script src="/claim.js?v=63"></script>
+<script src="/claim.js?v=64"></script>
 <script defer src="/nav.js?v=1"></script>
 </body>
 </html>

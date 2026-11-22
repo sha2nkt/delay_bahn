@@ -34,10 +34,11 @@ const I18N = {
     formats: "PDF, JPG oder PNG",
     badFormat: "Dieses Dateiformat nimmt die Bahn nicht an. Bitte lade ein PDF, JPG oder PNG hoch.",
     tooBig: "Die Datei ist zu groß (höchstens 10 MB).",
-    ticketTitle: "Lade dein Ticket hoch",
-    ticketPrivate: "Ein PDF-Ticket verlässt dein Gerät nie.",
-    ticketDrop: "Ticket auswählen oder hierher ziehen",
-    ticketManual: "Ohne Ticket-Upload ausfüllen",
+    tripTitle: "Deine Fahrt",
+    ticketTitle: "Dein Ticket",
+    ticketFormats: "PDF, Screenshot oder Foto (JPG, PNG)",
+    ticketRequired: "Die Deutsche Bahn verlangt das Ticket im Antrag.",
+    ticketDrop: "Ticket hochladen oder hierher ziehen",
     ticketReading: "Lese das Ticket …",
     ticketRead: (name) => `Ticket gelesen: ${name}. Die Datei hat dein Gerät nicht verlassen.`,
     ticketPartial: "Wir konnten nicht alles lesen. Bitte ergänze die fehlenden Felder.",
@@ -57,7 +58,7 @@ const I18N = {
     lTicket: "Ticket",
     vActual: (day, time) => `${time} Uhr, ${day}`,
     vLate: (min) => `+${min} min`,
-    needTicket: "Bitte lade dein Ticket hoch oder trage die Auftragsnummer ein.",
+    needTicket: "Bitte lade dein Ticket hoch. Die Deutsche Bahn verlangt es im Antrag.",
     ticketNotDb: "Das sieht nicht nach einem Ticket der Deutschen Bahn aus. Bitte lade dein DB-Ticket hoch (PDF, JPG oder PNG).",
     ticketInvoice: "Das ist die Rechnung, nicht das Ticket. Bitte lade das Ticket selbst hoch.",
     photoLead: "Anthropics KI-Modell liest dein Foto. Wir speichern nichts.",
@@ -209,6 +210,7 @@ const I18N = {
     recColTrain: "Zug",
     recColDep: "Abfahrt laut Fahrplan",
     recColArr: "Ankunft laut Fahrplan",
+    recColDepReal: "Tatsächliche Abfahrt",
     recColArrReal: "Tatsächliche Ankunft",
     recColStatus: "Am Reisetag",
     recColDelay: "Verspätung",
@@ -255,10 +257,11 @@ const I18N = {
     formats: "PDF, JPG or PNG",
     badFormat: "Deutsche Bahn does not accept this file format. Please upload a PDF, JPG or PNG.",
     tooBig: "The file is too large (10 MB at most).",
-    ticketTitle: "Upload your ticket",
-    ticketPrivate: "A PDF ticket never leaves your device.",
-    ticketDrop: "Choose your ticket or drop it here",
-    ticketManual: "Fill in without uploading a ticket",
+    tripTitle: "Your journey",
+    ticketTitle: "Your ticket",
+    ticketFormats: "PDF, screenshot or photo (JPG, PNG)",
+    ticketRequired: "Deutsche Bahn requires the ticket with your claim.",
+    ticketDrop: "Upload your ticket or drop it here",
     ticketReading: "Reading the ticket …",
     ticketRead: (name) => `Ticket read: ${name}. The file never left your device.`,
     ticketPartial: "We could not read everything. Please fill in the missing fields.",
@@ -278,7 +281,7 @@ const I18N = {
     lTicket: "Ticket",
     vActual: (day, time) => `${time}, ${day}`,
     vLate: (min) => `+${min} min`,
-    needTicket: "Please upload your ticket or enter the order number.",
+    needTicket: "Please upload your ticket. Deutsche Bahn requires it with your claim.",
     ticketNotDb: "This does not look like a Deutsche Bahn ticket. Please upload your DB ticket (PDF, JPG or PNG).",
     ticketInvoice: "This is the invoice, not the ticket. Please upload the ticket itself.",
     photoLead: "Anthropic's AI model reads your photo. We store nothing.",
@@ -430,6 +433,7 @@ const I18N = {
     recColTrain: "Train",
     recColDep: "Scheduled departure",
     recColArr: "Scheduled arrival",
+    recColDepReal: "Actual departure",
     recColArrReal: "Actual arrival",
     recColStatus: "On the day",
     recColDelay: "Delay",
@@ -620,7 +624,7 @@ const fmtDay = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString(
 /* The journey as the page knows it, in a few lines instead of a form: the
    fields behind it stay folded away under "correct the details". */
 function renderTrip() {
-  const filled = ticketDealt && val("f-from") && val("f-to") && val("f-date");
+  const filled = val("f-from") && val("f-to") && val("f-date");
   $("trip-summary").classList.toggle("hidden", !filled);
   if (!filled) return;
   $("trip-route").textContent = `${val("f-from")} → ${val("f-to")}`;
@@ -893,21 +897,9 @@ function applyFields(data) {
   renderDelay();
 }
 
-// the first step opens with the upload alone: the journey and the way on follow the ticket
-let ticketDealt = false;
-function showFields() {
-  if (!ticketDealt) return;
-  $("journey-fields").classList.remove("hidden");
-  $("next-1").classList.remove("hidden");
-}
-
-// the ticket has been dealt with, read or not: ask only for what it left open
-function ticketDone() {
-  ticketDealt = true;
-  showFields();
-  $("ticket-manual").classList.add("hidden");
-  if (!val("f-booking") || !val("f-price")) $("ticket-fields").classList.remove("hidden");
-  renderDelay();
+// what the uploaded ticket left open is asked for under it
+function askTicketGaps() {
+  if (ticket && (!val("f-booking") || !val("f-price"))) $("ticket-fields").classList.remove("hidden");
 }
 
 function fileKind(file) {
@@ -950,12 +942,12 @@ async function onTicket(file) {
     // Deutsche Bahn is named, but there is neither an order number nor a journey: some other document
     if (!data.booking && !data.from && !data.to) { refuseTicket(); return; }
     applyFields(data);
-    ticketDone();
+    askTicketGaps();
     const complete = data.booking && data.from && data.to && data.dep && data.arr;
     setStatus("ticket-status", complete ? t("ticketRead", file.name) : t("ticketPartial"));
     track("claim-ticket");
   } catch (e) {
-    ticketDone();
+    askTicketGaps();
     setStatus("ticket-status", t("ticketFailed"), true);
   }
 }
@@ -1030,7 +1022,7 @@ async function readPhoto() {
     setStatus("ticket-status", e.status === 429 ? t("photoBusy") : photoWord("Failed"), true);
   }
   $("photo-consent").classList.add("hidden");
-  ticketDone();
+  askTicketGaps();
 }
 
 // --- a claim started from a saved trip brings DelayBahn's own record of the day ---
@@ -1097,8 +1089,10 @@ function recordJourneys(verdict) {
   record.travelled = ridden.filter((l) => !(l.delayOnDate && l.delayOnDate.canceled && !l.endedEarly)).map((l) => {
     const d = l.delayOnDate, short = l.endedEarly;
     const arr = short ? clock(short.arrival) : d && d.delayMin != null ? shiftClock(l.plannedArrival, d.delayMin) : clock(l.plannedArrival);
+    const left = l.departureOnDate;
+    const dep = left && !left.canceled && left.delayMin != null ? shiftClock(l.plannedDeparture, left.delayMin) : clock(l.plannedDeparture);
     return {
-      name: legName(l), from: `${clock(l.plannedDeparture)} ${l.origin.name}`,
+      name: legName(l), from: `${dep} ${l.origin.name}`,
       to: `${arr} ${short ? short.station : l.destination.name}`,
       status: short ? late({ delayMin: short.delayMin }) : late(d),
     };
@@ -1168,9 +1162,11 @@ function applyRecord(verdict) {
     const ridden = sim && sim.missedAtLegIndex != null
       ? (verdict.legs || []).slice(0, sim.missedAtLegIndex).concat(sim.legs || []) : verdict.legs || [];
     $("f-act-trains").value = ridden.filter((l) => !l.walking && l.line).map(legName).filter(Boolean).join(", ");
+    // when the first of them left: only with a departure on record for that day
+    const lead = ridden.find((l) => !l.walking && l.line), left = lead && lead.departureOnDate;
+    if (left && !left.canceled && left.delayMin != null) $("f-act-dep").value = shiftClock(lead.plannedDeparture, left.delayMin);
   }
   if (record.missedAt) $("f-missed-at").value = record.missedAt;
-  showFields();
   renderDelay();
   // drawn only when the rows name exactly the trains the form will
   const rode = record.plan.filter((l) => !l.struck).concat(record.onward).map((l) => l.name).filter(Boolean).join(", ");
@@ -1285,8 +1281,8 @@ const firstEmpty = (ids) => { const id = ids.find((f) => !val(f)); return id ? {
    still to fill - optionally with a key of its own when it is filled wrongly. */
 function validate(from) {
   if (from === 1) {
-    if (!val("f-booking")) return "needTicket";
-    const gap = firstEmpty(["f-from", "f-to", "f-date", "f-dep", "f-arr"]);
+    if (!ticket) return "needTicket";
+    const gap = firstEmpty(["f-booking", "f-from", "f-to", "f-date", "f-dep", "f-arr"]);
     if (gap) return gap;
     if (!$("r-delay").checked && !$("r-cancel").checked && !$("r-missed").checked) return "needReason";
     if (!refunding()) return firstEmpty(["f-act-date", "f-act-arr"]);
@@ -1438,7 +1434,7 @@ async function recordPage(PDFLib, doc) {
     });
   };
   table(t("recordBooked"), [t("recColTrain"), t("recColDep"), t("recColArr"), t("recColStatus")], record.booked);
-  table(t(record.rerouted ? "recordTravelled" : "recordRan"), [t("recColTrain"), t("recColDep"), t("recColArrReal"), t("recColDelay")], record.travelled);
+  table(t(record.rerouted ? "recordTravelled" : "recordRan"), [t("recColTrain"), t("recColDepReal"), t("recColArrReal"), t("recColDelay")], record.travelled);
 
   y = 56;
   line(t("recordFoot"), { muted: true, size: 9 });
@@ -1867,8 +1863,8 @@ function go(to) {
       if (problem) {
         if (s !== step) show(s);
         // the complaint is about something folded away: bring it into view
-        if (problem === "needTicket") ticketDone();
-        else if (s === 1) $("journey-edit").open = true;
+        if (problem.field === "f-booking") $("ticket-fields").classList.remove("hidden");
+        else if (s === 1 && problem !== "needTicket") $("journey-edit").open = true;
         setStatus(`step${s}-error`, complain(problem), true);
         return;
       }
@@ -1942,13 +1938,14 @@ function wire() {
     drop.classList.remove("claim-drop-over");
   }));
   drop.addEventListener("drop", (e) => onTicket(e.dataTransfer.files[0]));
-  $("ticket-manual").addEventListener("click", () => { ticketDone(); $("f-booking").focus(); });
   $("photo-read").addEventListener("click", readPhoto);
   $("photo-skip").addEventListener("click", () => {
     $("photo-consent").classList.add("hidden");
-    ticketDone();
+    askTicketGaps();
+    $("f-booking").focus();
   });
-  $("journey-fields").addEventListener("input", renderDelay);
+  $("journey-edit").addEventListener("input", renderDelay);
+  $("ticket-fields").addEventListener("input", renderDelay);
   $("r-refund").addEventListener("input", renderDelay);
   // any edit makes the built packet stale, and answers the complaint above the button
   document.querySelectorAll("[data-panel]").forEach((panel) => {
@@ -2144,7 +2141,7 @@ async function saveDraft() {
   const draft = {
     at: Date.now(), journey: sessionStorage.getItem("claimJourney"), fields, checks, payout: payout(),
     costs: costs.map((c) => ({ kind: c.kind, amount: c.amount, file: c.file })),
-    ticket: ticket ? ticket.file : null, pending: !!pendingPhoto, dealt: ticketDealt, step, reached,
+    ticket: ticket ? ticket.file : null, pending: !!pendingPhoto, step, reached,
   };
   await draftStore("readwrite", (store) => store.put(draft, "draft"));
   localStorage.setItem(DRAFT_FLAG, String(draft.at));
@@ -2173,8 +2170,8 @@ async function applyDraft(draft) {
       ticket = { file: draft.ticket, kind: fileKind(draft.ticket) };
       $("ticket-drop").classList.add("claim-drop-has");
       $("ticket-drop").querySelector(".claim-drop-main").textContent = draft.ticket.name;
+      askTicketGaps();
     }
-    if (draft.dealt) ticketDone();
   }
   renderDelay();
   reached = Math.max(reached, draft.reached || 1);
