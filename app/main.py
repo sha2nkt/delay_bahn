@@ -73,7 +73,10 @@ STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 # a new bahn.de label can't silently kill CH/FR stats. BUS includes SEV replacement
 # buses, which do exist in the parquet — but their legs never matched anyway
 # (6-digit municipal stop ids), so gating them is status quo with an honest label.
-UNTRACKED_PRODUCTS = {"BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG"}
+UNTRACKED_PRODUCTS = {"BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG", "ERSATZVERKEHR"}
+# untracked and outside the rail ticket: Fahrgastrechte measure the delay at the last
+# rail station before them. ERSATZVERKEHR stands in for a train and stays inside.
+LOCAL_TRANSIT = UNTRACKED_PRODUCTS - {"ERSATZVERKEHR"}
 
 # Self-hosted Umami; proxied first-party under /stats/* so adblock list rules
 # for analytics hosts/paths don't match.
@@ -733,10 +736,19 @@ async def _past_verdict(legs: list[dict], window: int, live: bool, settled: bool
     a live one: that day lands partial at 05:30 (stops that ran past midnight,
     late raw dumps) and only fills in with the next build.
     Shared by the past-mode search and the trips page's in-place check."""
+    # local transit at the end is not part of the rail journey: the claim is
+    # measured where the last train (or its replacement bus) arrives
+    end = len(legs)
+    while end and (legs[end - 1]["walking"] or legs[end - 1]["line"]["product"] in LOCAL_TRANSIT):
+        end -= 1
+    out = {}
+    all_legs = legs
+    if 0 < end < len(legs):
+        out["measuredAt"] = {"station": legs[end - 1]["destination"]["name"], "legIndex": end - 1}
+        legs = legs[:end]
     train_legs = [leg for leg in legs if not leg["walking"]]
     final_d = train_legs[-1].get("delayOnDate")
     sim = await _simulate_walk(legs, window, MAX_REPLANS, live)
-    out = {}
     if live or not settled:
         # on an unsettled day a missing observation means "not reported yet",
         # which is a different message than "we have no data for this train";
@@ -759,26 +771,70 @@ async def _past_verdict(legs: list[dict], window: int, live: bool, settled: bool
             "arrivalCanceled": bool(final_d and final_d["canceled"]),
             "missedTransfers": [sim["missed"]] if sim["missed"] else [],
             "compensationPct": compensation_pct(arrival_delay),
-            "simulation": {
-                "missedAtLegIndex": sim["missedAtLegIndex"],
-                "legs": sim["extra"],
-                "actualArrival": sim["arrival"].isoformat() if sim["arrival"] else None,
-                "incomplete": sim["incomplete"],
-                "uncertain": sim["uncertain"],
-                # a replacement train's arrival was never observed: delay unknown
-                "noData": sim["noData"],
-            },
+            "simulation": _sim_view(sim),
         })
     else:
         # every connection was made: exact arrival delay of the final leg
         arrival_delay = final_d["delayMin"] if final_d else None
+        if (final_d is None and not sim["noData"]
+                and train_legs[-1]["line"]["product"] == "ERSATZVERKEHR"
+                and any(leg["line"]["product"] not in UNTRACKED_PRODUCTS for leg in train_legs)):
+            # a replacement bus has no record: ridden as scheduled after the trains before it
+            arrival_delay = 0
         out.update({
             "arrivalDelay": arrival_delay,
             "arrivalCanceled": bool(final_d and final_d["canceled"]),
             "missedTransfers": [],
             "compensationPct": compensation_pct(arrival_delay),
         })
+    if "measuredAt" in out:
+        await _ride_on(out, all_legs, legs, sim, window, live)
     return out
+
+
+def _sim_view(sim: dict) -> dict:
+    return {
+        "missedAtLegIndex": sim["missedAtLegIndex"],
+        "legs": sim["extra"],
+        "actualArrival": sim["arrival"].isoformat() if sim["arrival"] else None,
+        "incomplete": sim["incomplete"],
+        "uncertain": sim["uncertain"],
+        # a replacement train's arrival was never observed: delay unknown
+        "noData": sim["noData"],
+    }
+
+
+async def _ride_on(out: dict, all_legs: list[dict], rail: list[dict], sim: dict, window: int, live: bool) -> None:
+    """The local transit after the rail journey, shown as it went but never counted:
+    arrivalDelay and compensationPct stay those of the rail station. A late train
+    still breaks the tram behind it, and the card says so."""
+    if sim["missedAtLegIndex"] is None:
+        # the trains ran as booked: only the local legs can still be missed
+        full = await _simulate_walk(all_legs, window, MAX_REPLANS, live)
+        if full["missedAtLegIndex"] is not None:
+            out["missedTransfers"] = [full["missed"]] if full["missed"] else []
+            out["simulation"] = _sim_view(full)
+        return
+    # the rail part was re-planned to its station: carry on from there
+    view = out["simulation"]
+    dest = next(leg for leg in reversed(all_legs) if not leg["walking"])["destination"]
+    if not sim["arrival"] or sim["incomplete"] or not dest["id"]:
+        return
+    cand = await _next_connection(rail[-1]["destination"], dest, sim["arrival"], window, live)
+    if cand is None:
+        view["incomplete"] = True
+        return
+    sub = await _simulate_walk(cand, window, MAX_REPLANS - 1, live)
+    kept = cand if sub["missedAtLegIndex"] is None else cand[: sub["missedAtLegIndex"]]
+    for leg in kept:
+        leg["replacement"] = True
+    view.update({
+        "legs": view["legs"] + kept + sub["extra"],
+        "actualArrival": sub["arrival"].isoformat() if sub["arrival"] else None,
+        "incomplete": sub["incomplete"],
+        "uncertain": view["uncertain"] or sub["uncertain"],
+        "noData": sub["noData"],
+    })
 
 
 def _parse_travellers(raw: str | None, age: str) -> tuple[tuple[str, int, str], ...]:

@@ -47,7 +47,7 @@ subscribe_limiter = SlidingWindowLimiter(
 )
 
 # matches UNTRACKED_PRODUCTS in app/main.py (importing it would be circular)
-UNTRACKED_PRODUCTS = {"BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG"}
+UNTRACKED_PRODUCTS = {"BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG", "ERSATZVERKEHR"}
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS subscriptions (

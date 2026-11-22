@@ -73,6 +73,7 @@ const I18N = {
     simIncomplete: "Keine Ersatzverbindung in den Daten gefunden – tatsächliche Ankunft unbekannt",
     simNoData: "Für die Ankunft der Weiterfahrt liegen keine Verspätungsdaten vor – tatsächliche Ankunft unbekannt",
     simEndedEarly: (train, station, time) => `${train} endete vorzeitig in ${station} (an ${time})`,
+    measuredAt: (station) => `Verspätung gemessen in ${station}, wo die Bahnfahrkarte endet`,
     missedBadge: "⛔ Anschluss verpasst",
     claimPct: (pct) => `${pct} % zurückholen →`,
     claimNew: "Neu",
@@ -188,6 +189,7 @@ const I18N = {
     simIncomplete: "No replacement connection found in the data – actual arrival unknown",
     simNoData: "No delay data for the onward journey's arrival – actual arrival unknown",
     simEndedEarly: (train, station, time) => `${train} ended early at ${station} (arr. ${time})`,
+    measuredAt: (station) => `Delay measured at ${station}, where the rail ticket ends`,
     missedBadge: "⛔ Missed connection",
     claimPct: (pct) => `Get ${pct}% back →`,
     claimNew: "New",
@@ -259,7 +261,7 @@ const CLAIM_FORM_URL = "https://www.bahn.de/fahrgastrechte";
 // DelayBahn's claim form, which starts from the checked trip
 const CLAIM_FORM = lang === "en" ? "/en/claim" : "/antrag";
 // products IRIS never covers, as in the search (UNTRACKED_PRODUCTS in app/main.py)
-const UNTRACKED = new Set(["BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG"]);
+const UNTRACKED = new Set(["BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG", "ERSATZVERKEHR"]);
 const LOGIN = "/login?next=" + encodeURIComponent(SELF) + "&reason=trips";
 
 let fb = null;       // firebase.js module
@@ -524,7 +526,9 @@ function buildCheck(data, trip) {
   const hint = document.createElement("div");
   hint.className = "pick-hint";
   const legs = data.legs || [];
-  const trainLegs = legs.filter((l) => !l.walking);
+  // trailing local transit is outside the rail ticket: the last rail leg decides
+  const railEnd = data.measuredAt ? data.measuredAt.legIndex + 1 : legs.length;
+  const trainLegs = legs.slice(0, railEnd).filter((l) => !l.walking);
   const finalLeg = trainLegs[trainLegs.length - 1];
   const sim = data.simulation;
   const missedTransfers = data.missedTransfers || [];
@@ -595,6 +599,12 @@ function buildCheck(data, trip) {
     const note = document.createElement("div");
     note.className = "sim-note";
     note.textContent = t(sim.incomplete ? "simIncomplete" : "simNoData");
+    legsEl.appendChild(note);
+  }
+  if (data.measuredAt) {
+    const note = document.createElement("div");
+    note.className = "sim-note";
+    note.textContent = t("measuredAt", data.measuredAt.station);
     legsEl.appendChild(note);
   }
   panel.append(top, hint, legsEl);

@@ -329,6 +329,7 @@ const I18N = {
     simIncomplete: "Keine Ersatzverbindung in den Daten gefunden – tatsächliche Ankunft unbekannt",
     simNoData: "Für die Ankunft der Weiterfahrt liegen keine Verspätungsdaten vor – tatsächliche Ankunft unbekannt",
     simEndedEarly: (train, station, time) => `${train} endete vorzeitig in ${station} (an ${time})`,
+    measuredAt: (station) => `Verspätung gemessen in ${station}, wo die Bahnfahrkarte endet`,
     legEndedEarly: (station, time) => `endete in ${station}, an ${time}`,
     pastDisclaimer: "Entschädigung nach EU-Fahrgastrechten: 25 % des Ticketpreises ab 60 min, 50 % ab 120 min Verspätung am Ziel. Auszahlung ab 4 €. Angezeigte Verspätungen basieren auf unseren aufgezeichneten Daten – maßgeblich ist die tatsächliche Ankunft.",
     installTitle: "DelayBahn als App installieren",
@@ -666,6 +667,7 @@ const I18N = {
     simIncomplete: "No replacement connection found in the data – actual arrival unknown",
     simNoData: "No delay data for the onward journey's arrival – actual arrival unknown",
     simEndedEarly: (train, station, time) => `${train} ended early at ${station} (arr. ${time})`,
+    measuredAt: (station) => `Delay measured at ${station}, where the rail ticket ends`,
     legEndedEarly: (station, time) => `ended at ${station}, arr. ${time}`,
     pastDisclaimer: "Compensation under EU passenger rights: 25% of the ticket price from 60 min, 50% from 120 min delay at your destination. Paid out from €4. Shown delays are based on our recorded data – the actual arrival is authoritative.",
     installTitle: "Install DelayBahn as an app",
@@ -2742,7 +2744,7 @@ function stopTimeNode(planned, live, platform, title) {
 }
 
 // products the backend collects no delay data for (matches UNTRACKED_PRODUCTS in app/main.py)
-const UNTRACKED_PRODUCTS = new Set(["BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG"]);
+const UNTRACKED_PRODUCTS = new Set(["BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG", "ERSATZVERKEHR"]);
 
 function notTrackedBadge() {
   const el = document.createElement("span");
@@ -4120,6 +4122,9 @@ function render() {
   for (const journey of sortedJourneys()) {
     const legs = journey.legs || [];
     if (!legs.length) continue;
+    // past mode: trailing local transit is outside the rail ticket, so the
+    // delay badge is that of the last rail leg
+    const railEnd = state.mode === "past" && journey.measuredAt ? journey.measuredAt.legIndex + 1 : legs.length;
     const first = legs[0], last = legs[legs.length - 1];
     const depDay = first.plannedDeparture?.slice(0, 10);
     if (byDeparture && depDay && depDay !== shownDay) {
@@ -4152,7 +4157,8 @@ function render() {
       // no replan: the journey arrived when its last train did
       times.append(
         document.createTextNode(`${fmtTime(first.plannedDeparture)} → `),
-        timeNode(last.plannedArrival, ranAt(last.plannedArrival, { delayMin: journey.arrivalDelay }), ""),
+        // behind a rail station the local legs ran as planned: the delay is not theirs
+        timeNode(last.plannedArrival, journey.measuredAt ? null : ranAt(last.plannedArrival, { delayMin: journey.arrivalDelay }), ""),
       );
     } else {
       times.append(
@@ -4191,7 +4197,8 @@ function render() {
     const past = state.mode === "past";
     // the day's data has not settled: live day, or the newest day still filling in
     const open = state.liveDay || journey.settled === false;
-    const finalLeg = trainLegs.length ? trainLegs[trainLegs.length - 1] : null;
+    const railTrains = legs.slice(0, railEnd).filter((l) => !l.walking);
+    const finalLeg = railTrains.length ? railTrains[railTrains.length - 1] : null;
     const missed = past && (journey.missedTransfers || []).length > 0;
     let badge;
     let tightBadge = null;
@@ -4420,6 +4427,12 @@ function render() {
         note.textContent = t(sim.incomplete ? "simIncomplete" : "simNoData");
         legsEl.appendChild(note);
       }
+    }
+    if (state.mode === "past" && journey.measuredAt) {
+      const note = document.createElement("div");
+      note.className = "sim-note";
+      note.textContent = t("measuredAt", journey.measuredAt.station);
+      legsEl.appendChild(note);
     }
     card.appendChild(legsEl);
 

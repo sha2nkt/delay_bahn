@@ -768,7 +768,7 @@ async function pdfRows(bytes) {
 }
 
 // products that are not trains, as in the trips page (UNTRACKED_PRODUCTS in app/main.py)
-const NOT_TRACKED = new Set(["BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG"]);
+const NOT_TRACKED = new Set(["BUS", "TRAM", "UBAHN", "SCHIFF", "ANRUFPFLICHTIG", "ERSATZVERKEHR"]);
 const NOT_RAIL = /^(bus|str|tram|u\s?\d|u-bahn|fuß|fussweg|schiff|ast|rufbus|sev)/i;
 
 function parseTicket(rows, wantDate) {
