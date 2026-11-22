@@ -2713,7 +2713,7 @@ function fmtDuration(seconds) {
 
 // today's connections carry live (echtzeit) times where they deviate from the
 // schedule; show the struck-out schedule next to the live time, red like on bahn.de
-function timeNode(planned, live) {
+function timeNode(planned, live, title = t("liveTimeTooltip")) {
   if (!live) return document.createTextNode(fmtTime(planned));
   const frag = document.createDocumentFragment();
   frag.append(
@@ -2722,17 +2722,17 @@ function timeNode(planned, live) {
     }),
     document.createTextNode(" "),
     Object.assign(document.createElement("span"), {
-      className: "time-live", textContent: fmtTime(live), title: t("liveTimeTooltip"),
+      className: "time-live", textContent: fmtTime(live), title,
     }),
   );
   return frag;
 }
 
 // time and platform chip kept on one line, so the chip never wraps away on its own
-function stopTimeNode(planned, live, platform) {
+function stopTimeNode(planned, live, platform, title) {
   const el = document.createElement("span");
   el.className = "stop-time";
-  el.append(timeNode(planned, live));
+  el.append(timeNode(planned, live, title));
   if (platform) {
     el.append(Object.assign(document.createElement("span"), {
       className: "platform", textContent: t("platform", platform),
@@ -2810,6 +2810,15 @@ function exactDelayBadge(d, open = state.liveDay) {
   return el;
 }
 
+// a Berlin-local naive stamp moved by that day's delay; null when the train ran to the minute or no delay is known
+function ranAt(planned, d) {
+  if (!planned || !d || d.canceled || !d.delayMin) return null;
+  const at = new Date(planned.slice(0, 16));
+  at.setMinutes(at.getMinutes() + d.delayMin);
+  const two = (n) => String(n).padStart(2, "0");
+  return `${at.getFullYear()}-${two(at.getMonth() + 1)}-${two(at.getDate())}T${two(at.getHours())}:${two(at.getMinutes())}`;
+}
+
 // one leg row (train or walk); struck = leg was missed in the simulated journey
 function buildLegRow(leg, past, struck, open = state.liveDay) {
   const row = document.createElement("div");
@@ -2833,16 +2842,18 @@ function buildLegRow(leg, past, struck, open = state.liveDay) {
   train.textContent = leg.line?.name || t("train");
   const desc = document.createElement("span");
   desc.className = "leg-desc";
-  // past mode shows the schedule; the actual delay is the story of the badge next to it
+  // past mode strikes the planned time where the train ran off it and shows the time it ran; a missed train keeps its plan
+  const ran = (planned, d) => (past && !struck ? ranAt(planned, d) : null);
+  const dayTitle = past ? "" : undefined;
   // a replacement train that ran short is shown as the ride it was: to the stop
   // where it ended. A booked train keeps its booked stretch, that is the ticket.
   const short = !struck && leg.replacement && leg.endedEarly ? leg.endedEarly : null;
   desc.append(
     document.createTextNode(`${leg.origin?.name || ""} `),
-    stopTimeNode(leg.plannedDeparture, past ? null : leg.departure, leg.departurePlatform),
+    stopTimeNode(leg.plannedDeparture, past ? ran(leg.plannedDeparture, leg.departureOnDate) : leg.departure, leg.departurePlatform, dayTitle),
     document.createTextNode(` → ${(short ? short.station : leg.destination?.name) || ""} `),
     short ? stopTimeNode(short.plannedArrival, null, null)
-      : stopTimeNode(leg.plannedArrival, past ? null : leg.arrival, leg.arrivalPlatform),
+      : stopTimeNode(leg.plannedArrival, past ? ran(leg.plannedArrival, leg.delayOnDate) : leg.arrival, leg.arrivalPlatform, dayTitle),
   );
   let badge;
   if (struck) {
@@ -4138,7 +4149,11 @@ function render() {
         document.createTextNode(` ${fmtTime(sim.actualArrival)}`),
       );
     } else if (state.mode === "past") {
-      times.textContent = `${fmtTime(first.plannedDeparture)} → ${fmtTime(last.plannedArrival)}`;
+      // no replan: the journey arrived when its last train did
+      times.append(
+        document.createTextNode(`${fmtTime(first.plannedDeparture)} → `),
+        timeNode(last.plannedArrival, ranAt(last.plannedArrival, { delayMin: journey.arrivalDelay }), ""),
+      );
     } else {
       times.append(
         timeNode(first.plannedDeparture, first.departure),

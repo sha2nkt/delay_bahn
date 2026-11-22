@@ -299,6 +299,7 @@ def normalize_leg(abschnitt: dict, window: int, past: bool = False, live: bool =
             # parquet stays authoritative wherever it has the day
             hit = live_delays.leg_delay_on_date(train, eva, arrival) if live else None
             leg["delayOnDate"] = hit if hit is not None else delays.leg_delay_on_date(train, eva, arrival)
+            leg["departureOnDate"] = _departure_info(leg, live)
         else:
             leg["delayStats"] = delays.leg_delay_stats(train, eva, arrival, window=window)
     return leg
@@ -2668,6 +2669,7 @@ def _attach_day_delays(legs: list[dict], live: bool) -> None:
         arrival = delays.to_berlin_naive(leg["plannedArrival"])
         hit = live_delays.leg_delay_on_date(train, eva, arrival) if live else None
         leg["delayOnDate"] = hit if hit is not None else delays.leg_delay_on_date(train, eva, arrival)
+        leg["departureOnDate"] = _departure_info(leg, live)
 
 
 async def _trip_verdict(uid: str, trip_id: int) -> dict | None:

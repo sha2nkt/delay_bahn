@@ -637,14 +637,76 @@ function renderTrip() {
     ["lCancelled", $("r-cancel").checked ? cancelledTrains || t("vCancelled") : ""],
     ["lTicket", val("f-booking") ? [val("f-booking"), price ? euro(price) : ""].filter(Boolean).join(", ") : ""],
   ];
+  // the checked journey is drawn as on the search, as long as the fields still say what it said
+  const drawn = !!record && record.whole && record.key === tripKey();
+  $("trip-times").textContent = "";
+  $("trip-legs").textContent = "";
+  if (drawn) {
+    const times = $("trip-times");
+    const actual = mins > 0 && val("f-act-arr");
+    times.append(`${fmtDay(val("f-date"))} · ${val("f-dep")} → `);
+    if (actual) {
+      const planned = document.createElement("s");
+      planned.textContent = val("f-arr");
+      times.append(planned, ` ${val("f-act-arr")}${val("f-act-date") !== val("f-date") ? ` (${fmtDay(val("f-act-date"))})` : ""}`);
+    } else times.append(val("f-arr"));
+    const legs = $("trip-legs");
+    legRows(legs, record.plan);
+    if (!refunding() && record.onward.length) {
+      const cont = document.createElement("div");
+      cont.className = "leg-continuation";
+      cont.textContent = `↳ ${t("lTook")}:`;
+      legs.append(cont);
+      legRows(legs, record.onward);
+    }
+  }
   const facts = $("trip-facts");
   facts.textContent = "";
-  rows.filter(([, value]) => value).forEach(([key, value]) => {
+  // drawn, the rows say the rest; a cancellation or a lost connection no row is marked with keeps its line
+  const marked = (key) => record.plan.some((l) => l.mark && l.mark[1] === t(key));
+  const kept = { lTicket: true, lCancelled: drawn && !marked("recCancelled"), lMissed: drawn && !marked("recMissed") && !record.plan.some((l) => l.endedEarly) };
+  rows.filter(([key, value]) => value && (!drawn || kept[key])).forEach(([key, value]) => {
     const dt = document.createElement("dt");
     dt.textContent = t(key);
     const dd = document.createElement("dd");
     dd.textContent = value;
     facts.append(dt, dd);
+  });
+}
+
+// everything the drawn journey shows: once one of these is corrected, the summary falls back to plain lines
+const tripKey = () => JSON.stringify(["f-from", "f-to", "f-date", "f-dep", "f-arr", "f-trains", "f-act-date", "f-act-arr", "f-act-trains", "f-missed-at"]
+  .map(val).concat($("r-missed").checked, $("r-cancel").checked));
+
+function legRows(into, legs) {
+  legs.forEach((leg, i) => {
+    const row = document.createElement("div");
+    row.className = "leg" + (leg.struck ? " leg-missed" : "") + (i === 0 ? " rail-first" : "") + (i === legs.length - 1 ? " rail-last" : "");
+    const train = document.createElement("span");
+    train.className = "train";
+    train.textContent = leg.name;
+    const desc = document.createElement("span");
+    desc.className = "leg-desc";
+    // a time the train ran off is struck, the time it ran follows
+    const time = (planned, real) => {
+      if (!real || real === planned) return [planned];
+      const was = document.createElement("s");
+      was.className = "time-planned";
+      was.textContent = planned;
+      const ran = document.createElement("span");
+      ran.className = "time-live";
+      ran.textContent = real;
+      return [was, " ", ran];
+    };
+    desc.append(`${leg.from} `, ...time(leg.dep, leg.depReal), ` → ${leg.to} `, ...time(leg.arr, leg.arrReal));
+    row.append(train, desc);
+    if (leg.mark) {
+      const mark = document.createElement("span");
+      mark.className = `badge ${leg.mark[0]}`;
+      mark.textContent = leg.mark[1];
+      row.append(mark);
+    }
+    into.append(row);
   });
 }
 
@@ -1007,6 +1069,29 @@ function recordJourneys(verdict) {
     return { name: legName(l), from: `${clock(l.plannedDeparture)} ${l.origin.name}`, to: `${clock(l.plannedArrival)} ${l.destination.name}`, status };
   });
 
+  // the same two tellings as rows for the first page, each train with the badge the search gives it
+  const lateMark = (d) => (!d || d.canceled || d.delayMin == null ? null
+    : [d.delayMin < 3 ? "green" : d.delayMin < 10 ? "yellow" : "red", `${d.delayMin >= 0 ? "+" : ""}${d.delayMin} min`]);
+  const ranAt = (planned, d) => (planned && d && !d.canceled && d.delayMin ? shiftClock(planned, d.delayMin) : "");
+  // `ridden` is false for a train that was lost: it keeps its plan
+  const stops = (l, ridden) => ({
+    name: legName(l), from: l.origin.name, dep: clock(l.plannedDeparture), to: l.destination.name, arr: clock(l.plannedArrival),
+    depReal: ridden ? ranAt(l.plannedDeparture, l.departureOnDate) : "",
+    arrReal: ridden && !l.endedEarly ? ranAt(l.plannedArrival, l.delayOnDate) : "",
+  });
+  record.plan = all.map((l, i) => ({ l, i })).filter(({ l }) => shown(l)).map(({ l, i }) => {
+    const d = l.delayOnDate;
+    const lost = cut != null && i >= cut;
+    const gone = lost ? i === cut && miss && miss.canceled : l.departureCanceled || (d && d.canceled);
+    let mark = null;
+    if (l.endedEarly) mark = ["gray", t("recEnded", l.endedEarly.station)];
+    else if (gone) mark = ["red", t("recCancelled")];
+    else if (lost) mark = ["gray", t(i > cut ? "recNotTravelled" : "recMissed")];
+    else mark = lateMark(d);
+    return { ...stops(l, !lost && !gone), mark, struck: !l.endedEarly && (lost || gone), endedEarly: !!l.endedEarly };
+  });
+  record.onward = (cut != null ? sim.legs || [] : []).filter((l) => !l.walking && l.line).map((l) => ({ ...stops(l, true), mark: lateMark(l.delayOnDate), struck: false }));
+
   record.rerouted = cut != null;
   const ridden = (cut != null ? all.slice(0, cut).concat(sim.legs || []) : all).filter(shown);
   record.travelled = ridden.filter((l) => !(l.delayOnDate && l.delayOnDate.canceled && !l.endedEarly)).map((l) => {
@@ -1087,6 +1172,11 @@ function applyRecord(verdict) {
   if (record.missedAt) $("f-missed-at").value = record.missedAt;
   showFields();
   renderDelay();
+  // drawn only when the rows name exactly the trains the form will
+  const rode = record.plan.filter((l) => !l.struck).concat(record.onward).map((l) => l.name).filter(Boolean).join(", ");
+  record.whole = !actual || rode === val("f-act-trains");
+  record.key = tripKey();
+  renderTrip();
 }
 
 // the claim dialog (search or My trips) hands the checked journey over in

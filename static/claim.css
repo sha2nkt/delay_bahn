@@ -74,6 +74,10 @@
   font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 .claim-trip-late:empty { display: none; }
+/* the checked journey, drawn with the search's leg rows (style.css) */
+.claim-trip-times { margin-top: 6px; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.claim-trip-times s { color: var(--text-muted); font-weight: 400; }
+.claim-trip-times:empty, .claim-trip-legs:empty { display: none; }
 /* label and value in two columns: used for the journey's facts and the costs hint */
 .claim-facts { display: grid; grid-template-columns: max-content 1fr; gap: 5px 18px; margin-top: 10px; font-size: 14px; line-height: 1.45; }
 .claim-facts dt { color: var(--text-muted); }
