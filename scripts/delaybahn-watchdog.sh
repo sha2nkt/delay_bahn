@@ -5,7 +5,13 @@
 # failures alike. curl -4 because ps083 advertises broken IPv6.
 #
 # Three independent checks:
-#   1. DOWN: /health unreachable / non-200 (as before).
+#   1. DOWN: /health unreachable / non-200, and still so after
+#      DOWN_RETRIES more tries DOWN_RETRY_SECONDS apart. A restart (deploy or
+#      the daily pipeline) answers 502 for about 95 s while the timetables are
+#      restored; the single 30 s retry this had paged on every restart the
+#      cron happened to land in. The span has to outlast that, and the whole
+#      run has to stay under the 5-min cron period (6 tries of at most 20 s
+#      plus 150 s of waiting).
 #   2. UPSTREAM BLOCKED: bahn.de (Akamai) hard-blocking the server IP, detected
 #      from /health's own counters: upstream_403 rising while upstream_200 stays
 #      flat. During the 2026-08-19 OPS_BLOCKED incident the app stayed healthy
@@ -58,6 +64,9 @@ EMPTYSTATE="${HOME}/.local/state/delaybahn-watchdog-empty.json"
 EMPTY_WINDOWS=${EMPTY_WINDOWS:-4}
 # how often an unresolved block re-pages; rounds up to the 5-min cron period
 BLOCK_REMIND_SECONDS=${BLOCK_REMIND_SECONDS:-600}
+DOWN_RETRIES=${DOWN_RETRIES:-5}
+DOWN_RETRY_SECONDS=${DOWN_RETRY_SECONDS:-30}
+HEALTH_URL=${HEALTH_URL:-https://delaybahn.com/health}
 # ssh alias, resolved in ~/.ssh/config — the origin IP is deliberately not
 # recorded here: delaybahn.com is fronted by a Cloudflare tunnel, and naming
 # the origin in a public repo would hand out a way around it
@@ -83,14 +92,21 @@ notify() {  # $1 title, $2 priority, $3 tags, $4 body
 if [ -n "$HEALTH_FILE" ]; then
   body=$(cat "$HEALTH_FILE" 2>/dev/null); code=200
 else
-  body=$(curl -4 -s --max-time 20 https://delaybahn.com/health)
-  code=$(curl -4 -s -o /dev/null -w '%{http_code}' --max-time 20 https://delaybahn.com/health)
-  # one retry after 30s to ride out transient network/DNS flakes on this box
-  if [ "$code" != "200" ]; then
-    sleep 30
-    body=$(curl -4 -s --max-time 20 https://delaybahn.com/health)
-    code=$(curl -4 -s -o /dev/null -w '%{http_code}' --max-time 20 https://delaybahn.com/health)
-  fi
+  # one request per try: the status code rides behind the body on its own line
+  probe() {
+    local out
+    out=$(curl -4 -s --max-time 20 -w '\n%{http_code}' "$HEALTH_URL")
+    code=${out##*$'\n'}
+    body=${out%$'\n'*}
+  }
+  probe
+  # ride out a restart, and transient network/DNS flakes on this box
+  tries=0
+  while [ "$code" != "200" ] && [ "$tries" -lt "$DOWN_RETRIES" ]; do
+    sleep "$DOWN_RETRY_SECONDS"
+    tries=$((tries + 1))
+    probe
+  done
 fi
 
 # ---------------------------------------------------------------- check 1: down
@@ -104,7 +120,7 @@ if [ "$code" = "200" ]; then
 else
   if [ "$prev" != "down" ]; then
     notify "delaybahn.com DOWN" urgent rotating_light \
-      "delaybahn.com health check failed twice (HTTP $code). Check: ssh $SERVER 'systemctl status delaybahn cloudflared-delaybahn'"
+      "delaybahn.com health check has failed for $((DOWN_RETRIES * DOWN_RETRY_SECONDS)) s (HTTP $code), longer than a restart takes. Check: ssh $SERVER 'systemctl status delaybahn cloudflared-delaybahn'"
   fi
   echo down > "$STATE"
   exit 0   # counters unavailable; nothing for check 2 to do

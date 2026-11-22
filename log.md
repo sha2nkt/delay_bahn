@@ -2422,3 +2422,11 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - `stories.notify` put the title into an HTTP header as written; httpx refuses anything outside ASCII, the `UnicodeEncodeError` is not an `httpx.HTTPError`, so the task died and the push never left. Every new story with a destination carries "→" in its title, and names like "München" fail on their own: seen in the journal on 2026-11-08 and 2026-11-18.
 - Fix: a non-ASCII title goes as RFC 2047 (`_header`, `=?UTF-8?B?…?=`), which ntfy decodes. Checked against ntfy.sh: the stored title reads "München Hbf → Köln Hbf". Feedback pushes were never affected, their titles are ASCII.
 - Test added in `tests/test_stories.py`; 347 pass.
+
+## 2026-11-22 — Watchdog: a restart no longer pages as an outage
+
+- The ps083 watchdog paged "delaybahn.com DOWN" on restarts: `/health` answers 502 for about 95 s while the app restores its timetables (journal, ten restarts 2026-11-19 to 11-22: 88 to 96 s), and the check gave up after one retry 30 s later. A cron run landing in the first minute of a restart paged, then paged "recovered" five minutes on.
+- Now the DOWN check retries `DOWN_RETRIES` (5) times `DOWN_RETRY_SECONDS` (30) apart before it pages, 150 s in all, and the alert says so. One request per try instead of two (the status code rides behind the body), which keeps the worst case - six tries timing out at 20 s plus the waits - at 270 s, under the 5-min cron period. `HEALTH_URL` can point the check elsewhere for testing.
+- Cost: a real outage pages about two minutes later than before.
+- Verified with `DRY_RUN=1` against a local stand-in server and a throwaway `HOME`: four failures then healthy stays silent; failing throughout pages DOWN once, the next healthy run pages recovered; a dry run against the live site reads `/health` and runs the other three checks as before.
+- Installed on ps083 (`~/.local/bin/delaybahn-watchdog.sh`); the systemd OnFailure alerts on hetzner3 are untouched.
