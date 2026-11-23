@@ -2474,3 +2474,7 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - The data-sharing declaration on the review is shorter in both languages, same content (user's wording choice); the confirmation line is unchanged.
 - Busters `claim.css?v=36`, `claim.js?v=69` (35/68 skipped, never served).
 - Verified with a headless Chromium run on a fixture journey: through all steps without a ticket (no step-1 error, gap sheet on the review, mail text without the ticket clause), a PNG added at the gap (Ticket sheet in the packet, clause back), and the EU form PDF added at the gap (refused as not a DB ticket, gap stays, message shown); no page errors. Not tried on a phone or with a real DB PDF at the review.
+
+## 2026-11-23 — Easy apply: the missing-ticket note is one word
+
+- The note under the review's empty Ticket page read "Deutsche Bahn requires it" and wrapped to two lines; it is "Required" / "Erforderlich" now (user's wording), one line at phone width. `claim.js?v=70`.
