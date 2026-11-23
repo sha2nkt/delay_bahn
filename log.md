@@ -2488,3 +2488,11 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Verified against a local run: Karlsruhe Hbf -> Bremen Hbf on 25.11. 16:40 lists ICE 1572 16:41 only with `fast=0`. Headless Chrome screenshots at 900 and 1100 px (EN, DE) and 390 px (EN, DE).
 - Not verified: toggling the switch in a browser and searching; a real phone.
 - Found, not fixed: the ICE 276 + ICE 1572 (change in Frankfurt) connection bahn.de returned on 23.11. was missing from the visitor's screenshot; not looked into.
+
+## 2026-11-23 — Fastest-connections switch moves into Advanced options
+
+- In German the third switch pushed the whole D-Ticket group onto its own line on desktop (about 10-15 px over the 828 px row), while English fit. User's decision: move it into the advanced panel, next to Verkehrsmittel, with bahn.de's full wording on every width ("Schnellste Verbindungen anzeigen" / "Show fastest connections"); the short/long label pair is gone. A shared link with `fast=0` opens the panel, like the other advanced settings.
+- A "Dein Zug fehlt? Schnellste Verbindungen ausschalten" line under the results was built and dropped at the user's request.
+- Busters: `app.js?v=179`, `style.css?v=150` (all seven pages), `SHELL_VERSION` v143. Live pins were 178 / 149 / v142, no branch above them.
+- Verified in headless Chrome against a local run (before the hint was removed; the switch markup is unchanged since): German desktop at 1200 px and phone at 390 px with the panel open, English desktop; Karlsruhe -> Bremen on 25.11. lists ICE 1572 once the switch is off.
+- Not verified: a real phone.

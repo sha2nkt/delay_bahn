@@ -167,8 +167,7 @@ const I18N = {
     dticketTooltip: "Nur Verbindungen anzeigen, die mit dem Deutschland-Ticket nutzbar sind",
     dticketAll: "D-Ticket + alle Züge",
     dticketAllTooltip: "Alle Verbindungen anzeigen – Nahverkehr ist mit dem Deutschland-Ticket inklusive, Preise gelten nur für die übrigen Züge",
-    fastest: "Schnellste Verbindungen",
-    fastestLong: "Schnellste Verbindungen anzeigen",
+    fastest: "Schnellste Verbindungen anzeigen",
     fastestTooltip: "Wie bei bahn.de: blendet Verbindungen aus, die später ankommen als eine spätere Abfahrt. Ausschalten, um alle Züge zu sehen",
     dticketIncluded: "D-Ticket",
     dticketIncludedTooltip: "Mit dem Deutschland-Ticket nutzbar – kein Ticketkauf nötig",
@@ -533,8 +532,7 @@ const I18N = {
     dticketTooltip: "Only show connections valid with the Deutschland-Ticket",
     dticketAll: "D-Ticket + all trains",
     dticketAllTooltip: "Show all connections – regional legs are covered by the Deutschland-Ticket, prices are for the remaining trains only",
-    fastest: "Fastest connections",
-    fastestLong: "Show fastest connections",
+    fastest: "Show fastest connections",
     fastestTooltip: "Like bahn.de: hides connections that arrive no earlier than a later departure. Switch off to see every train",
     dticketIncluded: "D-Ticket",
     dticketIncludedTooltip: "Valid with the Deutschland-Ticket – no extra ticket needed",
@@ -1238,7 +1236,7 @@ function dticketMode() {
 }
 
 // bahn.de's "fastest connections" pruning, on by default as there. Hidden with
-// the D-Ticket toggles in past mode, where a leftover off state must not apply.
+// the advanced panel in past mode, where a leftover off state must not apply.
 function fastestOff() {
   return state.mode !== "past" && !document.getElementById("fastest").checked;
 }
@@ -5097,7 +5095,7 @@ const qp = new URLSearchParams(location.search);
     state.products.return = qp.get("tmr") === "all" ? new Set(PRODUCTS)
       : parseProducts(qp.get("tmr")) || new Set(state.products.outbound);
     updateTransportBtn();
-    if (travellersParam() || transferMinutes() !== "0" || productsParam("outbound") || productsParam("return")) setAdvancedOpen(true);
+    if (travellersParam() || transferMinutes() !== "0" || productsParam("outbound") || productsParam("return") || fastestOff()) setAdvancedOpen(true);
     if (!PAST_PAGE && qp.get("rdate")) {
       // the picked outbound isn't in the URL, so a restored round trip
       // starts over at step 1

@@ -66,7 +66,7 @@ try {
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DelayBahn">
-<link rel="stylesheet" href="/style.css?v=149">
+<link rel="stylesheet" href="/style.css?v=150">
 <script defer src="/stats/script.js" data-website-id="399cef62-4667-4458-a173-06435e9d76aa" data-host-url="https://delaybahn.com/stats"></script>
 </head>
 <body>
@@ -203,12 +203,6 @@ try {
         <span class="dticket-switch" aria-hidden="true"></span>
         <span data-i18n="dticketAll">D-Ticket + alle Züge</span>
       </label>
-      <label class="dticket-toggle" data-i18n-title="fastestTooltip">
-        <input id="fastest" type="checkbox" checked>
-        <span class="dticket-switch" aria-hidden="true"></span>
-        <span class="fastest-short" data-i18n="fastest">Schnellste Verbindungen</span>
-        <span class="fastest-long" data-i18n="fastestLong">Schnellste Verbindungen anzeigen</span>
-      </label>
     </div>
     <div class="search-actions">
       <button id="advanced-toggle" class="advanced-toggle" type="button" aria-expanded="false" aria-controls="advanced-panel">
@@ -280,6 +274,11 @@ try {
                  fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 1.5l5 5 5-5"/></svg>
           </button>
         </div>
+        <label class="dticket-toggle fastest-toggle" data-i18n-title="fastestTooltip">
+          <input id="fastest" type="checkbox" checked>
+          <span class="dticket-switch" aria-hidden="true"></span>
+          <span data-i18n="fastest">Schnellste Verbindungen anzeigen</span>
+        </label>
         <div id="stopover-fields" class="stopover-fields">
           <div class="stopover-group" id="stopover-group-outbound">
             <span class="stopover-group-label hidden" data-i18n="stepOutbound">Hinfahrt</span>
@@ -855,7 +854,7 @@ try {
   <p class="footer-disclaimer"><span data-nosnippet data-i18n="footerDisclaimer">DelayBahn ist ein unabhängiges Projekt und steht in keiner Verbindung zur Deutsche Bahn AG. „DB“ und „Deutsche Bahn“ sind Marken der Deutsche Bahn AG.</span></p>
   <p class="footer-copyright">Copyright © 2026 Shashank Tripathi</p>
 </footer>
-<script src="/app.js?v=178"></script>
+<script src="/app.js?v=179"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
