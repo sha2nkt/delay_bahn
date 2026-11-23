@@ -167,6 +167,9 @@ const I18N = {
     dticketTooltip: "Nur Verbindungen anzeigen, die mit dem Deutschland-Ticket nutzbar sind",
     dticketAll: "D-Ticket + alle Züge",
     dticketAllTooltip: "Alle Verbindungen anzeigen – Nahverkehr ist mit dem Deutschland-Ticket inklusive, Preise gelten nur für die übrigen Züge",
+    fastest: "Schnellste Verbindungen",
+    fastestLong: "Schnellste Verbindungen anzeigen",
+    fastestTooltip: "Wie bei bahn.de: blendet Verbindungen aus, die später ankommen als eine spätere Abfahrt. Ausschalten, um alle Züge zu sehen",
     dticketIncluded: "D-Ticket",
     dticketIncludedTooltip: "Mit dem Deutschland-Ticket nutzbar – kein Ticketkauf nötig",
     dticketPartialTooltip: "Preis nur für die Züge, die das Deutschland-Ticket nicht abdeckt",
@@ -530,6 +533,9 @@ const I18N = {
     dticketTooltip: "Only show connections valid with the Deutschland-Ticket",
     dticketAll: "D-Ticket + all trains",
     dticketAllTooltip: "Show all connections – regional legs are covered by the Deutschland-Ticket, prices are for the remaining trains only",
+    fastest: "Fastest connections",
+    fastestLong: "Show fastest connections",
+    fastestTooltip: "Like bahn.de: hides connections that arrive no earlier than a later departure. Switch off to see every train",
     dticketIncluded: "D-Ticket",
     dticketIncludedTooltip: "Valid with the Deutschland-Ticket – no extra ticket needed",
     dticketPartialTooltip: "Price covers only the trains the Deutschland-Ticket does not include",
@@ -1230,6 +1236,13 @@ function dticketMode() {
   return document.getElementById("dticket").checked ? "only"
     : document.getElementById("dticket-all").checked ? "all" : "off";
 }
+
+// bahn.de's "fastest connections" pruning, on by default as there. Hidden with
+// the D-Ticket toggles in past mode, where a leftover off state must not apply.
+function fastestOff() {
+  return state.mode !== "past" && !document.getElementById("fastest").checked;
+}
+document.getElementById("fastest").addEventListener("change", () => refetchCurrentLeg());
 
 // the two D-Ticket toggles are mutually exclusive ("only" implies the ticket);
 // both are handled server-side by bahn.de: refetch, but only if results are showing
@@ -2287,6 +2300,7 @@ async function fetchJourneys(pagingRef, opts = {}) {
   });
   if (state.mode === "past") params.set("mode", "past");
   if (dticket !== "off") params.set("dticket", dticket);
+  if (fastestOff()) params.set("fast", "0");
   const rs = travellersParam();
   if (rs) params.set("travellers", rs);
   if (transferMinutes() !== "0") params.set("transfer", transferMinutes());
@@ -2393,6 +2407,7 @@ function syncUrl() {
     window: document.getElementById("window").value,
   });
   if (dticketMode() !== "off") params.set("dticket", dticketMode());
+  if (fastestOff()) params.set("fast", "0");
   if (travellersParam()) params.set("travellers", travellersParam());
   if (transferMinutes() !== "0") params.set("transfer", transferMinutes());
   const tm = productsParam("outbound");
@@ -2503,6 +2518,7 @@ async function search() {
     window: Number(document.getElementById("window").value),
     mode: state.mode,
     dticket: dticketMode(),
+    fastest: !fastestOff(),
     age: party[0].age,
     travellers: party.reduce((sum, tr) => sum + tr.count, 0),
     discount: party.find((tr) => tr.discount !== "none")?.discount || "none",
@@ -5058,6 +5074,7 @@ const qp = new URLSearchParams(location.search);
     // "1" is the legacy value from before the "all trains" mode existed
     document.getElementById("dticket").checked = ["1", "only"].includes(qp.get("dticket"));
     document.getElementById("dticket-all").checked = qp.get("dticket") === "all";
+    document.getElementById("fastest").checked = qp.get("fast") !== "0";
     // "age" is the legacy single-traveller form, from before the party was a list
     const restored = parseTravellers(qp.get("travellers"))
       || (["senior", "young", "child", "toddler"].includes(qp.get("age"))

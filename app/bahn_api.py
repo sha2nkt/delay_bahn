@@ -839,7 +839,7 @@ DEFAULT_TRAVELLERS = (("adult", 1, "none"),)
 async def journeys(from_id: str, to_id: str, departure_iso: str, paging_ref: str | None = None,
                    dticket: str = "off", travellers: tuple = DEFAULT_TRAVELLERS, transfer: int = 0,
                    vias: tuple = (), products: tuple[str, ...] | None = None,
-                   source: str = "search") -> tuple[dict, int]:
+                   source: str = "search", fastest: bool = True) -> tuple[dict, int]:
     """Returns (data, stale_age_seconds); age is 0 for a fresh answer, else how
     old the served fallback is. from_id/to_id are full HAFAS location ids
     (A=1@O=...@L=...@) from locations().
@@ -868,6 +868,11 @@ async def journeys(from_id: str, to_id: str, departure_iso: str, paging_ref: str
 
     products narrows the search to a subset of ALL_PRODUCTS (the bahn.de
     "Verkehrsmittel" toggles); None searches everything.
+
+    fastest is bahn.de's "Schnellste Verbindungen anzeigen" switch (on by default
+    there too): it drops a connection whenever a later one arrives no later, which
+    hides a direct train that is overtaken by a faster one (ICE 1572 Karlsruhe ->
+    Bremen behind ICE 104). Off returns those as well.
     """
     vias = tuple((via_id, stay) for via_id, stay in vias)
     travellers = tuple((age, int(count), discount) for age, count, discount in travellers)
@@ -897,7 +902,7 @@ async def journeys(from_id: str, to_id: str, departure_iso: str, paging_ref: str
         # Routes without a slower covered alternative return the same list either way.
         # A narrowed product set drops it too: whoever toggles modes explicitly
         # wants to see those trains, and the pruning is what would hide them.
-        "schnelleVerbindungen": dticket != "all" and products is None,
+        "schnelleVerbindungen": fastest and dticket != "all" and products is None,
         "sitzplatzOnly": False,
         "bikeCarriage": False,
         "reservierungsKontingenteVorhanden": False,
@@ -912,10 +917,12 @@ async def journeys(from_id: str, to_id: str, departure_iso: str, paging_ref: str
             for via_id, stay in vias]
     if paging_ref:
         body["pagingReference"] = paging_ref
-    key = ("journeys", from_id, to_id, departure_iso, paging_ref, dticket, travellers, transfer, vias, products)
+    key = ("journeys", from_id, to_id, departure_iso, paging_ref, dticket, travellers, transfer, vias, products,
+           fastest)
     # paged responses are offsets into a result list, so they only ever stand in
     # for the same page (exact key), never for the route's primary answer
-    route = (from_id, to_id, dticket, travellers, transfer, vias, products) if paging_ref is None else None
+    route = ((from_id, to_id, dticket, travellers, transfer, vias, products, fastest)
+             if paging_ref is None else None)
 
     def keep(data: dict) -> None:
         now = time.monotonic()

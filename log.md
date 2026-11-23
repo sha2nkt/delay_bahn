@@ -2478,3 +2478,13 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 ## 2026-11-23 — Easy apply: the missing-ticket note is one word
 
 - The note under the review's empty Ticket page read "Deutsche Bahn requires it" and wrapped to two lines; it is "Required" / "Erforderlich" now (user's wording), one line at phone width. `claim.js?v=70`.
+
+## 2026-11-23 — Connection search: "Fastest connections" switch
+
+- Feedback: ICE 1572 Karlsruhe 16:41 -> Bremen 22:45 (direct) was missing. We always sent bahn.de's `schnelleVerbindungen`, which drops a connection when a later one arrives no later; ICE 104 (17:00 -> 22:44, direct) overtakes it. bahn.de applies the pruning on realtime, so whether a train hides changes with delays.
+- A third switch in the D-Ticket row, "Schnellste Verbindungen" / "Fastest connections", on by default like bahn.de's. Off sends `fast=0`; `bahn_api.journeys(fastest=...)` then sends `schnelleVerbindungen: false` (it was already false for "D-Ticket + all trains" and narrowed products). Part of the cache key; kept in the shared URL; refetches results on change; logged in the search event. Phones put it on its own line and use bahn.de's full wording ("Schnellste Verbindungen anzeigen" / "Show fastest connections"); desktop keeps all three switches on one line.
+- Past mode hides the switch with the D-Ticket ones and still prunes - open question whether the compensation check should search unpruned.
+- Busters: `app.js?v=178`, `style.css?v=149` (all seven pages), `SHELL_VERSION` v142. Live pins were 177 / 148 / v141, no branch above them.
+- Verified against a local run: Karlsruhe Hbf -> Bremen Hbf on 25.11. 16:40 lists ICE 1572 16:41 only with `fast=0`. Headless Chrome screenshots at 900 and 1100 px (EN, DE) and 390 px (EN, DE).
+- Not verified: toggling the switch in a browser and searching; a real phone.
+- Found, not fixed: the ICE 276 + ICE 1572 (change in Frankfurt) connection bahn.de returned on 23.11. was missing from the visitor's screenshot; not looked into.

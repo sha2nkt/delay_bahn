@@ -893,6 +893,7 @@ async def journeys(
     via2: str | None = Query(None),
     via2_stay: int = Query(0, alias="via2Stay", ge=0, le=1439),
     products: str | None = None,
+    fast: str = Query("1"),
 ):
     if window not in (7, 15, 30):
         raise HTTPException(422, "window must be 7, 15 or 30")
@@ -940,7 +941,8 @@ async def journeys(
         (via, stay) for via, stay in ((via1, via1_stay), (via2, via2_stay)) if via)
     try:
         data, stale_age = await bahn_api.journeys(
-            from_id, to_id, departure, paging_ref, dticket, travellers, transfer, vias, product_filter)
+            from_id, to_id, departure, paging_ref, dticket, travellers, transfer, vias, product_filter,
+            fastest=fast != "0")
     except bahn_api.UpstreamError as e:
         raise _upstream_http_error(e)
     if stale_age:

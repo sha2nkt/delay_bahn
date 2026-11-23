@@ -177,6 +177,8 @@ main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
 .dticket-toggle input:checked + .dticket-switch { background: var(--brand-red); }
 .dticket-toggle input:checked + .dticket-switch::after { left: 18px; }
 .dticket-toggle input:focus-visible + .dticket-switch { outline: 2px solid var(--brand-red); outline-offset: 2px; }
+/* on its own line on phones there is room for bahn.de's full wording */
+.fastest-long { display: none; }
 
 .return-add, .stopover-add, .traveller-add {
   align-self: flex-end;
@@ -1315,6 +1317,8 @@ body.nudge-on #donate-footer-item { display: none; }
   .advanced-toggle { justify-content: center; }
   .dticket-toggles { padding: 0; }
   .dticket-toggle { padding: 6px 0; }
+  .fastest-short { display: none; }
+  .fastest-long { display: inline; }
   .field input, .field select, .transport-btn { min-width: 0; width: 100%; }
   /* stacked card: split the line evenly so the pair keeps matching boxes even
      though their labels are different lengths */
