@@ -773,6 +773,8 @@ async def _past_verdict(legs: list[dict], window: int, live: bool, settled: bool
             "compensationPct": compensation_pct(arrival_delay),
             "simulation": _sim_view(sim),
         })
+        if arrival_delay is None and settled and not live:
+            out.update(_planned_bound(sim, planned_final))
     else:
         # every connection was made: exact arrival delay of the final leg
         arrival_delay = final_d["delayMin"] if final_d else None
@@ -790,6 +792,22 @@ async def _past_verdict(legs: list[dict], window: int, live: bool, settled: bool
     if "measuredAt" in out:
         await _ride_on(out, all_legs, legs, sim, window, live)
     return out
+
+
+def _planned_bound(sim: dict, planned_final) -> dict:
+    """The claim a replacement journey is worth by its timetable alone, when its
+    arrival was never observed: running on time it still arrives that much after
+    the booked arrival. A floor, so it is only reported once it reaches a
+    compensation step, and never as the arrival delay itself."""
+    if not sim["noData"] or sim["incomplete"] or planned_final is None:
+        return {}
+    ridden = [leg for leg in sim["extra"] if not leg["walking"]]
+    planned = _planned_dt(ridden[-1], "plannedArrival") if ridden else None
+    if planned is None:
+        return {}
+    floor = round((planned - planned_final).total_seconds() / 60)
+    pct = compensation_pct(floor)
+    return {"arrivalDelayMin": floor, "compensationPctMin": pct} if pct else {}
 
 
 def _sim_view(sim: dict) -> dict:

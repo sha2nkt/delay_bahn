@@ -326,6 +326,7 @@ const I18N = {
     claimPending: "Ankunft noch nicht bestätigt – morgen früh prüfen",
     thatDayTooltip: "Tatsächliche Ankunftsverspätung an diesem Tag",
     claimPct: (pct) => `${pct} % zurückholen →`,
+    claimPctMinTooltip: (min) => `Auch pünktlich kommt die Weiterfahrt ${min} min nach der gebuchten Ankunft an`,
     claimNew: "Neu",
     claimNone: "Keine Entschädigung (unter 60 min)",
     claimCanceled: "Ausgefallen – Anspruch prüfen →",
@@ -690,6 +691,7 @@ const I18N = {
     claimPending: "Arrival not confirmed yet – check tomorrow morning",
     thatDayTooltip: "Actual arrival delay on this day",
     claimPct: (pct) => `Get ${pct}% back →`,
+    claimPctMinTooltip: (min) => `Even on time, the onward journey arrives ${min} min after the booked arrival`,
     claimNew: "New",
     claimNone: "No compensation (under 60 min)",
     claimCanceled: "Cancelled – check your claim →",
@@ -3470,7 +3472,9 @@ function populateClaimModal() {
   const pct = j.compensationPct;
 
   document.getElementById("claim-modal-title").textContent =
-    pct != null && pct >= 25 ? t("claimModalTitlePct", pct) : t("claimModalTitle");
+    pct != null && pct >= 25 ? t("claimModalTitlePct", pct)
+    : pct == null && j.compensationPctMin ? t("claimModalTitlePct", j.compensationPctMin)
+    : t("claimModalTitle");
   document.getElementById("claim-modal-lead").textContent = t("claimModalLead");
   document.getElementById("claim-modal-close").setAttribute("aria-label", t("claimModalClose"));
 
@@ -4498,6 +4502,8 @@ function render() {
       // cancelled/missed wordings only apply when the outcome stayed unknown
       const canceledish = journey.arrivalCanceled
         || (journey.missedTransfers || []).some((mt) => mt.canceled);
+      // the arrival stayed unknown, but the replacement's timetable alone sets a floor
+      const pctMin = pct == null ? journey.compensationPctMin : null;
       claimable = (pct != null && pct >= 25) || (pct == null && (canceledish || missed));
       let action;
       if (claimable) {
@@ -4506,8 +4512,10 @@ function render() {
         action.className = "claim-btn";
         action.dataset.new = t("claimNew");
         action.textContent = pct != null && pct >= 25 ? t("claimPct", pct)
+          : pctMin ? t("claimPct", pctMin)
           : canceledish ? t("claimCanceled")
           : t("claimMissed");
+        if (pctMin) action.title = t("claimPctMinTooltip", journey.arrivalDelayMin);
         action.addEventListener("click", () => openClaimModal(journey));
       } else {
         action = document.createElement("span");

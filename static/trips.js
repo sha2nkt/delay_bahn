@@ -76,6 +76,7 @@ const I18N = {
     measuredAt: (station) => `Verspätung gemessen in ${station}, wo die Bahnfahrkarte endet`,
     missedBadge: "⛔ Anschluss verpasst",
     claimPct: (pct) => `${pct} % zurückholen →`,
+    claimPctMinTooltip: (min) => `Auch pünktlich kommt die Weiterfahrt ${min} min nach der gebuchten Ankunft an`,
     claimNew: "Neu",
     claimNone: "Keine Entschädigung (unter 60 min)",
     claimCanceled: "Ausgefallen – Anspruch prüfen →",
@@ -192,6 +193,7 @@ const I18N = {
     measuredAt: (station) => `Delay measured at ${station}, where the rail ticket ends`,
     missedBadge: "⛔ Missed connection",
     claimPct: (pct) => `Get ${pct}% back →`,
+    claimPctMinTooltip: (min) => `Even on time, the onward journey arrives ${min} min after the booked arrival`,
     claimNew: "New",
     claimNone: "No compensation (under 60 min)",
     claimCanceled: "Cancelled – check your claim →",
@@ -458,7 +460,9 @@ function openClaimModal(data, dticket) {
   const legs = (data.legs || []).filter((l) => !l.walking);
   const first = legs[0], last = legs[legs.length - 1];
   const pct = data.compensationPct;
-  $("claim-modal-title").textContent = pct != null && pct >= 25 ? t("claimModalTitlePct", pct) : t("claimModalTitle");
+  $("claim-modal-title").textContent = pct != null && pct >= 25 ? t("claimModalTitlePct", pct)
+    : pct == null && data.compensationPctMin ? t("claimModalTitlePct", data.compensationPctMin)
+    : t("claimModalTitle");
   $("claim-modal-lead").textContent = t("claimModalLead");
   $("claim-modal-close").setAttribute("aria-label", t("claimModalClose"));
 
@@ -550,6 +554,8 @@ function buildCheck(data, trip) {
   // with a completed simulation pct reflects the realistic arrival; the
   // cancelled/missed wordings only apply when the outcome stayed unknown
   const canceledish = data.arrivalCanceled || missedTransfers.some((mt) => mt.canceled);
+  // the arrival stayed unknown, but the replacement's timetable alone sets a floor
+  const pctMin = pct == null ? data.compensationPctMin : null;
   const claimable = (pct != null && pct >= 25) || (pct == null && (canceledish || missed));
   let verdict;
   if (claimable) {
@@ -559,7 +565,9 @@ function buildCheck(data, trip) {
     verdict.dataset.new = t("claimNew");
     watchClaimSheen(verdict);
     verdict.textContent = pct != null && pct >= 25 ? t("claimPct", pct)
+      : pctMin ? t("claimPct", pctMin)
       : canceledish ? t("claimCanceled") : t("claimMissed");
+    if (pctMin) verdict.title = t("claimPctMinTooltip", data.arrivalDelayMin);
     verdict.addEventListener("click", () => openClaimModal(data, trip.dticket));
   } else {
     verdict = document.createElement("span");
