@@ -40,12 +40,23 @@
 #      EMPTY_WINDOWS consecutive windows at zero - an /api/fleet error counts as
 #      zero everywhere - and once more on recovery. Around the clock; the window
 #      count covers a restart's rebuild (Austria took 11 min on 2026-10-24).
+#   5. SLOW: the site answers, but slowly. On 2026-11-27 the app stalled for up
+#      to 16 s on about one request in ten all day; /health still came back 200
+#      inside check 1's 20 s, so nothing paged. One request per run would miss
+#      that, so each run sends SLOW_SAMPLES requests SLOW_GAP seconds apart and
+#      counts those over SLOW_SECONDS (a timeout or non-200 counts too). Alerts
+#      after SLOW_WINDOWS runs in a row with SLOW_MIN or more slow ones, and
+#      once more after SLOW_WINDOWS clean runs. A service started less than
+#      SLOW_GRACE seconds ago is still warming up and is not counted. Worst
+#      case this adds SLOW_SAMPLES * (SLOW_TIMEOUT + SLOW_GAP) = 130 s, which
+#      keeps the whole run under the cron period.
 #
 # Testing: DRY_RUN=1 prints alerts instead of sending; HEALTH_FILE=<path>
 # feeds the detector a canned /health body instead of hitting the network
 # (FLEET_FILE likewise for /api/fleet);
 # BLOCK_REMIND_SECONDS=0 makes every window re-page so the reminder path can
-# be exercised without waiting.
+# be exercised without waiting. SLOW_TIMES="0.2 4.1 ..." stands in for check
+# 5's samples; with HEALTH_FILE and no SLOW_TIMES that check is skipped.
 #
 # This repo copy is the canonical source; the installed copy is separate so
 # branch switches in the dev checkout never change what cron runs. Install:
@@ -68,6 +79,14 @@ EMPTYSTATE="${HOME}/.local/state/delaybahn-watchdog-empty.json"
 EMPTY_WINDOWS=${EMPTY_WINDOWS:-4}
 # how often an unresolved block re-pages; rounds up to the 5-min cron period
 BLOCK_REMIND_SECONDS=${BLOCK_REMIND_SECONDS:-600}
+SLOWSTATE="${HOME}/.local/state/delaybahn-watchdog-slow.json"
+SLOW_SAMPLES=${SLOW_SAMPLES:-10}
+SLOW_GAP=${SLOW_GAP:-3}
+SLOW_TIMEOUT=${SLOW_TIMEOUT:-10}
+SLOW_SECONDS=${SLOW_SECONDS:-3}
+SLOW_MIN=${SLOW_MIN:-3}
+SLOW_WINDOWS=${SLOW_WINDOWS:-2}
+SLOW_GRACE=${SLOW_GRACE:-900}
 DOWN_RETRIES=${DOWN_RETRIES:-5}
 DOWN_RETRY_SECONDS=${DOWN_RETRY_SECONDS:-30}
 RESTART_GRACE=${RESTART_GRACE:-180}
@@ -98,6 +117,14 @@ notify() {  # $1 title, $2 priority, $3 tags, $4 body
   fi
 }
 
+# "<ActiveState> <seconds since the unit became active>", empty when the
+# server does not answer; SERVICE_STATE stands in for the ssh in tests
+service_state() {
+  if [ -n "${SERVICE_STATE+x}" ]; then echo "$SERVICE_STATE"; return; fi
+  timeout 12 ssh -o BatchMode=yes -o ConnectTimeout=8 "root@$SERVER" \
+    "u=$SERVICE_UNIT;"' s=$(systemctl show "$u" -p ActiveState --value); t=$(systemctl show "$u" -p ActiveEnterTimestampMonotonic --value); echo "$s $(( $(cut -d. -f1 /proc/uptime) - t / 1000000 ))"' 2>/dev/null
+}
+
 # ---------------------------------------------------------------- fetch
 if [ -n "$HEALTH_FILE" ]; then
   body=$(cat "$HEALTH_FILE" 2>/dev/null); code=200
@@ -108,13 +135,6 @@ else
     out=$(curl -4 -s --max-time 20 -w '\n%{http_code}' "$HEALTH_URL")
     code=${out##*$'\n'}
     body=${out%$'\n'*}
-  }
-  # "<ActiveState> <seconds since the unit became active>", empty when the
-  # server does not answer; SERVICE_STATE stands in for the ssh in tests
-  service_state() {
-    if [ -n "${SERVICE_STATE+x}" ]; then echo "$SERVICE_STATE"; return; fi
-    timeout 12 ssh -o BatchMode=yes -o ConnectTimeout=8 "root@$SERVER" \
-      "u=$SERVICE_UNIT;"' s=$(systemctl show "$u" -p ActiveState --value); t=$(systemctl show "$u" -p ActiveEnterTimestampMonotonic --value); echo "$s $(( $(cut -d. -f1 /proc/uptime) - t / 1000000 ))"' 2>/dev/null
   }
   probe
   # one retry rides out transient network/DNS flakes on this box
@@ -392,3 +412,60 @@ while read -r kind rest; do
         "On the live map again: $rest trains." ;;
   esac
 done <<<"$empty"
+
+# ------------------------------------------------------------ check 5: slow
+if [ -n "${SLOW_TIMES+x}" ]; then
+  times=$SLOW_TIMES
+elif [ -n "$HEALTH_FILE" ]; then
+  exit 0
+else
+  times=""
+  for i in $(seq "$SLOW_SAMPLES"); do
+    [ "$i" -gt 1 ] && sleep "$SLOW_GAP"
+    read -r scode secs <<<"$(curl -4 -s -o /dev/null --max-time "$SLOW_TIMEOUT" -w '%{http_code} %{time_total}' "$HEALTH_URL")"
+    # a request that failed or timed out is as bad as the slowest one allowed
+    [ "$scode" = "200" ] || secs=$SLOW_TIMEOUT
+    times="$times $secs"
+  done
+fi
+read -r nslow nall worst <<<"$(awk -v lim="$SLOW_SECONDS" '{for (i = 1; i <= NF; i++) {if ($i > lim) n++; if ($i > w) w = $i}} END {printf "%d %d %.1f", n, NF, w}' <<<"$times")"
+if [ "$nslow" -ge "$SLOW_MIN" ]; then
+  # only a slow run costs the ssh; a warming-up service leaves the state alone
+  read -r unit age <<<"$(service_state)"
+  case "$unit $age" in
+    "active "*[!0-9]*|"active ") ;;
+    "active "*) [ "$age" -lt "$SLOW_GRACE" ] && exit 0 ;;
+  esac
+fi
+slow=$(NSLOW="$nslow" MIN="$SLOW_MIN" WINDOWS="$SLOW_WINDOWS" python3 - "$SLOWSTATE" <<'PY'
+import json, os, sys
+
+state_path = sys.argv[1]
+st = {}
+if os.path.exists(state_path):
+    try: st = json.load(open(state_path))
+    except Exception: st = {}
+streak, clean, alerted = st.get("streak", 0), st.get("clean", 0), st.get("alerted", False)
+windows = int(os.environ["WINDOWS"])
+if int(os.environ["NSLOW"]) >= int(os.environ["MIN"]):
+    streak, clean = streak + 1, 0
+    if streak >= windows and not alerted:
+        alerted = True
+        print("SLOW")
+else:
+    streak, clean = 0, clean + 1
+    if alerted and clean >= windows:
+        alerted = False
+        print("RECOVERED")
+json.dump({"streak": streak, "clean": clean, "alerted": alerted}, open(state_path, "w"))
+PY
+)
+
+case "$slow" in
+  SLOW)
+    notify "delaybahn.com is SLOW" high "snail,warning" \
+      "$nslow of $nall requests took over ${SLOW_SECONDS} s (worst ${worst} s; ${SLOW_TIMEOUT} s means it timed out or failed), in $SLOW_WINDOWS checks in a row. The site answers, so nothing else pages. Check: ssh $SERVER 'journalctl -u cloudflared-delaybahn --since -10min | grep -c \"Request failed\"'" ;;
+  RECOVERED)
+    notify "delaybahn.com is fast again" default white_check_mark \
+      "$SLOW_WINDOWS checks in a row were clean; the latest had $nslow of $nall requests over ${SLOW_SECONDS} s (worst ${worst} s)." ;;
+esac

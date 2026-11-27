@@ -2507,3 +2507,13 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Not verified: My trips in a browser (needs a login).
 - Deliberately unchanged: Easy apply opened from such a button has no actual arrival to fill in, so its delay box stays unticked until the visitor types the time; the report mail keeps its generic verdict; saved trips whose check is already final do not pick the floor up.
 - Found, not fixed: the upstream lookback itself. Raising it would need a pull request there and a check of how far back the DB timetable API serves plan data; hours already lost cannot be refetched.
+
+## 2026-11-27 — Watchdog: a check for a site that answers, but slowly
+
+- Incident: the site stalled for up to 28 s on roughly one request in ten from 01:35 UTC for the whole day (cause and fix are in the map package's log). Nothing paged: /health kept answering 200 inside the watchdog's 20 s, and the systemd hooks only fire on a failed unit.
+- `scripts/delaybahn-watchdog.sh` gets check 5, SLOW: each run sends 10 requests to /health 3 s apart with a 10 s timeout and counts those over 3 s (a timeout or non-200 counts). Two runs in a row with 3 or more slow ones page "delaybahn.com is SLOW" with the counts and the worst time; two clean runs in a row send one recovery notice. A slow run within 15 minutes of a service start is left out (the server is asked over ssh only when a run is slow; no answer counts the run). State in `~/.local/state/delaybahn-watchdog-slow.json`. Worst case it adds 130 s, which keeps the run under the 5-minute cron period.
+- `service_state` moved out of the fetch branch so the new check can use it; `SLOW_TIMES` stands in for the samples in tests.
+- Verified: 12 canned runs in a sandboxed home with DRY_RUN (fast, two slow only, first and second bad run, no repeat, warm-up left out, recovery after two clean runs, ssh without an answer); one live dry run of the whole script against the site (10 of 10 under 0.6 s, no alert, 14 s with a 1 s gap).
+- Installed on ps083 by copying the script to `~/.local/bin/delaybahn-watchdog.sh`.
+- Deliberately not built: counting failed requests in the tunnel log on the server (needs ssh and depends on log wording); kept as a second signal if the burst proves too coarse.
+- Found, not fixed: one exception in the service log, `ValueError: too many values to unpack (expected 3)` at `arr_delay, canceled, reason = row`; before the 21:06 restart /health showed 3 German trips matched to the realtime feed (2,671 after) without a grey-map page, one reading only.
