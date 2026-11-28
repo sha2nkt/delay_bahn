@@ -2517,3 +2517,12 @@ Append-only. Add new entries at the bottom with a date heading; never edit or de
 - Installed on ps083 by copying the script to `~/.local/bin/delaybahn-watchdog.sh`.
 - Deliberately not built: counting failed requests in the tunnel log on the server (needs ssh and depends on log wording); kept as a second signal if the burst proves too coarse.
 - Found, not fixed: one exception in the service log, `ValueError: too many values to unpack (expected 3)` at `arr_delay, canceled, reason = row`; before the 21:06 restart /health showed 3 German trips matched to the realtime feed (2,671 after) without a grey-map page, one reading only.
+
+## 2026-11-28 — Watchdog: the slow check pages later
+
+- The check from 2026-11-27 paged three times in its first day (5, 3 and 3 slow of 10) while the site was in its usual state: about one request in twelve through Cloudflare over 3 s, and "clean" runs with 2 of 10. The first page came 20 minutes after a restart.
+- `scripts/delaybahn-watchdog.sh`: `SLOW_MIN` 3 -> 5, `SLOW_GRACE` 900 -> 1800. Nothing else changed.
+- Verified with canned runs in a sandboxed home (DRY_RUN): 4 of 10 twice, no page; 5 of 10 twice, one page and no repeat on a third; two clean runs, one recovery notice; 5 of 10 twice 20 minutes after a start, left out; 31 minutes after, paged.
+- Installed on ps083 by copying the script to `~/.local/bin/delaybahn-watchdog.sh`.
+- Known limit: the 2026-11-27 incident was about one slow request in ten on the server itself, so a repeat may stay under 5 of 10. The tunnel's failed-request count separates the two states better (75-155 an hour then, 3-10 an hour on a normal day) and is the candidate for the paging signal; not built.
+- The leftover stalls themselves: see the map package's log of this date.
